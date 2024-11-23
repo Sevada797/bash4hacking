@@ -2,7 +2,7 @@
 Set of scripts that will be useful for bug hunters
 for using any of the scripts run ```source <filename>```
 for pernamently making autoload the script add the ```source <filename>``` line
-in ```~/.bashrc``` file
+in ```~/.bashrc``` file, make sure you do this with absolute path
 
 # Tools available
 ## 1) HF (HTTP find)
