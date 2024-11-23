@@ -7,7 +7,7 @@ for using any of the scripts run ```source <filename>```
 ## 1) HF (HTTP find)
 This bash code will look our given value, and look it in all HTTP responses that we got from urls, in other words if our given values are reflected in list of urls. (Coming soon)
 
-> Usage: hf <file_with_urls\> <value\>
+> Usage: hf <file_with_urls\> <value\> (--ua-chrome) (--burp)
 
 
 ## 2) HHI (HTTP headers inspector)
