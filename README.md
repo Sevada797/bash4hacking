@@ -13,3 +13,6 @@ This bash code will look our given value, and look it in all HTTP responses that
 
 ## 2) HHI (HTTP headers inspector)
 This bash code will look for any kind of bad or interesting for us headers like `X-Frame-Options: allow`  or  `Access-Control-Allow-Origin: *`. (Coming soon)
+
+## 3) m64
+Description details will be added later
