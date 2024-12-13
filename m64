@@ -1,4 +1,5 @@
 # I will add description later ;)
+# Minor mistakes detected!
 
 function m64 {
 aaa=$(echo -n "$1" | openssl base64)
