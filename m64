@@ -1,7 +1,11 @@
 # I will add description later ;)
-# Minor mistakes detected!
 
 function m64 {
+
+# Basically to count the minimum base64 str that is consant we need to remove one byte from begining, (except the first case)
+# and also we will need to get -1 byte substr in cases where it ends in = or ==
+# but I would simply write -1 for all cases, just in case ;) (I'm lazy + lame to write if else for this)
+
 aaa=$(echo -n "$1" | openssl base64)
 bbb=$(echo -n "a"$1 | openssl base64)
 ccc=$(echo -n "aa"$1 | openssl base64)
@@ -9,6 +13,7 @@ aaa="${aaa//=/''}"
 bbb="${bbb//=/''}"
 ccc="${ccc//=/''}"
 
-echo -e "Look for:\n ${aaa:0:${#aaa}}\n ${bbb:2:${#bbb}}\n ${ccc:3:${#ccc}} "
+echo -e "Look for:\n ${aaa:0:${#aaa}-1}\n ${bbb:2:${#bbb}-1}\n ${ccc:3:${#ccc}-1} "
+
 
 }
