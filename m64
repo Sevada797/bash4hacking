@@ -9,11 +9,14 @@ function m64 {
 aaa=$(echo -n "$1" | openssl base64)
 bbb=$(echo -n "a"$1 | openssl base64)
 ccc=$(echo -n "aa"$1 | openssl base64)
-aaa="${aaa//=/''}"
-bbb="${bbb//=/''}"
-ccc="${ccc//=/''}"
+aaa="${aaa//[^=]/}"
+bbb="${bbb//[^=]/}"
+ccc="${ccc//[^=]/}"
 
 echo -e "Look for:\n ${aaa:0:${#aaa}-1}\n ${bbb:2:${#bbb}-1}\n ${ccc:3:${#ccc}-1} "
 
 
 }
+
+
+
