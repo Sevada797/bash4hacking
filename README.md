@@ -15,4 +15,4 @@ This bash code will look our given value, and look it in all HTTP responses that
 This bash code will look for any kind of bad or interesting for us headers like `X-Frame-Options: allow`  or  `Access-Control-Allow-Origin: *`. (Coming soon)
 
 ## 3) m64
-Description details will be added later
+Tool for giving you the 3 possible minimal substrings of base64 encoded text 
