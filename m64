@@ -1,5 +1,3 @@
-# I will add description later ;)
-
 function m64 {
 
 # Basically to count the minimum base64 str that is consant we need to remove one byte from begining, (except the first case)
@@ -13,10 +11,9 @@ aaa="${aaa//=}"
 bbb="${bbb//=}"
 ccc="${ccc//=}"
 
-echo -e "Look for:\n ${aaa:0:${#aaa}-1}\n ${bbb:2:${#bbb}-1-2}\n ${ccc:3:${#ccc}-1-3} "
-
-
+if [ -z "$2" ]; then
+echo -e "Look for:\n ${aaa:0:${#aaa}-1}\n ${bbb:2:${#bbb}-1-2}\n ${ccc:3:${#ccc}-1-3} \n\n"
+else
+grep -E "\"${aaa:0:${#aaa}-1}|${bbb:2:${#bbb}-1-2}|${ccc:3:${#ccc}-1-3}\"" "$2"
+fi
 }
-
-
-
