@@ -16,3 +16,5 @@ This bash code will look for any kind of bad or interesting for us headers like 
 
 ## 3) m64
 Tool for giving you the 3 possible minimal substrings of base64 encoded text 
+
+> Usage: m64  <string>
