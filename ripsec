@@ -1,0 +1,28 @@
+# Define the ripsec function
+ripsec() {
+    # Check if the file exists
+    if [[ ! -f "$1" ]]; then
+        echo "Error: File $1 not found!"
+        return 1
+    fi
+
+    # Define filenames for sensitive files
+    sensitive_files=(
+        ".env"
+        "phpinfo.php"
+        "package.json"
+        "Dockerfile"
+        "config.php"
+        "settings.py"
+        "web.config"
+        ".gitignore"
+        ".htaccess"
+    )
+
+    # Construct the grep pattern
+    pattern=$(printf "|%s" "${sensitive_files[@]}")
+    pattern="${pattern:1}" # Remove leading |
+
+    # Grep the file for sensitive filenames
+    grep -E "($pattern)" "$1"
+}
