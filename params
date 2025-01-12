@@ -1,0 +1,9 @@
+params() {
+    sed -E -n '
+        /\?/!d;           # Skip lines without a "?" (no query parameters)
+        s/.*\?//;         # Remove everything before and including the "?"
+        s/&/\n/g;         # Replace "&" with newlines to separate parameters
+        s/=.*//;          # Remove everything after "="
+        p                 # Print the result
+    ' "$1" | sort -u
+}
