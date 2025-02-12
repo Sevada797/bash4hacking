@@ -4,6 +4,18 @@ function m64 {
 # and also we will need to get -1 byte substr in cases where it ends in = or ==
 # but I would simply write -1 for all cases, just in case ;) (I'm lazy + lame to write if else for this)
 
+    if [ -z "$1" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+        echo "Usage: m64 <string> [file]"
+        echo -e "\nArguments:"
+        echo "  <string>   The string to encode."
+        echo "  [file]     (Optional) File to search for matching base64 patterns."
+        echo -e "\nDescription:"
+        echo "  This function generates modified base64-encoded strings and extracts their minimal representations."
+        echo "  If a file is provided, it searches for these patterns within the file."
+        return 1
+    fi
+
+
 aaa=$(echo -n "$1" | openssl base64)
 bbb=$(echo -n "a"$1 | openssl base64)
 ccc=$(echo -n "aa"$1 | openssl base64)
