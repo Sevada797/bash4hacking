@@ -18,3 +18,23 @@ This bash code will look for any kind of bad or interesting for us headers like 
 Tool for giving you the 3 possible minimal substrings of base64 encoded text 
 
 > Usage: m64  \<string\>  or m64 \<string\> \<file\>
+
+## 4) subs
+Exfiltrate subdomains from fetched urls
+
+> Usage: subs  \<domain\>  \<file\>
+this will get you all subdomains of that domain
+
+## 5) mdd
+
+> Usage: mdd \<file\>
+will detect md5 in a list of urls for example
+
+## 6) params
+
+> Usage: params \<file\>
+will get you all parameters from a list of urls 
+
+
+## Useful?
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-orange?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/zatikyansed)
