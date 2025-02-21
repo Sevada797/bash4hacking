@@ -5,5 +5,5 @@ params() {
          s/&/\n/g;      
          /^[^=]+/p;
          s/=*/""/g;         
-     ' "$1" | sed -r "s/=.*//"| sort -u     
+     ' "$1" | sed -r "s/=.*//"| sort -u  | grep -vE "[0-9]|%"
  }
