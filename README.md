@@ -25,15 +25,22 @@ Exfiltrate subdomains from fetched urls
 > Usage: subs  \<domain\>  \<file\>
 this will get you all subdomains of that domain
 
-## 5) mdd
+## 5) lsubs
 
-> Usage: mdd \<file\>
-will detect md5 in a list of urls for example
+> Usage: lsubs \<file\>
+filters out the subdomains that give 200 status and outs in subs200 file
 
 ## 6) params
 
 > Usage: params \<file\>
 will get you all parameters from a list of urls 
+
+## 7) mdd
+
+> Usage: mdd \<file\>
+will detect md5 in a list of urls for example
+
+
 
 
 ## Useful?
