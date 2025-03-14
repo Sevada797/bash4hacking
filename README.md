@@ -23,7 +23,7 @@ Tool for giving you the 3 possible minimal substrings of base64 encoded text
 Exfiltrate subdomains from fetched urls
 
 > Usage: subs  \<domain\>  \<file\>
-this will get you all subdomains of that domain
+this will get you all subdomains of that domain (you can use it after amass scan for exmaple haha)
 
 ## 5) lsubs
 
