@@ -1,8 +1,6 @@
 # bash4hacking
 Set of scripts that will be useful for bug hunters
-for using any of the scripts run ```source <filename>```
-for pernamently making autoload the script add the ```source <filename>``` line
-in ```~/.bashrc``` file, make sure you do this with absolute path
+Read  `Instalation` for insntallation
 
 ## 🔧 Installation
 
