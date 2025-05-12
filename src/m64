@@ -1,0 +1,31 @@
+function m64 {
+
+# Basically to count the minimum base64 str that is consant we need to remove one byte from begining, (except the first case)
+# and also we will need to get -1 byte substr in cases where it ends in = or ==
+# but I would simply write -1 for all cases, just in case ;) (I'm lazy + lame to write if else for this)
+
+    if [ -z "$1" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+        echo "Usage: m64 <string> [file]"
+        echo -e "\nArguments:"
+        echo "  <string>   The string to encode."
+        echo "  [file]     (Optional) File to search for matching base64 patterns."
+        echo -e "\nDescription:"
+        echo "  This function generates modified base64-encoded strings and extracts their minimal representations."
+        echo "  If a file is provided, it searches for these patterns within the file."
+        return 1
+    fi
+
+
+aaa=$(echo -n "$1" | openssl base64)
+bbb=$(echo -n "a"$1 | openssl base64)
+ccc=$(echo -n "aa"$1 | openssl base64)
+aaa="${aaa//=}"
+bbb="${bbb//=}"
+ccc="${ccc//=}"
+
+if [ -z "$2" ]; then
+echo -e "Look for:\n ${aaa:0:${#aaa}-1}\n ${bbb:2:${#bbb}-1-2}\n ${ccc:3:${#ccc}-1-3} \n\n"
+else
+grep -E "${aaa:0:${#aaa}-1}|${bbb:2:${#bbb}-1-2}|${ccc:3:${#ccc}-1-3}" "$2"
+fi
+}

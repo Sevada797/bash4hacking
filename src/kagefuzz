@@ -1,0 +1,49 @@
+kagefuzz() {
+    if [ -z "$1" ] || [ ! -f "$1" ]; then
+        echo "Usage: kagefuzz <file-with-domains>"
+        return 1
+    fi
+
+    paths=(
+        ".env"
+        ".git/config"
+        "wp-config.php"
+        "config.php"
+        "phpinfo.php"
+        "backup.zip"
+        "backup.sql"
+        "database.yml"
+        "id_rsa"
+        "credentials.json"
+    )
+
+    file="$1"
+    domains=($(grep -v '^\s*$' "$file"))
+    total_domains=${#domains[@]}
+    total_paths=${#paths[@]}
+    total_requests=$((total_domains * total_paths))
+    done_requests=0
+    bar_length=30
+
+    draw_bar() {
+        progress=$(( done_requests * bar_length / total_requests ))
+        bar=$(printf "%-${bar_length}s" | tr ' ' '=' | cut -c1-$progress)
+        printf "\r[%s] %d/%d" "$bar" "$done_requests" "$total_requests"
+    }
+
+    for domain in "${domains[@]}"; do
+        for path in "${paths[@]}"; do
+            api_url="https://archive.org/wayback/available?url=https://$domain/$path"
+            result=$(curl -s "$api_url" | jq -r '.archived_snapshots.closest.url // empty')
+
+            if [ -n "$result" ]; then
+                echo -e "\n[+] https://$domain/$path → $result"
+            fi
+
+            ((done_requests++))
+            draw_bar
+        done
+    done
+
+    echo -e "\nDone ✅"
+}

@@ -1,0 +1,11 @@
+lsubs () {
+    if [ "$#" -ne 1 ]; then
+        echo "Usage: lsubs <file_with_subdomains>"
+        return 1
+    fi
+
+    while IFS= read -r sub; do
+        if (($(curl https://$sub --connect-timeout 2 -sI | head -n 1 | awk '{print $2}')==200)); then echo $sub>>subs200; fi
+    done < "$1"
+
+}

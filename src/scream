@@ -1,0 +1,31 @@
+# Define the scream function
+scream() {
+    # Check if the file exists
+    if [[ ! -f "$1" ]]; then
+        echo "Error: File $1 not found!"
+        return 1
+    fi
+
+    # Define keywords for sensitive endpoints
+    keywords=(
+        "admin"
+        "login"
+        "signup"
+        "config"
+        "backup"
+        "password"
+        "secret"
+        "token"
+        "apikey"
+        "debug"
+        "private"
+        "auth"
+    )
+
+    # Construct the grep pattern
+    pattern=$(printf "|%s" "${keywords[@]}")
+    pattern="${pattern:1}" # Remove leading |
+
+    # Grep the file for sensitive endpoints
+    grep -E "($pattern)" "$1"
+}
