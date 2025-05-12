@@ -1,5 +1,5 @@
 # bash4hacking
-Set of scripts that will be useful for bug hunters<br>
+Set of scripts that will be useful for bug hunters.<br>
 Read  `Instalation` for insntallation
 
 ## 🔧 Installation
