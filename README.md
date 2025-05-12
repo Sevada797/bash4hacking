@@ -12,7 +12,7 @@ Clone the repo and run the setup:
 git clone https://github.com/sevad797/bash4hacking.git
 cd bash4hacking
 bash setup.sh
-
+```
 
 # 🛠️ Tools available
 ## 1) HF (HTTP find)
