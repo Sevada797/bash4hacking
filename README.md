@@ -4,7 +4,17 @@ for using any of the scripts run ```source <filename>```
 for pernamently making autoload the script add the ```source <filename>``` line
 in ```~/.bashrc``` file, make sure you do this with absolute path
 
-# Tools available
+## 🔧 Installation
+
+Clone the repo and run the setup:
+
+```bash
+git clone https://github.com/sevad797/bash4hacking.git
+cd bash4hacking
+bash setup.sh
+
+
+# 🛠️ Tools available
 ## 1) HF (HTTP find)
 This bash code will look our given value, and look it in all HTTP responses that we got from urls, in other words if our given values are reflected in list of urls.
 
@@ -40,6 +50,10 @@ will get you all parameters from a list of urls
 > Usage: mdd \<file\>
 will detect md5 in a list of urls for example
 
+## 8) kagefuzz
+
+> Usage: kagefuzz \<file-with-domains\>
+fuzzes sensitive paths in wayback and checks for availibility
 
 
 
