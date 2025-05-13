@@ -1,6 +1,10 @@
 BASHRC="$HOME/.bashrc"
 IMPORT_MARK="# IMPORT for Bash4hacking"
-IMPORT_CMD="source $(pwd)/src/*"
+SRC_DIR="$(pwd)/src"
+
+# Command that loops and sources only regular files
+IMPORT_CMD='for file in '"$SRC_DIR"'/*; do [ -f "$file" ] && source "$file"; done'
+
 
 # Check if already added
 if ! grep -qi "bash4hacking" "$BASHRC"; then
