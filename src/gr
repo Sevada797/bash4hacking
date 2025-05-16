@@ -1,0 +1,20 @@
+gr() {
+    if [ -z "$1" ]; then
+        echo -e "📂 Usage: gr <url-file> [filter-substring]"
+        return 1
+    fi
+
+    local urlfile="$1"
+    local keyword="${2:-}"
+
+    if [ ! -f "$urlfile" ]; then
+        echo -e "❌ File not found: $urlfile"
+        return 1
+    fi
+
+    if [ -z "$keyword" ]; then
+        python3 "$BFH_PATH/pysrc/gecko.py" "$urlfile"
+    else
+        python3 "$BFH_PATH/pysrc/gecko.py" "$urlfile" "$keyword"
+    fi
+}

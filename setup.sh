@@ -13,6 +13,12 @@ if ! grep -qi "bash4hacking" "$BASHRC"; then
         echo -e "## IMPORT for Bash4hacking"
         echo -e "##############################"
         echo "$IMPORT_CMD"
+        echo "BFH_PATH=\""$(pwd)"\""
+        echo -e "################################"
+        echo -e "## ENDOF IMPORT for Bash4hacking"
+        echo -e "################################"
+
+
     } >> "$BASHRC"
     echo -e "\n✅ Bash4hacking setup added to ~/.bashrc"
 else

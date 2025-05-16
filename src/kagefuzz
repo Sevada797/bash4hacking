@@ -26,8 +26,18 @@ kagefuzz() {
     bar_length=30
 
     draw_bar() {
-        progress=$(( done_requests * bar_length / total_requests ))
-        bar=$(printf "%-${bar_length}s" | tr ' ' '=' | cut -c1-$progress)
+        if [ "$total_requests" -eq 0 ]; then
+            progress=0
+        else
+            progress=$(( done_requests * bar_length / total_requests ))
+        fi
+
+        if [ "$progress" -gt 0 ]; then
+            bar=$(printf "%-${bar_length}s" | tr ' ' '=' | cut -c1-"$progress")
+        else
+            bar=""
+        fi
+
         printf "\r[%s] %d/%d" "$bar" "$done_requests" "$total_requests"
     }
 
