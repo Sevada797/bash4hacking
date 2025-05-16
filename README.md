@@ -53,6 +53,12 @@ will detect md5 in a list of urls for example
 > Usage: kagefuzz \<file-with-domains\>
 fuzzes sensitive paths in wayback and checks for availibility
 
+## 9) gr
+
+> Usage: gr <url-file> [filter-substring]
+Resolves and follows all redirects in the given list of URLs.
+If a second argument is provided, it filters and prints only the final URLs containing that substring.
+Useful for catching internal redirectors
 
 
 ### Useful?
