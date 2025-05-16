@@ -29,36 +29,36 @@ Tool for giving you the 3 possible minimal substrings of base64 encoded text
 
 ### 4) subs
 Exfiltrate subdomains from fetched urls
-
-> Usage: subs  \<domain\>  \<file\>
 this will get you all subdomains of that domain (you can use it after amass scan for exmaple haha)
 
-### 5) lsubs
+> Usage: subs  \<domain\>  \<file\>
 
-> Usage: lsubs \<file\>
+### 5) lsubs
 filters out the subdomains that give 200 status and outs in subs200 file
 
+> Usage: lsubs \<file\>
+
 ### 6) params
+Will get you all parameters from a list of urls 
 
 > Usage: params \<file\>
-will get you all parameters from a list of urls 
 
 ### 7) mdd
+Will detect md5 in a list of urls for example
 
 > Usage: mdd \<file\>
-will detect md5 in a list of urls for example
 
 ## 8) kagefuzz
-
-> Usage: kagefuzz \<file-with-domains\>
 fuzzes sensitive paths in wayback and checks for availibility
 
-## 9) gr
+> Usage: kagefuzz \<file-with-domains\>
 
-> Usage: gr <url-file> [filter-substring]
+## 9) gr
 Resolves and follows all redirects in the given list of URLs.
 If a second argument is provided, it filters and prints only the final URLs containing that substring.
 Useful for catching internal redirectors
+
+> Usage: gr <url-file> [filter-substring]
 
 
 ### Useful?
