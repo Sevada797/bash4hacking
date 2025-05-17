@@ -7,7 +7,7 @@ Read  `Instalation` for insntallation
 Clone the repo and run the setup:
 
 ```bash
-git clone https://github.com/sevad797/bash4hacking.git
+git clone https://github.com/sevada797/bash4hacking.git
 cd bash4hacking
 bash setup.sh
 ```
