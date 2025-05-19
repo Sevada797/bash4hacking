@@ -1,6 +1,7 @@
 # bash4hacking
 Set of scripts that will be useful for bug hunters.<br>
-Read  `Instalation` for insntallation
+Some of the scripts are helpful for "data analysis" kinda.<br>
+Read  `Instalation` for installation
 
 ## 🔧 Installation
 

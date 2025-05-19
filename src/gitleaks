@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function gitleaks() {
+    local repo="$1"
+    local return_branch="$2"
+    local workdir
+
+    if [[ -z "$repo" ]]; then
+        echo "Usage: scan_git_leaks <local-path-or-git-url> [branch-to-return-to]" >&2
+        return 1
+    fi
+
+    # If it's a URL, clone into a temp dir; else just cd into it
+    if [[ "$repo" =~ ^https?:// ]]; then
+        workdir=$(mktemp -d)
+        git clone --quiet "$repo" "$workdir" || { echo "Clone failed" >&2; return 1; }
+    else
+        workdir="$repo"
+        [[ -d "$workdir/.git" ]] || { echo "Not a git repo: $workdir" >&2; return 1; }
+    fi
+
+    pushd "$workdir" > /dev/null
+
+    # Detect return branch if not specified or invalid
+    if [[ -z "$return_branch" ]]; then
+        # Try to get current branch name
+        return_branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null)
+        # If detached HEAD or no branch, get remote default branch
+        if [[ -z "$return_branch" ]]; then
+            return_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+        fi
+    fi
+
+    echo "[*] Scanning repo at $(pwd) on branch '$return_branch' for leaked creds…"
+
+    for hash in $(git rev-list --all); do
+        echo -e "\n[*] Checking commit $hash…"
+        git checkout --quiet "$hash"
+
+        grep -EInr --color=always \
+            'apikey=|aws_secret|Authorization: Bearer|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|/bot_[0-9]{9,15}:[a-zA-Z0-9_-]{35,}|client_secret|secret_key|api_key' \
+            . 2>/dev/null | tee -a "$HOME/gitleaks.txt"
+    done
+
+    # Return to detected or user-specified branch
+    git checkout --quiet "$return_branch"
+    popd > /dev/null
+
+    # Cleanup if cloned
+    if [[ "$repo" =~ ^https?:// ]]; then
+        rm -rf "$workdir"
+    fi
+
+    echo -e "\n[*] Done. Repo reset back to '$return_branch'."
+    echo "[*] Check ~/gitleaks.txt for results ;D"
+}
+
+# add access_token back again in grep 
