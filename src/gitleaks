@@ -37,7 +37,7 @@ function gitleaks() {
         echo -e "\n[*] Checking commit $hash…"
         git checkout --quiet "$hash"
 
-        grep -EInr --color=always \
+        grep -EInri --color=always \
             'apikey=|aws_secret|Authorization: Bearer|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|/bot_[0-9]{9,15}:[a-zA-Z0-9_-]{35,}|client_secret|secret_key|api_key' \
             . 2>/dev/null | tee -a "$HOME/gitleaks.txt"
     done
