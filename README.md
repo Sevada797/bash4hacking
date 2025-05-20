@@ -61,6 +61,9 @@ Useful for catching internal redirectors
 
 > Usage: gr <url-file> [filter-substring]
 
+## 10) gitleaks
+Loops and checkouts all commit hashes, after greps entire dir for sensitive info (feel free to contribute in grep match-string)
+> Usage: Usage: gitleaks \<local-path-or-git-url\> [branch-to-return-to]
 
 ### Useful?
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-orange?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/zatikyansed)

@@ -6,7 +6,7 @@ function gitleaks() {
     local workdir
 
     if [[ -z "$repo" ]]; then
-        echo "Usage: scan_git_leaks <local-path-or-git-url> [branch-to-return-to]" >&2
+        echo "Usage: gitleaks <local-path-or-git-url> [branch-to-return-to]" >&2
         return 1
     fi
 
