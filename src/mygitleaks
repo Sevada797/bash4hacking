@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function gitleaks() {
+function mygitleaks() {
     local repo="$1"
     local return_branch="$2"
     local workdir
