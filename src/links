@@ -1,0 +1,21 @@
+links() {
+    local domain="$1"
+    local file="$2"
+
+    if [ -z "$domain" ]; then
+        echo "Usage: links <domain> [file]"
+        echo "Example:"
+        echo "  links example.com urls"
+        echo "  cat page.html | links example.com"
+        return 1
+    fi
+
+    # This regex matches http(s) URLs including query, fragment, params, commas, etc
+    local regex='https?://[^[:space:]"'\''<>]+'
+
+    if [ -n "$file" ]; then
+        grep -Eo "$regex" "$file" | sort -u | grep "$domain"
+    else
+        grep -Eo "$regex" | sort -u | grep "$domain"
+    fi
+}
