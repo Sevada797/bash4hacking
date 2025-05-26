@@ -1,0 +1,32 @@
+robots() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: robots subdomains-file"
+    return
+  fi
+
+  > robots_paths.txt
+  > robots_params.txt
+
+  while IFS= read -r sub; do
+    echo "[*] Fetching: https://$sub/robots.txt"
+
+    # Grab the robots.txt
+    content=$(curl -skL --max-time 5 "https://$sub/robots.txt")
+
+    # Extract Clean-param lines → robots_params.txt
+    echo "$content" | grep -i '^Clean-param:' | awk '{print $2}' | while read -r param; do
+      echo "$param" >> robots_params.txt
+    done
+
+    # Extract path-based lines → robots_paths.txt
+    echo "$content" | grep -Ei '^(Disallow|Allow|Sitemap):' | awk '{print $2}' | while read -r path; do
+      # Clean up relative or absolute paths
+      [[ "$path" =~ ^/|^https?:// ]] && echo "$sub$path" | sed 's|^|https://|' >> robots_paths.txt
+    done
+
+  done < "$1"
+
+  echo "[+] Done. Saved:"
+  echo "   - Params → robots_params.txt"
+  echo "   - Paths  → robots_paths.txt"
+}

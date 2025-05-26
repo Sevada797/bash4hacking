@@ -70,5 +70,10 @@ Loops and checkouts all commit hashes, after greps entire dir for sensitive info
 links extractor
 > Usage: links <domain> [file]
 
+## 12) robots
+provide subs list and it fetches all robots.txt and from there
+it gathers for you paths and parameters (parameters only from keys like Clean-param)
+> Usage robots <subdomains-file>
+
 ### Useful?
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-orange?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/zatikyansed)

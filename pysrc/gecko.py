@@ -1,11 +1,12 @@
 import httpx
-import asyncio
 import sys
 import os
+import anyio
+import asyncio
 
 async def resolve_redirect(session, url, keyword=None):
     try:
-        r = await session.get(url, follow_redirects=True, timeout=8)
+        r = await session.get(url, follow_redirects=True, timeout=3)
         final = str(r.url)
         if keyword is None or keyword in final:
             print(f"[+] {url} -> {final}")
@@ -40,3 +41,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
