@@ -75,5 +75,9 @@ provide subs list and it fetches all robots.txt and from there
 it gathers for you paths and parameters (parameters only from keys like Clean-param)
 > Usage robots <subdomains-file>
 
+## 13) orgen 
+generates a list of possbile open redirects from a subdomain list
+
+
 ### Useful?
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-orange?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/zatikyansed)

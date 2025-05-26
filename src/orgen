@@ -5,10 +5,10 @@ orgen() {
 
     # Show usage if no input is given
     if [[ -z "$1" ]]; then
-        echo "Usage: gen_open_redirect_payloads <url | file_with_urls>"
+        echo "Usage: orgen <url | file_with_urls>"
         echo "Example:"
-        echo "  gen_open_redirect_payloads https://target.com"
-        echo "  gen_open_redirect_payloads urls.txt"
+        echo "  orgen https://target.com"
+        echo "  orgen urls.txt"
         return 1
     fi
 
