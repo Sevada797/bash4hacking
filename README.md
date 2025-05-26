@@ -77,10 +77,10 @@ it gathers for you paths and parameters (parameters only from keys like Clean-pa
 
 ## 13) orgen 
 generates a list of possbile open redirects from a subdomain list
-> Usage: gen_open_redirect_payloads \<url | file_with_urls\>
+> Usage: orgen \<url | file_with_urls\>
 Example:
-  gen_open_redirect_payloads https://target.com
-  gen_open_redirect_payloads urls.txt
+  orgen https://target.com
+  orgen urls.txt
 
 ## 14) frames 
 Ok, just check it out :D it loads all provided
