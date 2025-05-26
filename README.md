@@ -78,7 +78,7 @@ it gathers for you paths and parameters (parameters only from keys like Clean-pa
 ## 13) orgen 
 generates a list of possbile open redirects from a subdomain list
 > Usage: orgen \<url | file_with_urls\>
-Example:<br>
+<br>Example:<br>
   orgen https://target.com<br>
   orgen urls.txt
 
