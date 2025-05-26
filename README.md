@@ -73,10 +73,16 @@ links extractor
 ## 12) robots
 provide subs list and it fetches all robots.txt and from there
 it gathers for you paths and parameters (parameters only from keys like Clean-param)
-> Usage robots <subdomains-file>
+> Usage robots \<subdomains-file\>
 
 ## 13) orgen 
 generates a list of possbile open redirects from a subdomain list
+>Usage: gen_open_redirect_payloads \<url | file_with_urls\>
+Example:
+  gen_open_redirect_payloads https://target.com
+  gen_open_redirect_payloads urls.txt
+
+
 
 
 ### Useful?
