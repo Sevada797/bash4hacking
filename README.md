@@ -1,4 +1,5 @@
 # bash4hacking
+![Demopic](https://github.com/Sevada797/bash4hacking/blob/main/assets/BFH.png?raw=true)
 Set of scripts that will be useful for bug hunters.<br>
 Some of the scripts are helpful for "data analysis" kinda.<br>
 Read  `Instalation` for installation
