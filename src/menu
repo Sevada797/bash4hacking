@@ -1,0 +1,29 @@
+menu() {
+  local CYAN="\e[96m"
+  local GREEN="\e[92m"
+  local YELLOW="\e[93m"
+  local RED="\e[91m"
+  local RESET="\e[0m"
+
+  echo -e "${CYAN}🔥 Available Functions in BFH 🔥${RESET}"
+
+  for f in "$BFH_PATH"/src/*; do
+    name=$(basename "$f" | tr '[:upper:]' '[:lower:]')
+    echo -e "  ${GREEN}${name}()${RESET}"
+  done
+
+  # Check for updates
+  echo -e "\n${YELLOW}🔄 Checking for updates...${RESET}"
+  cd "$BFH_PATH" || return
+
+  git remote update > /dev/null 2>&1
+  LOCAL=$(git rev-parse HEAD)
+  REMOTE=$(git rev-parse origin/main)
+
+  if [[ "$LOCAL" != "$REMOTE" ]]; then
+    echo -e "${RED}🚨 You are NOT using the latest version!"
+    echo -e "👉 Run ${CYAN}updatebfh${RESET} to update."
+  else
+    echo -e "${GREEN}✅ You are using the latest version.${RESET}"
+  fi
+}

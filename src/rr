@@ -1,0 +1,18 @@
+# function for quick work on urls, 
+# separating urls that may have redirections for further check
+rr() {
+if [[ -z "$1" ]]; then
+    echo "Usage: rr <urls_file>"
+    return 1
+  fi
+  local urls=$1
+  local redirect_params="url\=|uri\=|return\=|next\=|redir\=|redirect\=|dest\=|destination\=|continue\=|data\=|reference\=|site\=|view\=|to\=|out\=|link\=|go\=|path\=|target\=|image_url\=|callback\="
+
+  echo "[*] Filtering possible redirect URLs from $urls ..."
+  grep -Ei "$redirect_params" "$urls" | sort -u | qsreplace https://evil.com > rr
+
+  echo ""
+  echo "[+] Saved to: rr"
+  echo "[🚀] To check for open redirects run:"
+  echo "gr rr https://evil.com"
+}

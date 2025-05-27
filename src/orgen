@@ -1,3 +1,4 @@
+# For hardcore checking open-redirects file gen func 
 orgen() {
     local input="$1"
     local evil="https://evil.com"

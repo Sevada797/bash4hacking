@@ -1,3 +1,3 @@
 git add .
-git commit -m "Added new funcs"
+git commit -m "frames() - High CPU usage fixed, menu(),updatebfh() funcs added"
 git push origin main

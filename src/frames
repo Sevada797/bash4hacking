@@ -4,68 +4,82 @@ frames() {
     return
   fi
 
-  outfile="cctv_view_lazy.html"
+  outfile="cctv_view_paged.html"
   urls=()
 
   while IFS= read -r line; do
     sub=$(echo "$line" | xargs)
     [[ -z "$sub" ]] && continue
-
-    if [[ ! "$sub" =~ ^https?:// ]]; then
-      sub="https://$sub"
-    fi
-
+    [[ ! "$sub" =~ ^https?:// ]] && sub="https://$sub"
     urls+=("$sub")
   done < "$1"
 
-  echo "<!DOCTYPE html><html><head><meta charset='UTF-8'>" > "$outfile"
-  echo "<title>Lazy CCTV View</title>" >> "$outfile"
-  echo "<style>
-    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
-    .frame-box { border: 1px solid #ccc; background: #fff; padding: 10px; margin-bottom: 20px; }
-    iframe { width: 100%; height: 300px; border: 1px solid #999; }
-    .link { margin-top: 10px; font-size: 14px; color: #333; }
-  </style>" >> "$outfile"
+  {
+    echo "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+    echo "<title>Paginated CCTV View</title>"
+    echo "<style>
+      body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+      .frame-box { border: 1px solid #ccc; background: #fff; padding: 10px; margin-bottom: 20px; }
+      iframe { width: 100%; height: 300px; border: 1px solid #999; }
+      .link { margin-top: 10px; font-size: 14px; color: #333; }
+      .nav { text-align: center; margin: 20px; font-size: 18px; }
+    </style>"
+    echo "</head><body>"
+    echo "<h2>Subdomain CCTV View (Arrow Controlled)</h2>"
+    echo "<div class='nav'>⬅ Press Left / Right ➡</div>"
+    echo "<div id='frame-container'></div>"
 
-  echo "</head><body>" >> "$outfile"
-  echo "<h2>Subdomain CCTV View (Lazy Load)</h2>" >> "$outfile"
-  echo "<div id='frame-container'></div>" >> "$outfile"
+    # Pass URLs into JS
+    echo "<script>
+      const urls = ["
+    for u in "${urls[@]}"; do
+      echo "'$u',"
+    done
+    echo "];
+      const container = document.getElementById('frame-container');
+      let pageIndex = 0;
+      const CHUNK_SIZE = 3;
 
-  # Pass URLs into JS
-  echo "<script>
-    const urls = [" >> "$outfile"
-  for u in "${urls[@]}"; do
-    echo "'$u'," >> "$outfile"
-  done
-  echo "];
-    const container = document.getElementById('frame-container');
-    let index = 0;
-    const CHUNK_SIZE = 50;
-
-    function loadNextChunk() {
-      for (let i = 0; i < CHUNK_SIZE && index < urls.length; i++, index++) {
-        const url = urls[index];
-        const div = document.createElement('div');
-        div.className = 'frame-box';
-        div.innerHTML = \`
-          <iframe src="\${url}"></iframe>
-          <div class='link'>🔗 <a href="\${url}" target="_blank">\${url}</a></div>
-        \`;
-        container.appendChild(div);
+      function renderPage() {
+        container.innerHTML = '';
+        const start = pageIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, urls.length);
+        for (let i = start; i < end; i++) {
+          const url = urls[i];
+          const div = document.createElement('div');
+          div.className = 'frame-box';
+          div.innerHTML = \`
+            <iframe src="\${url}"></iframe>
+            <div class='link'>🔗 <a href="\${url}" target="_blank">\${url}</a></div>
+          \`;
+          container.appendChild(div);
+        }
       }
-    }
 
-    // Load initial chunk
-    loadNextChunk();
-
-    // Lazy load on scroll
-    window.addEventListener('scroll', () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-        loadNextChunk();
+      function goLeft() {
+        if (pageIndex > 0) {
+          pageIndex--;
+          renderPage();
+        }
       }
-    });
-  </script>" >> "$outfile"
 
-  echo "</body></html>" >> "$outfile"
+      function goRight() {
+        if ((pageIndex + 1) * CHUNK_SIZE < urls.length) {
+          pageIndex++;
+          renderPage();
+        }
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') goRight();
+        else if (e.key === 'ArrowLeft') goLeft();
+      });
+
+      renderPage();
+    </script>"
+
+    echo "</body></html>"
+  } > "$outfile"
+
   echo "[+] Done. Open in browser: file://$PWD/$outfile"
 }

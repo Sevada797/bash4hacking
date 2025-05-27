@@ -2,7 +2,6 @@ import httpx
 import sys
 import os
 import anyio
-import asyncio
 
 async def resolve_redirect(session, url, keyword=None):
     try:
@@ -11,13 +10,15 @@ async def resolve_redirect(session, url, keyword=None):
         if keyword is None or keyword in final:
             print(f"[+] {url} -> {final}")
             return final
+        else:
+            print(f"[-] {url} -> {final} (filtered)")
     except Exception as e:
         print(f"[-] {url} failed: {e}")
     return None
 
 async def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 gecko.py <url-file> [filter-substring]")
+        print("Usage: python3 gecko-fast.py <url-file> [filter-substring]")
         return
 
     input_file = sys.argv[1]
@@ -30,15 +31,22 @@ async def main():
     with open(input_file, "r") as f:
         links = [line.strip() for line in f if line.strip()]
 
+    results = []
+
     async with httpx.AsyncClient() as session:
-        tasks = [resolve_redirect(session, link, keyword) for link in links]
-        results = await asyncio.gather(*tasks)
+        async with anyio.create_task_group() as tg:
+            for link in links:
+                tg.start_soon(run_and_store, session, link, keyword, results)
 
     with open("redirects.txt", "w") as f:
         for url in results:
             if url:
                 f.write(url + "\n")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+async def run_and_store(session, url, keyword, results):
+    result = await resolve_redirect(session, url, keyword)
+    if result:
+        results.append(result)
 
+if __name__ == "__main__":
+    anyio.run(main)

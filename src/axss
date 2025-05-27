@@ -1,0 +1,50 @@
+# My automation for finding XSS in wildcards script No.1
+# I'll release alot more automation scripts after :D
+# Use this only for (list of) wildcard scopes
+
+axss() {
+  local targets=$1
+  if [[ -z "$targets" ]]; then
+    echo "Usage: axss <target_domains_file>"
+    return 1
+  fi
+
+  local subsgathered="${targets}af"
+  local urls="${subsgathered}urls"
+  local tmp="tmp$(openssl rand -hex 10)"
+  local paramsfile="${urls}params"
+
+  echo "[*] Gathering subdomains from assetfinder & subfinder..."
+  cat "$targets" | assetfinder >> "$subsgathered"
+  subfinder -dL "$targets" -silent >> "$subsgathered"
+
+  echo "[*] Adding main domains (critical patch)..."
+  cat "$targets" >> "$subsgathered"
+
+  echo "[*] Resolving live subdomains with httpx-go..."
+  httpx-go -l "$subsgathered" -silent > "$tmp"
+  mv "$tmp" "$subsgathered"
+
+  echo "[*] Filtering in-scope subdomains..."
+  grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
+  mv "$tmp" "$subsgathered"
+  sed -i 's|^https://||' "$subsgathered"  
+
+  echo "[*] Collecting URLs with waybackurls and katana..."
+  cat "$subsgathered" | waybackurls > "$urls"
+  cat "$subsgathered" | katana -silent >> "$urls"
+  sort -u "$urls" -o "$urls"
+
+  echo "[*] Extracting and cleaning parameters..."
+  params "$urls" | grep -vE ";|/|,|\\+|%" > "$paramsfile"
+
+  echo "[*] Preparing dynamic input list for gbr d..."
+  grep '?' "$urls" | grep '=' > 4d
+
+  echo ""
+  echo "~ First scan ~"
+  echo "Run:  gbr $subsgathered $paramsfile"
+  echo ""
+  echo "~ Second scan ~"
+  echo "Run:  gbr d 4d"
+}

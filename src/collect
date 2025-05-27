@@ -1,0 +1,28 @@
+collect() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: collect <subs_or_urls_file>"
+    return 1
+  fi
+
+  local input="$1"
+  echo "[*] Starting collection from: $input"
+
+  while read -r line; do
+    # Skip empty lines
+    [[ -z "$line" ]] && continue
+
+    # Add https:// if not present
+    if [[ "$line" != http* ]]; then
+      line="https://$line"
+    fi
+
+    # Output file name
+    local outfile="$(openssl rand -hex 8)_cl"
+
+    echo "[+] Curling $line -> $outfile"
+    curl -sL --max-time 10 "$line" -o "$outfile" || echo "[-] Failed: $line"
+
+  done < "$input"
+
+  echo "[✓] Done."
+}
