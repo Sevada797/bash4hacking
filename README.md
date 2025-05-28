@@ -88,8 +88,13 @@ Ok, just check it out :D it loads all provided
 list subs or urls in iframes, and displays (using JS lazy loading to not cause browser crash)
 > Usage frames \<subdomains/url-file\>
 
+## 15) axss
+My semi-automated XSS scanner/helper
+> Usage axss \<target_domains_file\>
 
-
+## 16) bxss
+Blind-XSS scan/helper
+> Usage bxss
 
 ### Useful?
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-orange?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/zatikyansed)
