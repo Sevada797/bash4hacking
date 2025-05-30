@@ -4,7 +4,6 @@
 hf() {
     # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"]
     
-    BFH_PATH="$HOME" # or wherever your repo root is
     PY_TOOL="$BFH_PATH/pysrc/hf.py"
 
     if [ $# -lt 2 ]; then
