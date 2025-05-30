@@ -1,0 +1,97 @@
+import aiohttp
+import asyncio
+import argparse
+import os
+import re
+
+from aiohttp.client_exceptions import (
+    ClientConnectorError,
+    ClientProxyConnectionError,
+    ClientOSError,
+    ClientResponseError,
+    ServerTimeoutError,
+    ClientSSLError
+)
+
+async def fetch(session, url, values, log_file, counter, total):
+    try:
+        async with session.get(url, timeout=5, ssl=False) as resp:
+            html = await resp.text()
+
+            for val in values:
+                if val.lower() in html.lower():
+                    async with asyncio.Lock():
+                        with open(log_file, "a") as f:
+                            f.write(url + "\n")
+                    break  # stop checking others if matched
+
+    except (
+        ClientConnectorError,
+        ClientProxyConnectionError,
+        ClientOSError,
+        ClientResponseError,
+        ServerTimeoutError,
+        asyncio.TimeoutError,
+        ClientSSLError,
+        aiohttp.InvalidURL
+    ):
+        pass  # skip dead endpoints silently
+
+    finally:
+        counter[0] += 1
+        print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
+
+async def main(file, values, use_ua, use_burp):
+    if not os.path.exists(file):
+        print(f"[ERROR] File {file} not found.")
+        return
+
+    with open(file) as f:
+        urls = [line.strip() for line in f if line.strip()]
+
+    if not urls or not re.match(r"^https?://", urls[0]):
+        print(f"\n[ERROR] URLs should start with http(s). Run:")
+        print(f"  sed -i 's|^|https://|' {file}")
+        print(f"To revert back:")
+        print(f"  sed -i 's|^https://||' {file}")
+        return
+
+    os.makedirs("hf", exist_ok=True)
+    log_file = "hf/log.txt"
+    if os.path.exists(log_file):
+        os.remove(log_file)
+
+    headers = {}
+    if use_ua:
+        headers["User-Agent"] = "chrome"
+
+    proxy = "http://127.0.0.1:8080" if use_burp else None
+
+    connector = aiohttp.TCPConnector(limit=100)
+    timeout = aiohttp.ClientTimeout(total=6)
+
+    counter = [0]
+    total = len(urls)
+
+    async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
+        session._default_proxy = proxy
+        tasks = [fetch(session, url, values, log_file, counter, total) for url in urls]
+        await asyncio.gather(*tasks)
+
+    print(f"\n[INFO]: Check {log_file} for successful finds")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", help="File with URLs")
+    parser.add_argument("value", help="Value to search (or use -E for multi)")
+    parser.add_argument("--ua-chrome", action="store_true", help="Use Chrome User-Agent")
+    parser.add_argument("--burp", action="store_true", help="Use Burp Proxy")
+    parser.add_argument("-E", help="Pipe-separated list of values (e.g. 'token|auth|csrf')")
+
+    args = parser.parse_args()
+
+    value_list = args.E.split("|") if args.E else [args.value]
+    try:
+        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp))
+    except KeyboardInterrupt:
+        print("\n[INFO] Interrupted by user.")
