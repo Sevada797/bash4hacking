@@ -68,7 +68,7 @@ ripsec() {
 "pagerror\.gif"
 "aspnet_client"
 "scripts"
-"bin"
+"/bin"
 "App_Data"
 "App_Code"
 "App_GlobalResources"
@@ -89,10 +89,10 @@ ripsec() {
 "index\.htm"
 "admin"
 "admin\.aspx"
-"administrator"
-"backup"
-"config"
-"logs"
+"/administrator"
+"/backup"
+"/config"
+"/logs"
 
     )
 

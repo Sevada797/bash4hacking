@@ -39,7 +39,7 @@ axss() {
   params "$urls" | grep -vE ";|/|,|\\+|%" > "$paramsfile"
 
   echo "[*] Preparing dynamic input list for gbr d..."
-  grep '?' "$urls" | grep '=' > 4d
+  grep '?' "$urls" | grep '=' | grep -vE ".html|.css|.js|.jpeg|.jpg|.png|.gif|.svg" | uro > 4d
 
   echo ""
   echo "~ First scan ~"

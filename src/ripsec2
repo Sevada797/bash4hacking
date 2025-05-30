@@ -1,0 +1,26 @@
+ripsec2() {
+    # Define juicy file extensions to look for
+    local EXTENSIONS="zip\|rar\|tar\|gz\|7z\|bak\|old\|backup\|sql\|env\|log\|conf\|ini\|db\|mdb\|xls\|xlsx\|doc\|docx\|pdf\|pem\|key\|crt\|cert\|ps1\|sh"
+
+    # Check for required argument (URLs list file)
+    if [ -z "$1" ]; then
+        echo "Usage: ripsec <urls_list_file>"
+        return 1
+    fi
+
+    local URLS_FILE="$1"
+    local OUTPUT_FILE="ripsec_hits.txt"
+
+    # Check if input file exists
+    if [ ! -f "$URLS_FILE" ]; then
+        echo "[-] File '$URLS_FILE' not found!"
+        return 1
+    fi
+
+    echo "[*] Searching for juicy file extensions in '$URLS_FILE'..."
+
+    # Extract matches using grep
+    grep -E "\.($EXTENSIONS)(\?|$|#)" "$URLS_FILE" | tee "$OUTPUT_FILE"
+
+    echo "[+] Matches saved to '$OUTPUT_FILE'"
+}
