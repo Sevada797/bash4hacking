@@ -81,16 +81,20 @@ async def main(file, values, use_ua, use_burp):
     print(f"\n[INFO]: Check {log_file} for successful finds")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Async HF Reflector")
     parser.add_argument("file", help="File with URLs")
-    parser.add_argument("value", help="Value to search (or use -E for multi)")
+    parser.add_argument("value", nargs="?", help="Single value to search (optional if -E is used)")
+    parser.add_argument("-E", help="Pipe-separated list of values (e.g. 'token|auth|csrf')")
     parser.add_argument("--ua-chrome", action="store_true", help="Use Chrome User-Agent")
     parser.add_argument("--burp", action="store_true", help="Use Burp Proxy")
-    parser.add_argument("-E", help="Pipe-separated list of values (e.g. 'token|auth|csrf')")
 
     args = parser.parse_args()
 
+    if not args.value and not args.E:
+        parser.error("You must provide either a value or -E with multiple values.")
+
     value_list = args.E.split("|") if args.E else [args.value]
+
     try:
         asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp))
     except KeyboardInterrupt:
