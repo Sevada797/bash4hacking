@@ -26,4 +26,6 @@ menu() {
   else
     echo -e "${GREEN}✅ You are using the latest version.${RESET}"
   fi
+  # back to current dir
+  cd ->/dev/null
 }

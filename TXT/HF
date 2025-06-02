@@ -1,0 +1,21 @@
+
+!!! All use with -E  don't forgett
+
+# Subdomain takeover checks :D
+==================================
+"There isn't a GitHub Pages|No such app|404 Web Site not found|This web app has been stopped|NoSuchBucket|The specified bucket does not exist|Repository not found|Fastly error|Sorry, this shop is currently unavailable|Help Center Closed|Doesn’t exist here|Looks like you’ve followed a broken link|There's nothing here|The page you are looking for doesn't exist"
+
+# XSS-related patterns
+"new URLSearchParams|window.location.search|document.cookie"
+
+# SQL Injection error messages
+"You have an error in your SQL syntax|Warning: mysql_fetch_array|Unclosed quotation mark|SQL syntax error|mysql_num_rows\(|ODBC SQL Server Driver|Microsoft OLE DB Provider for SQL Server|Microsoft SQL Native Client error|pg_query\(\)|syntax error at or near|SQLite3::query\(|invalid query|SQLSTATE\[HY000\]|You have an error in your query"
+
+# Debug mode & backend error disclosures
+"Warning:|Notice:|Fatal error:|Parse error:|Exception in thread|Stack trace:|Traceback \(most recent call last\):|at line [0-9]+|on line [0-9]+|ORA-00933|ORA-01756|Microsoft JET Database Engine|System.Data.SqlClient.SqlException|Zend_Exception|PDOException|javax.servlet.ServletException|runtime error|ErrorException"
+
+# API Key leaks (common patterns in responses or files)
+"api_key|api-key|apikey|access_token|access-token|auth_token|auth-token|secret=|client_secret|aws_secret_access_key|aws_access_key_id|PRIVATE_KEY|SECRET_KEY|BEGIN PRIVATE KEY|Authorization: Bearer|X-API-KEY|X-Amz-Security-Token|Authorization: Basic"
+
+# Directory listing / open directories / info leaks
+"Index of /|Parent Directory|Directory Listing For|Apache/2|nginx/|Welcome to nginx|Directory Listing|Index of|Listing denied|Cannot list directory contents"

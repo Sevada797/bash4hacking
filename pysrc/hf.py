@@ -16,14 +16,27 @@ from aiohttp.client_exceptions import (
 async def fetch(session, url, values, log_file, counter, total):
     try:
         async with session.get(url, timeout=5, ssl=False) as resp:
-            html = await resp.text()
+            content_type = resp.headers.get("Content-Type", "").lower()
+
+            # ✅ Allow only safe content types
+            allowed_types = ["text/html", "application/json", "application/javascript", "text/plain"]
+            if not any(ct in content_type for ct in allowed_types):
+                return  # skip non-text responses
+
+            try:
+                html = await resp.text()
+            except UnicodeDecodeError:
+                try:
+                    html = (await resp.read()).decode('latin-1')
+                except Exception:
+                    html = ""
 
             for val in values:
                 if val.lower() in html.lower():
                     async with asyncio.Lock():
                         with open(log_file, "a") as f:
-                            f.write(url + "\n")
-                    break  # stop checking others if matched
+                            f.write(url + " -> "+val+"\n")
+                    #break
 
     except (
         ClientConnectorError,
@@ -35,11 +48,13 @@ async def fetch(session, url, values, log_file, counter, total):
         ClientSSLError,
         aiohttp.InvalidURL
     ):
-        pass  # skip dead endpoints silently
-
+        pass
+    except Exception as e:
+        print(f"\n[ERROR] Unexpected error for {url}: {e}")
     finally:
         counter[0] += 1
         print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
+
 
 async def main(file, values, use_ua, use_burp):
     if not os.path.exists(file):
