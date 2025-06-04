@@ -19,3 +19,8 @@
 
 # Directory listing / open directories / info leaks
 "Index of /|Parent Directory|Directory Listing For|Apache/2|nginx/|Welcome to nginx|Directory Listing|Index of|Listing denied|Cannot list directory contents"
+
+# For looking for JWT leaks in all pages, combine HF+m64
+#m64 '"JWT"'
+#Look for: IkpXVC JKV1Q iSldUI 
+"IkpXVC|JKV1Q|iSldUI"

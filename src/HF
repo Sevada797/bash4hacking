@@ -1,5 +1,4 @@
 #!/bin/bash
-# Author: @Sevada797
 
 hf() {
     # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"]

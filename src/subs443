@@ -1,0 +1,19 @@
+subs443() {
+    if [[ -z "$1" ]]; then
+        echo "Usage:"
+        echo "  subs443 -d domain.com         # scan single domain"
+        echo "  subs443 domains.txt           # scan list of domains (one per line)"
+        return
+    fi
+
+    # Path to your Python script
+    PY_SCRIPT="$BFH_PATH/pysrc/subs443.py"
+
+    if [[ "$1" == "-d" && -n "$2" ]]; then
+        echo "$2" > /tmp/.subs443_tmp_list.txt
+        python3 "$PY_SCRIPT" /tmp/.subs443_tmp_list.txt
+        rm /tmp/.subs443_tmp_list.txt
+    else
+        python3 "$PY_SCRIPT" "$1"
+    fi
+}

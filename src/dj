@@ -3,5 +3,5 @@ dj() {
         cat "$1"
     else
         cat -
-    fi | sed 's?[?#].*??' | grep -vE '\.(jpg|jpeg|png|gif|bmp|webp|svg|ico|css|js|woff2?|ttf|eot|otf|mp4|mp3|avi|pdf|zip|rar|7z|tar|gz|bz2|xml|txt|csv|html?)$'
+    fi | sed 's?[?#].*??' | grep -vE '\.(jpg|jpeg|png|gif|bmp|webp|svg|ico|css|js|woff2?|woff|ttf|eot|otf|mp4|mp3|avi|pdf|zip|rar|7z|tar|gz|bz2|xml|txt|csv|html?)$'
 }

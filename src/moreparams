@@ -1,0 +1,19 @@
+moreparams() {
+  if [[ -z "$1" || -z "$2" ]]; then
+    echo "Usage: moreparams <urls_or_subs_file> <number_to_fetch>"
+    echo "Example: moreparams targets.txt 50"
+    return 1
+  fi
+
+  local file="$1"
+  local limit="$2"
+  
+  hf "$file" -E "</form>" --ua-chrome
+
+  echo "[*] Fetching $limit URLs from: $file"
+  # Extract URLs or domains, curl them, save HTMLs
+  awk '{print $1}' hf/* | head -n "$limit" | collect
+  grep -hoE '<input[^>]*name=["'\'']?[^"'\'' >]+' *.html \
+    | sed -E 's/.*name=["'\'']?([^"'\'' >]+)/\1/' \
+    | sort -u | grep -E '^[a-zA-Z0-9_-]*[a-z][a-zA-Z0-9_-]*$'
+}

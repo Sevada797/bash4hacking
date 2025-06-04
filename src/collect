@@ -1,28 +1,33 @@
 collect() {
-  if [[ -z "$1" ]]; then
-    echo "Usage: collect <subs_or_urls_file>"
+  echo "[*] Starting collection..."
+
+  # Read from stdin (pipeline or redirection)
+  if [ -t 0 ] && [ -z "$1" ]; then
+    echo "Usage: collect <file> OR echo 'sub' | collect"
     return 1
   fi
 
-  local input="$1"
-  echo "[*] Starting collection from: $input"
+  # If a file is passed as an argument
+  if [[ -n "$1" && -f "$1" ]]; then
+    input="$1"
+    exec 0<"$input"
+  fi
 
   while read -r line; do
-    # Skip empty lines
-    [[ -z "$line" ]] && continue
+    # Skip empty or whitespace lines
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*$ ]] && continue
 
-    # Add https:// if not present
-    if [[ "$line" != http* ]]; then
-      line="https://$line"
-    fi
+    # Add https:// if not already present
+    [[ "$line" != http* ]] && line="https://$line"
 
-    # Output file name
-    local outfile="$(openssl rand -hex 8)_cl"
+    # Use domain or hash for filename
+    domain=$(echo "$line" | awk -F/ '{print $3}')
+    outfile="${domain}_$(openssl rand -hex 5).html"
 
     echo "[+] Curling $line -> $outfile"
-    curl -sL --max-time 10 "$line" -o "$outfile" || echo "[-] Failed: $line"
+    curl -sL -H "User-Agent: chrome" --max-time 10 "$line" -o "$outfile" || echo "[-] Failed: $line"
 
-  done < "$input"
+  done
 
   echo "[✓] Done."
 }

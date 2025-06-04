@@ -1,13 +1,18 @@
 subs() {
-  local domain=$1       # The domain to search for (e.g., some.com)
-  local file=$2         # The file containing the list of URLs
+  local domain=$1
+  local file=$2
 
-  # Check if both arguments are provided
-  if [[ -z "$domain" || -z "$file" ]]; then
-    echo "Usage: subs <domain> <file>"
+  if [[ -z "$domain" ]]; then
+    echo "Usage: subs <domain> [file]"
+    echo "If no file given, reads URLs from stdin."
     return 1
   fi
 
-  # Extract subdomains and remove duplicates
-  grep -Eo "([a-zA-Z0-9-]+\.)?$domain" "$file" | sort -u
+  if [[ -n "$file" ]]; then
+    # domain + file mode
+    grep -Eo "([a-zA-Z0-9-]+\.)?$domain" "$file" | sort -u
+  else
+    # domain + stdin mode
+    grep -Eo "([a-zA-Z0-9-]+\.)?$domain" | sort -u
+  fi
 }

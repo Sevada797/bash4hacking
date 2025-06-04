@@ -1,6 +1,30 @@
 # My automation for finding XSS in wildcards script No.1
 # I'll release alot more automation scripts after :D
 # Use this only for (list of) wildcard scopes
+# CAUTION: Use after installing neccessary dependencies from file yourself ;D + after installing bash4hacking
+# else it won't work, sorry am not adding dependencies/setup-guide for this rn..
+
+# OK a small help
+
+# Required tools for this script to work:
+#
+# assetfinder     - For passive subdomain enumeration
+# subfinder       - For active subdomain enumeration
+# subr            - My custom subdomain recon tool (bash4hacking)
+# subs443         - My custom subdomain recon tool (bash4hacking)
+# httpx-go        - Fast HTTP probing and checking live subs
+# katana          - URL discovery and scraping
+# waybackurls     - Collect archived URLs from Wayback Machine
+# params          - My custom tool, extract URL parameters (bash4hacking)
+# moreparams      - My custom tool, extract more possible URL parameters (from <input name=.. :D) (bash4hacking)
+# gbr             - My custom scanning tool (Dynamic ref count, dynamit/cookie reflections module are fire)
+# hf              - My custom tool, string check in bunch of urls (bash4hacking tool)
+# dj              - JSON or data processing (custom or from bash4hacking)
+# uro             - URL processing/filtering (bash4hacking)
+# curl            - Standard HTTP requests
+# openssl         - Generate random hex strings for temp files
+
+
 
 axss() {
   local targets=$1
@@ -9,26 +33,35 @@ axss() {
     return 1
   fi
 
-  local subsgathered="${targets}af"
-  local urls="${subsgathered}urls"
+  local subsgathered="${targets}subs"
+  local urls="${targets}urls"
   local tmp="tmp$(openssl rand -hex 10)"
-  local paramsfile="${urls}params"
+  local paramsfile="${targets}params"
+  local tmp_dead="tmp$(openssl rand -hex 8)"
 
   echo "[*] Gathering subdomains from assetfinder & subfinder..."
   cat "$targets" | assetfinder >> "$subsgathered"
   subfinder -dL "$targets" -silent >> "$subsgathered"
+  subr "$targets">>"$subsgathered"
 
   echo "[*] Adding main domains (critical patch)..."
   cat "$targets" >> "$subsgathered"
 
   echo "[*] Resolving live subdomains with httpx-go..."
   httpx-go -l "$subsgathered" -silent > "$tmp"
+  
+  echo "[*] Extracting dead subs..."
+  comm -23 <(sort "$subsgathered") <(sort "$tmp") > "$tmp_dead"
+  ## get the tmp back to original
   mv "$tmp" "$subsgathered"
+  echo "[*] Extracting CN's from dead subs..."
+  subs443 "$tmp_dead" | httpx-go -silent | sort -u>>"$tmp"
+  grep -F -fv "$tmp" "$subsgathered">>"$subsgathered" 
 
   echo "[*] Filtering in-scope subdomains..."
   grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
   mv "$tmp" "$subsgathered"
-  sed -i 's|^https://||' "$subsgathered"  
+  sed -i 's|^https://||' "$subsgathered" && sed -i 's|^http://||' "$subsgathered"
 
   echo "[*] Collecting URLs with waybackurls and katana..."
   cat "$subsgathered" | waybackurls > "$urls"
@@ -39,7 +72,10 @@ axss() {
   params "$urls" | grep -vE ";|/|,|\\+|%" > "$paramsfile"
 
   echo "[*] Preparing dynamic input list for gbr d..."
-  grep '?' "$urls" | grep '=' | grep -vE ".html|.css|.js|.jpeg|.jpg|.png|.gif|.svg" | uro > 4d
+  grep '?' "$urls" | grep '=' | dj | uro > 4d
+
+  echo "[*] Gathering even more params..."
+  moreparams 4d 100 | sort -u>>"$paramsfile" && sort -u "$paramsfile">"$tmp" && mv "$tmp" "$paramsfile"
 
   echo ""
   echo "~ First scan ~"

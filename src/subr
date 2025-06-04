@@ -1,0 +1,14 @@
+subr() {
+  if [[ -z "$1" ]]; then
+    echo "Usage:"
+    echo "  subr -d domain.com     # For single domain"
+    echo "  subr domains.txt       # For file list"
+    return
+  fi
+
+  if [[ "$1" == "-d" ]]; then
+    python3 "$BFH_PATH/pysrc/subr.py" -d "$2"
+  else
+    python3 "$BFH_PATH/pysrc/subr.py" -f "$1"
+  fi
+}
