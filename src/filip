@@ -1,0 +1,82 @@
+filip() {
+    input="$1"
+
+    if [ -z "$input" ]; then
+        echo "[!] Usage: filip <urls.txt>"
+        return 1
+    fi
+
+    echo -e "\n🔍 TECHNOLOGY & FRAMEWORK DETECTION 🔍"
+    echo "--------------------------------------"
+
+    tech_patterns=(
+        "/wp-content" "WordPress"
+        "/wp-json" "WordPress API"
+        "/phpmyadmin" "phpMyAdmin"
+        "/admin" "Admin Panel"
+        "/cpanel" "cPanel"
+        "/_next" "Next.js"
+        "/sites/default" "Drupal"
+        "/bitrix" "Bitrix CMS"
+        "/umbraco" "Umbraco CMS"
+        "/typo3" "TYPO3 CMS"
+        "/api/" "Generic API"
+        "/graphql" "GraphQL"
+        "/.env" "Laravel ENV"
+        "/owa/" "Outlook Web Access"
+        "/ads.txt" "AdTech"
+        "/cgi-bin" "CGI Scripts"
+        "/vendor/" "Composer (PHP)"
+        "/node_modules" "Node.js Project"
+        "/WEB-INF" "Java Web App"
+        "/aspnet_client" "ASP.NET"
+        "/solr/admin" "Apache Solr"
+        "/webmail" "Webmail UI"
+        "/boaform/admin" "Router Panel"
+        "/config.json" "Front-End App Config"
+        "/server-status" "Apache Status Page"
+        "/setup.php" "Setup Script"
+        "/install.php" "Installer Detected"
+        "/actuator" "Spring Boot Actuator"
+        "/local.xml" "Magento"
+        "/static/adminhtml" "Magento Admin"
+        "/sites/all" "Drupal"
+        "/wp-login.php" "WordPress Login"
+        "/elasticsearch" "Elasticsearch"
+        "/jupyter" "Jupyter Notebook"
+        "/login" "Login Page"
+    )
+
+    for ((i=0; i<${#tech_patterns[@]}; i+=2)); do
+        pattern="${tech_patterns[i]}"
+        tech="${tech_patterns[i+1]}"
+        hits=$(grep -i "$pattern" "$input")
+        if [ ! -z "$hits" ]; then
+            echo -e "💡 Found $tech (pattern: '$pattern')"
+            echo "$hits" | sort -u | sed 's/^/   └── /'
+            echo ""
+        fi
+    done
+
+    echo -e "\n🕵️ INTERESTING / POSSIBLY LEAKED FILES 🕵️"
+    echo "-------------------------------------------"
+
+    extensions=(
+        "\.env" "\.git/config" "\.sql" "\.csv" "\.zip" "\.rar" "\.tar" "\.gz" "\.tgz"
+        "\.log" "\.bak" "\.backup" "\.old" "\.7z" "\.db" "\.sqlite" "\.xml" "\.conf"
+        "\.json" "\.yml" "\.yaml" "\.ini" "\.pem" "\.crt" "\.p12" "\.key"
+        "\.htpasswd" "\.htaccess" "\.pfx" "\.swp" "\.tmp"
+        "\.xls" "\.xlsx" "\.doc" "\.docx" "\.ppt" "\.pptx" "\.pdf"
+        "\.inc" "\.jar" "\.war" "\.bin" "\.exe" "\.apk" "\.ipa"
+        "\.dat" "\.mdb" "\.accdb" "\.bak1" "\.dump" "\.bak\.sql" "\.sql\.gz"
+    )
+
+    for ext in "${extensions[@]}"; do
+        hits=$(grep -Ei "($ext)(\?.*)?$" "$input")
+        if [ ! -z "$hits" ]; then
+            echo -e "💥 Potential leak: ${ext//\\/}"
+            echo "$hits" | sort -u | sed 's/^/   └── /'
+            echo ""
+        fi
+    done
+}
