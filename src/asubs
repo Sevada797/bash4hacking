@@ -26,7 +26,6 @@ asubs() {
   mv "$tmp" "$subsgathered"
   echo "[*] Extracting CN's from dead subs..."
   subs443 "$tmp_dead" | httpx-go -silent | sort -u>>"$tmp"
-#  grep -F -fv "$tmp" "$subsgathered">>"$subsgathered" 
 
   echo "[*] Filtering in-scope subdomains..."
   grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
