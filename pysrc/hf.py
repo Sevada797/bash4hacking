@@ -13,12 +13,12 @@ from aiohttp.client_exceptions import (
     ClientSSLError
 )
 
+
 async def fetch(session, url, values, log_file, counter, total):
     try:
         async with session.get(url, timeout=5, ssl=False) as resp:
             content_type = resp.headers.get("Content-Type", "").lower()
 
-            # ✅ Allow only safe content types
             allowed_types = ["text/html", "application/json", "application/javascript", "text/plain"]
             if not any(ct in content_type for ct in allowed_types):
                 return  # skip non-text responses
@@ -35,8 +35,7 @@ async def fetch(session, url, values, log_file, counter, total):
                 if val.lower() in html.lower():
                     async with asyncio.Lock():
                         with open(log_file, "a") as f:
-                            f.write(url + " -> "+val+"\n")
-                    #break
+                            f.write(url + " -> " + val + "\n")
 
     except (
         ClientConnectorError,
@@ -56,7 +55,7 @@ async def fetch(session, url, values, log_file, counter, total):
         print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
 
 
-async def main(file, values, use_ua, use_burp):
+async def main(file, values, use_ua, use_burp, custom_headers):
     if not os.path.exists(file):
         print(f"[ERROR] File {file} not found.")
         return
@@ -80,6 +79,12 @@ async def main(file, values, use_ua, use_burp):
     if use_ua:
         headers["User-Agent"] = "chrome"
 
+    if custom_headers:
+        for h in custom_headers:
+            if ":" in h:
+                k, v = h.split(":", 1)
+                headers[k.strip()] = v.strip()
+
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
     connector = aiohttp.TCPConnector(limit=100)
@@ -87,13 +92,20 @@ async def main(file, values, use_ua, use_burp):
 
     counter = [0]
     total = len(urls)
+    sem = asyncio.Semaphore(100)
 
     async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
         session._default_proxy = proxy
-        tasks = [fetch(session, url, values, log_file, counter, total) for url in urls]
+
+        async def sem_fetch(url):
+            async with sem:
+                await fetch(session, url, values, log_file, counter, total)
+
+        tasks = [sem_fetch(url) for url in urls]
         await asyncio.gather(*tasks)
 
     print(f"\n[INFO]: Check {log_file} for successful finds")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Async HF Reflector")
@@ -102,6 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("-E", help="Pipe-separated list of values (e.g. 'token|auth|csrf')")
     parser.add_argument("--ua-chrome", action="store_true", help="Use Chrome User-Agent")
     parser.add_argument("--burp", action="store_true", help="Use Burp Proxy")
+    parser.add_argument("-H", action="append", help="Custom headers (e.g., -H 'X-Test: 1'). Use multiple times.")
 
     args = parser.parse_args()
 
@@ -111,6 +124,6 @@ if __name__ == "__main__":
     value_list = args.E.split("|") if args.E else [args.value]
 
     try:
-        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp))
+        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H))
     except KeyboardInterrupt:
         print("\n[INFO] Interrupted by user.")

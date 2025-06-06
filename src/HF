@@ -1,12 +1,12 @@
 #!/bin/bash
 
 hf() {
-    # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"]
+    # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-H "Header: val"]
     
     PY_TOOL="$BFH_PATH/pysrc/hf.py"
 
     if [ $# -lt 2 ]; then
-        echo "Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"]"
+        echo "Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-H \"Header: value\"]"
         return 1
     fi
 
