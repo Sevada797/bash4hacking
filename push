@@ -1,3 +1,3 @@
 git add .
-git commit -m "Critical fix in dj() also caused problems in axss()"
+git commit -m "Pushin smth"
 git push origin main
