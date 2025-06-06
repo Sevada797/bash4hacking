@@ -1,0 +1,23 @@
+kage() {
+    if [ -z "$1" ]; then
+        echo "Usage: kage https://full.url/here"
+        return 1
+    fi
+
+    full_url="$1"
+    api_url="https://archive.org/wayback/available?url=$full_url"
+
+    echo "[*] Checking Wayback for $full_url"
+
+    response=$(curl -s "$api_url")
+    archived_url=$(echo "$response" | jq -r '.archived_snapshots.closest.url // empty')
+    status_code=$(echo "$response" | jq -r '.archived_snapshots.closest.status // empty')
+
+    if [[ "$status_code" == "200" && -n "$archived_url" ]]; then
+        echo "[+] Archived version found: $archived_url"
+    else
+        echo "[-] No valid archived version found (status: $status_code)"
+    fi
+
+    echo "Done ✅"
+}
