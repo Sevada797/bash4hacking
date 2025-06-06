@@ -72,7 +72,7 @@ axss() {
   params "$urls" | grep -vE ";|/|,|\\+|%" > "$paramsfile"
 
   echo "[*] Preparing dynamic input list for gbr d..."
-  grep '?' "$urls" | grep '=' | dj | uro > 4d
+  grep "?" "$urls" | grep "=" | dj | uro > 4d
 
   echo "[*] Gathering even more params..."
   moreparams 4d 100 | sort -u>>"$paramsfile" && sort -u "$paramsfile">"$tmp" && mv "$tmp" "$paramsfile"
