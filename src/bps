@@ -8,5 +8,5 @@ echo "Usage: bps <subs/domains_list> <sensitive_files_dir>"
 return 1
 fi
 
-ffuf -u https://FUZZ/BUZZ -c -fs 0 -w "$1:FUZZ" -w "${2:-~/SENSITIVE}:BUZZ" -H "User-Agent: chrome"
+ffuf -u https://FUZZ/BUZZ -c -fs 0 -w "$1:FUZZ" -w ${2:-~/SENSITIVE}:BUZZ -H "User-Agent: chrome"
 }
