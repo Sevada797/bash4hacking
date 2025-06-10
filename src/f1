@@ -2,9 +2,9 @@
 
 # Some of scripts I'll use for automation combined with existing tools
 # Simply automating my sensitive file leak scanning
-bps() {
+f1() {
 if [ $# -lt 1 ]; then
-echo "Usage: bps <subs/domains_list> <sensitive_files_dir>"
+echo "Usage: f1 <subs/domains_list> <sensitive_files_dir>"
 return 1
 fi
 
