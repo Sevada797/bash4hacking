@@ -1,23 +1,47 @@
 kage() {
-    if [ -z "$1" ]; then
-        echo "Usage: kage https://full.url/here"
-        return 1
+    # Helper to check one url
+    check_url() {
+        local full_url=$1
+        echo "[*] Checking Wayback for $full_url"
+        local api_url="https://archive.org/wayback/available?url=$full_url"
+
+        local response=$(curl -s "$api_url")
+        local archived_url=$(echo "$response" | jq -r '.archived_snapshots.closest.url // empty')
+        local status_code=$(echo "$response" | jq -r '.archived_snapshots.closest.status // empty')
+
+        if [[ "$status_code" == "200" && -n "$archived_url" ]]; then
+            echo "[+] Archived version found: $archived_url"
+        else
+            echo "[-] No valid archived version found (status: $status_code)"
+        fi
+    }
+
+    # If arg is a file that exists, read urls from it
+    if [[ -n "$1" && -f "$1" ]]; then
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && check_url "$line"
+        done < "$1"
+        echo "Done ✅"
+        return 0
     fi
 
-    full_url="$1"
-    api_url="https://archive.org/wayback/available?url=$full_url"
-
-    echo "[*] Checking Wayback for $full_url"
-
-    response=$(curl -s "$api_url")
-    archived_url=$(echo "$response" | jq -r '.archived_snapshots.closest.url // empty')
-    status_code=$(echo "$response" | jq -r '.archived_snapshots.closest.status // empty')
-
-    if [[ "$status_code" == "200" && -n "$archived_url" ]]; then
-        echo "[+] Archived version found: $archived_url"
-    else
-        echo "[-] No valid archived version found (status: $status_code)"
+    # If arg exists and looks like URL, check once
+    if [[ -n "$1" && "$1" =~ ^https?:// ]]; then
+        check_url "$1"
+        echo "Done ✅"
+        return 0
     fi
 
-    echo "Done ✅"
+    # If input is piped, read URLs from stdin
+    if [ ! -t 0 ]; then
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && check_url "$line"
+        done
+        echo "Done ✅"
+        return 0
+    fi
+
+    # No valid input
+    echo "Usage: kage <file_with_urls> | kage <single_url> | cat file.txt | kage"
+    return 1
 }
