@@ -5,6 +5,7 @@
 paths() {
 if [[ -z $1 ]];then
     echo "Usage: paths <file> <int> [-f]"
+    return 1
 fi
 local inj
 for i in $(seq 1 $2);
