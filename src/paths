@@ -19,7 +19,7 @@ for arg in "${@:3}"; do
 done
 
 if (( use_f ));then
-grep http $1 | awk -F / '{print $1"//"$3"/"'$inj'}' | grep -vE '\.(7z|bz|bz2|gz|xz|tgz|zip|rar|cbr|cbz|mp4|mp3|flv|rm|mkv|ts|pdf|jpg|png|gif|bmp|psd|tga|xcf|css|ttf|woff|svg|exe|dll|apk|js|cjs|mjs|tar|lnk|crt|tmp|html|php|aspx|jsp|json|cvv|sql)(\?|$)' | sort -u
+grep http $1 | awk -F / '{print $1"//"$3"/"'$inj'}' | grep -E '\.(7z|bz|bz2|gz|xz|tgz|zip|rar|cbr|cbz|mp4|mp3|flv|rm|mkv|ts|pdf|jpg|png|gif|bmp|psd|tga|xcf|css|ttf|woff|svg|exe|dll|apk|js|cjs|mjs|tar|lnk|crt|tmp|html|php|aspx|jsp|json|cvv|sql)(\?|$)' | sort -u
 else
 grep http $1 | awk -F / '{print $1"//"$3"/"'$inj'}' | grep -vE '\.(7z|bz|bz2|gz|xz|tgz|zip|rar|cbr|cbz|mp4|mp3|flv|rm|mkv|ts|pdf|jpg|png|gif|bmp|psd|tga|xcf|css|ttf|woff|svg|exe|dll|apk|js|cjs|mjs|tar|lnk|crt|tmp)(\?|$)' | sort -u
 fi
