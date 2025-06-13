@@ -3,7 +3,7 @@
 # but gotta stay sharp :)
 
 paths() {
-if [[-z $1]];then
+if [[ -z $1 ]];then
     echo "Usage: paths <file> <int> [-f]"
 fi
 local inj
