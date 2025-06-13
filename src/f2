@@ -1,15 +1,12 @@
 #!/bin/bash
-# I thought this would be cool
-# sometimes domain:port is accessible but domain also sits behind WAF
-# and nmap/masscan may not detect it ;)
-
-#!/bin/bash
+# f2 - Fast AF subdomains port scanner with naabu + httpx
 
 f2() {
   COMMON_PORTS="80,443,8000,8080,8443,3000,5000,8888,7001,2082,2096,9000,10000,5601,8181,6543"
   TMP_DIR="f2"
   mkdir -p "$TMP_DIR"
   ALIVE="$TMP_DIR/alive.txt"
+  NAABU_OUT="$TMP_DIR/naabu_out.txt"
 
   if [ $# -lt 1 ]; then
     echo "Usage:"
@@ -21,31 +18,29 @@ f2() {
   fi
 
   FULL=false
-  TARGETS=()
+  TARGETS_FILE="$TMP_DIR/targets.txt"
 
+  # Determine mode and populate targets file
   if [[ "$1" == "-d" ]]; then
     if [ -z "$2" ]; then echo "Missing domain"; return 1; fi
-    TARGETS+=("$2")
+    echo "$2" > "$TARGETS_FILE"
     [ "$3" == "-f" ] && FULL=true
   else
-    while read -r line; do
-      TARGETS+=("$line")
-    done < "$1"
+    cp "$1" "$TARGETS_FILE"
     [ "$2" == "-f" ] && FULL=true
   fi
 
   echo "[*] Scanning with naabu..."
-  > "$TMP_DIR/naabu_out.txt"
-  for target in "${TARGETS[@]}"; do
-    if $FULL; then
-      naabu -host "$target" -p - -rate 7000 -silent >> "$TMP_DIR/naabu_out.txt"
-    else
-      naabu -host "$target" -p "$COMMON_PORTS" -rate 7000 -silent >> "$TMP_DIR/naabu_out.txt"
-    fi
-  done
+  > "$NAABU_OUT"
+
+  if $FULL; then
+    cat "$TARGETS_FILE" | naabu -p - -rate 10000 -c 1000 -timeout 1000 -retries 1 -silent > "$NAABU_OUT"
+  else
+    cat "$TARGETS_FILE" | naabu -p "$COMMON_PORTS" -rate 10000 -c 1000 -timeout 1000 -retries 1 -silent > "$NAABU_OUT"
+  fi
 
   echo "[*] Checking HTTP services with httpx..."
-  httpx -silent -title -status-code < "$TMP_DIR/naabu_out.txt" > "$ALIVE"
+  httpx-go -silent -title -status-code -no-color < "$NAABU_OUT" > "$ALIVE"
 
   echo "[+] Alive HTTP services:"
   cat "$ALIVE"

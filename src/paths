@@ -1,0 +1,19 @@
+# didn't use AI here :D
+# I usually love rush coding with AI
+# but gotta stay sharp :)
+
+paths() {
+if [[-z $1]];then
+    echo "Usage: paths <file> <int>"
+fi
+local inj
+for i in $(seq 1 $2);
+do
+    inj+="\$$((i+3))\"/\""
+done
+if [["$arg"=="-f"]];then
+grep http $1 | grep "\." | awk -F / '{print $1"//"$3"/"'$inj'}' | sort -u
+else
+grep http $1 | grep -v "\." | awk -F / '{print $1"//"$3"/"'$inj'}' | sort -u
+fi
+}
