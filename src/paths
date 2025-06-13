@@ -4,14 +4,14 @@
 
 paths() {
 if [[-z $1]];then
-    echo "Usage: paths <file> <int>"
+    echo "Usage: paths <file> <int> [-f]"
 fi
 local inj
 for i in $(seq 1 $2);
 do
     inj+="\$$((i+3))\"/\""
 done
-if [["$arg"=="-f"]];then
+if [[ "$arg" == "-f" ]];then
 grep http $1 | grep "\." | awk -F / '{print $1"//"$3"/"'$inj'}' | sort -u
 else
 grep http $1 | grep -v "\." | awk -F / '{print $1"//"$3"/"'$inj'}' | sort -u
