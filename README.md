@@ -99,7 +99,8 @@ Blind-XSS scan/helper
 ### 17) paths
 Cool one :D example usage
 ```sevada@darkness-pc:~/xunt/avito$ echo "https://autoteka.ru/feedback?identifier=axss%27%22%3c&email=axss%27%22%3c&file=axss%27%22%3c" | paths 1
-https://autoteka.ru/feedback/```
+https://autoteka.ru/feedback/
+```
 
 ## Intrusive Thoughts
 Should make this thing more structured + push not useful funcs in /archive (time 2 mkdir it) + add descriptions show up during menu() ~mm, yeah defo would be better.
