@@ -102,6 +102,7 @@ Cool one :D example usage
 echo "https://somedomain.com/feedback?identifier=aa&email=xyz" | paths 1
 https://somedomain.com/feedback/
 ```
+> Usage: paths \<file\> \<int\> [-f]
 
 ## Intrusive Thoughts
 Should make this thing more structured + push not useful funcs in /archive (time 2 mkdir it) + add descriptions show up during menu() ~mm, yeah defo would be better.
