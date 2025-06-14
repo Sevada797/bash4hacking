@@ -6,10 +6,8 @@ import re
 import resource
 
 soft, _ = resource.getrlimit(resource.RLIMIT_NOFILE)
-safe_limit = min(soft - 100, 10000)  # leave 100 for system safety
+safe_limit = min(soft - 100, 10000)
 print(f"[INFO] Using max {safe_limit} connections")
-
-
 
 from aiohttp.client_exceptions import (
     ClientConnectorError,
@@ -20,15 +18,13 @@ from aiohttp.client_exceptions import (
     ClientSSLError
 )
 
-
-async def fetch(session, url, values, log_file, counter, total):
+async def fetch(session, url, values, f_log, log_lock, counter, total):
     try:
         async with session.get(url, timeout=5, ssl=False) as resp:
             content_type = resp.headers.get("Content-Type", "").lower()
-
             allowed_types = ["text/html", "application/json", "application/javascript", "text/plain"]
             if not any(ct in content_type for ct in allowed_types):
-                return  # skip non-text responses
+                return
 
             try:
                 html = await resp.text()
@@ -40,9 +36,9 @@ async def fetch(session, url, values, log_file, counter, total):
 
             for val in values:
                 if val.lower() in html.lower():
-                    async with asyncio.Lock():
-                        with open(log_file, "a") as f:
-                            f.write(url + " -> " + val + "\n")
+                    async with log_lock:
+                        f_log.write(f"{url} -> {val}\n")
+                        f_log.flush()
 
     except (
         ClientConnectorError,
@@ -73,8 +69,6 @@ async def main(file, values, use_ua, use_burp, custom_headers):
     if not urls or not re.match(r"^https?://", urls[0]):
         print(f"\n[ERROR] URLs should start with http(s). Run:")
         print(f"  sed -i 's|^|https://|' {file}")
-        print(f"To revert back:")
-        print(f"  sed -i 's|^https://||' {file}")
         return
 
     os.makedirs("hf", exist_ok=True)
@@ -96,7 +90,6 @@ async def main(file, values, use_ua, use_burp, custom_headers):
 
     connector = aiohttp.TCPConnector(limit=safe_limit)
     timeout = aiohttp.ClientTimeout(total=6)
-
     counter = [0]
     total = len(urls)
     sem = asyncio.Semaphore(safe_limit)
@@ -104,12 +97,15 @@ async def main(file, values, use_ua, use_burp, custom_headers):
     async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
         session._default_proxy = proxy
 
-        async def sem_fetch(url):
-            async with sem:
-                await fetch(session, url, values, log_file, counter, total)
+        log_lock = asyncio.Lock()
+        with open(log_file, "a") as f_log:
 
-        tasks = [sem_fetch(url) for url in urls]
-        await asyncio.gather(*tasks)
+            async def sem_fetch(url):
+                async with sem:
+                    await fetch(session, url, values, f_log, log_lock, counter, total)
+
+            tasks = [sem_fetch(url) for url in urls]
+            await asyncio.gather(*tasks)
 
     print(f"\n[INFO]: Check {log_file} for successful finds")
 
