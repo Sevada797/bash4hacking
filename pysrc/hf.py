@@ -3,6 +3,13 @@ import asyncio
 import argparse
 import os
 import re
+import resource
+
+soft, _ = resource.getrlimit(resource.RLIMIT_NOFILE)
+safe_limit = min(soft - 100, 10000)  # leave 100 for system safety
+print(f"[INFO] Using max {safe_limit} connections")
+
+
 
 from aiohttp.client_exceptions import (
     ClientConnectorError,
@@ -87,12 +94,12 @@ async def main(file, values, use_ua, use_burp, custom_headers):
 
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
-    connector = aiohttp.TCPConnector(limit=100)
+    connector = aiohttp.TCPConnector(limit=safelimit)
     timeout = aiohttp.ClientTimeout(total=6)
 
     counter = [0]
     total = len(urls)
-    sem = asyncio.Semaphore(100)
+    sem = asyncio.Semaphore(safelimit)
 
     async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
         session._default_proxy = proxy
