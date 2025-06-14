@@ -50,51 +50,60 @@ Will detect md5 in a list of urls for example
 
 > Usage: mdd \<file\>
 
-## 8) kagefuzz
+### 8) kagefuzz
 fuzzes sensitive paths in wayback and checks for availibility
 
 > Usage: kagefuzz \<file-with-domains\>
 
-## 9) gr
+### 9) gr
 Resolves and follows all redirects in the given list of URLs.
 If a second argument is provided, it filters and prints only the final URLs containing that substring.
 Useful for catching internal redirectors (or you can weaponize it for open redirect hunting hehe 😈️)
 
 > Usage: gr <url-file> [filter-substring]
 
-## 10) mygitleaks
+### 10) mygitleaks
 Loops and checkouts all commit hashes, after greps entire dir for sensitive info (feel free to contribute in grep match-string)
 (OK there seems to be a better one already 😅️ here  [gitleaks](https://github.com/gitleaks/gitleaks) I renamed to mygitleaks for no conflict)
 > Usage: mygitleaks \<local-path-or-git-url\> [branch-to-return-to]
 
-## 11) links
+### 11) links
 links extractor
 > Usage: links <domain> [file]
 
-## 12) robots
+### 12) robots
 provide subs list and it fetches all robots.txt and from there
 it gathers for you paths and parameters (parameters only from keys like Clean-param)
 > Usage robots \<subdomains-file\>
 
-## 13) orgen 
+### 13) orgen 
 generates a list of possbile open redirects from a subdomain list
 > Usage: orgen \<url | file_with_urls\>
 <br>Example:<br>
   orgen https://target.com<br>
   orgen urls.txt
 
-## 14) frames 
+### 14) frames 
 Ok, just check it out :D it loads all provided
 list subs or urls in iframes, and displays (using JS lazy loading to not cause browser crash)
 > Usage frames \<subdomains/url-file\>
 
-## 15) axss
+### 15) axss
 My semi-automated XSS scanner/helper
 > Usage axss \<target_domains_file\>
 
-## 16) bxss
+### 16) bxss
 Blind-XSS scan/helper
 > Usage bxss
+
+### 17) paths
+Cool one :D example usage
+```sevada@darkness-pc:~/xunt/avito$ echo "https://autoteka.ru/feedback?identifier=axss%27%22%3c&email=axss%27%22%3c&file=axss%27%22%3c" | paths 1
+https://autoteka.ru/feedback/```
+
+## Intrusive Thoughts
+Should make this thing more structured + push not useful funcs in /archive (time 2 mkdir it) + add descriptions show up during menu() ~mm, yeah defo would be better.
+If you are perfectionist ahh person, just keep an eye on my repo :) defo I'll make it better day by day.
 
 ### Useful?
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-orange?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/zatikyansed)
