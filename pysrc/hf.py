@@ -94,12 +94,12 @@ async def main(file, values, use_ua, use_burp, custom_headers):
 
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
-    connector = aiohttp.TCPConnector(limit=safelimit)
+    connector = aiohttp.TCPConnector(limit=safe_limit)
     timeout = aiohttp.ClientTimeout(total=6)
 
     counter = [0]
     total = len(urls)
-    sem = asyncio.Semaphore(safelimit)
+    sem = asyncio.Semaphore(safe_limit)
 
     async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
         session._default_proxy = proxy
