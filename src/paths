@@ -8,10 +8,6 @@ if [[ -z "$1" ]];then
     return 1
 fi
 local inj
-for i in $(seq 1 $2);
-do
-    inj+="\$$((i+3))\"/\""
-done
 
 local use_f=0
 for arg in "${@:3}"; do
@@ -21,6 +17,12 @@ done
 
 if [[ -f "$1" ]] ;then
 
+for i in $(seq 1 $2);
+do
+    inj+="\$$((i+3))\"/\""
+done
+
+
 if (( use_f ));then
 grep http $1 | awk -F "?" '{print $1}' | awk -F / '{print $1"//"$3"/"'$inj'}' | grep -E '\.(7z|bz|bz2|gz|xz|tgz|zip|rar|cbr|cbz|mp4|mp3|flv|rm|mkv|ts|pdf|jpg|png|gif|bmp|psd|tga|xcf|css|ttf|woff|svg|exe|dll|apk|js|cjs|mjs|tar|lnk|crt|tmp|html|php|aspx|jsp|json|cvv|sql)(\?|$)' | sort -u
 else
@@ -28,6 +30,13 @@ grep http $1 | awk -F "?" '{print $1}' | awk -F / '{print $1"//"$3"/"'$inj'}' | 
 fi
 
 else
+
+for i in $(seq 1 $1);
+do
+    inj+="\$$((i+3))\"/\""
+done
+
+
 if (( use_f ));then
 grep http | awk -F "?" '{print $1}' | awk -F / '{print $1"//"$3"/"'$inj'}' | grep -E '\.(7z|bz|bz2|gz|xz|tgz|zip|rar|cbr|cbz|mp4|mp3|flv|rm|mkv|ts|pdf|jpg|png|gif|bmp|psd|tga|xcf|css|ttf|woff|svg|exe|dll|apk|js|cjs|mjs|tar|lnk|crt|tmp|html|php|aspx|jsp|json|cvv|sql)(\?|$)' | sort -u
 else

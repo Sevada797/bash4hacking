@@ -8,6 +8,9 @@
 # XSS-related patterns
 "new URLSearchParams|window.location.search|document.cookie"
 
+# Possible XSSI -> if git user&repo not exist takeover :D
+"raw.githubusercontent.com"
+
 # SQL Injection error messages
 "You have an error in your SQL syntax|Warning: mysql_fetch_array|Unclosed quotation mark|SQL syntax error|mysql_num_rows\(|ODBC SQL Server Driver|Microsoft OLE DB Provider for SQL Server|Microsoft SQL Native Client error|pg_query\(\)|syntax error at or near|SQLite3::query\(|invalid query|SQLSTATE\[HY000\]|You have an error in your query"
 
@@ -19,6 +22,8 @@
 
 # Directory listing / open directories / info leaks
 "Index of /|Parent Directory|Directory Listing For|Apache/2|nginx/|Welcome to nginx|Directory Listing|Index of|Listing denied|Cannot list directory contents"
+
+
 
 # For looking for JWT leaks in all pages, combine HF+m64
 #m64 '"JWT"'

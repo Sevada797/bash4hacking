@@ -1,3 +1,3 @@
 git add .
-git commit -m "Pushin smth"
+git commit -m "Fixed path() pipeline case - not handled as needed bug"
 git push origin main
