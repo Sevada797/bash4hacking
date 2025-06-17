@@ -104,6 +104,13 @@ https://somedomain.com/feedback/
 ```
 > Usage: paths \<file\> \<int\> [-f]
 
+### 18) gqli
+Graphql introspection checker, just get api endp and run gqli url
+> Usage: gqli \<graphql_endpoint_url\>
+
+### 19) ports 
+....
+
 ## Intrusive Thoughts
 Should make this thing more structured + push not useful funcs in /archive (time 2 mkdir it) + add descriptions show up during menu() ~mm, yeah defo would be better.
 If you are perfectionist ahh person, just keep an eye on my repo :) defo I'll make it better day by day.

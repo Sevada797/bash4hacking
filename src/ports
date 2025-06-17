@@ -1,0 +1,14 @@
+# fix later
+ports() {
+    if [[ $# -lt 1 ]]; then
+        echo -e "Usage: ports <filename>"
+        echo -e "Example: ports results.txt"
+        echo -e "Note: Extracts unique open ports, excluding 80 and 443."
+        return 1
+    fi
+
+    grep -E ":[0-9]{1,}/" "$1" | \
+        grep -vE ":80/|:443/" | \
+        awk -F/ '{print $3}' | \
+        sort -nu
+}

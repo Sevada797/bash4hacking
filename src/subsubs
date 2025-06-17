@@ -1,0 +1,33 @@
+# run on subs list to get list of subs
+# from visited subs, after this auto compares with your current list to get unique ones
+
+# gotta fix this yet ~_~
+
+subsubs() {
+    if [[ $# -lt 2 ]]; then
+        echo -e "Usage: subsubs <visited_subs.txt> <main_domain[,domain2,...]>"
+        echo -e "Example: subsubs visited.txt example.com"
+        echo -e "         subsubs visited.txt example.com,othersite.org"
+        return 1
+    fi
+
+    local visited="$1"
+    local domains="$2"
+    local tmpfile="subsubs.tmp"
+
+    > "$tmpfile"  # clear temp file
+
+    IFS=',' read -ra domain_array <<< "$domains"
+    for d in "${domain_array[@]}"; do
+        subs "$d" *html >> "$tmpfile"
+    done
+
+    # Create a pattern to exclude base domains from both files
+    local pattern
+    pattern=$(printf "%s\n" "${domain_array[@]}" | paste -sd '|' -)
+
+    # Final comparison after filtering base domains out of both sides
+    grep -vF -f <(grep -vE "$pattern" "$tmpfile") <(grep -vE "$pattern" "$visited")
+
+    rm -f "$tmpfile"
+}
