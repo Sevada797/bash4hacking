@@ -1,3 +1,3 @@
 git add .
-git commit -m "Fixed path() pipeline case - not handled as needed bug"
+git commit -m "Recreated subsubs() solid & cool af"
 git push origin main

@@ -1,0 +1,24 @@
+dork() {
+  if [ -z "$1" ]; then
+    echo "Usage: dork <filename>"
+    return 1
+  fi
+
+  local FILE="$1"
+  local DORK='intext:"index of /"'
+
+  while IFS= read -r domain; do
+    echo -e "\n🔍 Dorking: $domain"
+    query="${DORK} site:${domain}"
+    
+    # URL-encode the full query using jq
+    encoded_query=$(printf "%s" "$query" | jq -s -R -r @uri)
+
+    # Generate search URLs
+    google_url="https://www.google.com/search?q=${encoded_query}"
+    ddg_url="https://duckduckgo.com/?q=${encoded_query}"
+
+    echo "Google:     $google_url"
+    echo "DuckDuckGo: $ddg_url"
+  done < "$FILE"
+}

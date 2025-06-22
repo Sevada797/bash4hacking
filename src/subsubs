@@ -1,33 +1,28 @@
 # run on subs list to get list of subs
-# from visited subs, after this auto compares with your current list to get unique ones
-
-# gotta fix this yet ~_~
+# ones that doesn't exist in your current subs list ;)
 
 subsubs() {
-    if [[ $# -lt 2 ]]; then
-        echo -e "Usage: subsubs <visited_subs.txt> <main_domain[,domain2,...]>"
-        echo -e "Example: subsubs visited.txt example.com"
-        echo -e "         subsubs visited.txt example.com,othersite.org"
+    subs="$1"
+
+    if [[ ! -f "$subs" ]]; then
+        echo "[!] File '$subs' not found"
+        echo "Usage: subsubs <subs.txt>"
         return 1
     fi
 
-    local visited="$1"
-    local domains="$2"
-    local tmpfile="subsubs.tmp"
+    echo "[*] Creating https:// URLs from '$subs'..."
+    cat "$subs" | awk '{print "https://"$0}' > "${subs}urls"
 
-    > "$tmpfile"  # clear temp file
+    echo "[*] Crawling with gospider..."
+    gospider -d 1 -S "${subs}urls" -o GS
 
-    IFS=',' read -ra domain_array <<< "$domains"
-    for d in "${domain_array[@]}"; do
-        subs "$d" *html >> "$tmpfile"
-    done
+    echo "[*] Collecting gospider output..."
+    cat GS/* > GS/ALL
 
-    # Create a pattern to exclude base domains from both files
-    local pattern
-    pattern=$(printf "%s\n" "${domain_array[@]}" | paste -sd '|' -)
-
-    # Final comparison after filtering base domains out of both sides
-    grep -vF -f <(grep -vE "$pattern" "$tmpfile") <(grep -vE "$pattern" "$visited")
-
-    rm -f "$tmpfile"
+    echo "[*] Extracting new subdomains not in '$subs'..."
+    grep -vFxf "$subs" <(
+        grep -Ff "$subs" <(
+            cat GS/ALL | links http
+        ) | awk -F/ '{print $3}' | sort -u
+    )
 }
