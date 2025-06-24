@@ -2,4 +2,5 @@ updatebfh() {
   echo -e "📥 Updating BFH tools..."
   cd "$BFH_PATH" || { echo "❌ Failed to cd into \$BFH_PATH"; return 1; }
   git pull origin main && source ~/.bashrc && echo -e "✅ Done! BFH is up to date and reloaded."
+  cd -
 }
