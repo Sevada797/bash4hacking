@@ -4,15 +4,25 @@ menu() {
   local YELLOW="\e[93m"
   local RED="\e[91m"
   local RESET="\e[0m"
+  
+  source "$BFH_PATH/DESCRIPTIONS.sh"
 
   echo -e "${CYAN}🔥 Available Functions in BFH 🔥${RESET}"
 
   for f in "$BFH_PATH"/src/*; do
     name=$(basename "$f" | tr '[:upper:]' '[:lower:]')
-    echo -e "  ${GREEN}${name}()${RESET}"
+    desc_func="${name}_desc"
+
+    echo -en "  ${GREEN}${name}()${RESET}"
+
+    if declare -f "$desc_func" >/dev/null 2>&1; then
+      echo -en " - "
+      $desc_func
+    else
+      echo ""
+    fi
   done
 
-  # Check for updates
   echo -e "\n${YELLOW}🔄 Checking for updates...${RESET}"
   cd "$BFH_PATH" || return
 
@@ -26,6 +36,6 @@ menu() {
   else
     echo -e "${GREEN}✅ You are using the latest version.${RESET}"
   fi
-  # back to current dir
-  cd ->/dev/null
+
+  cd - > /dev/null
 }
