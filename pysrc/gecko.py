@@ -3,6 +3,8 @@ import sys
 import os
 import anyio
 
+semaphore = anyio.Semaphore(100)  # limit to 100 concurrent requests
+
 async def resolve_redirect(session, url, keyword=None):
     try:
         r = await session.get(url, follow_redirects=True, timeout=3)
@@ -15,6 +17,12 @@ async def resolve_redirect(session, url, keyword=None):
     except Exception as e:
         print(f"[-] {url} failed: {e}")
     return None
+
+async def run_and_store(session, url, keyword, results):
+    async with semaphore:
+        result = await resolve_redirect(session, url, keyword)
+        if result:
+            results.append(result)
 
 async def main():
     if len(sys.argv) < 2:
@@ -42,11 +50,6 @@ async def main():
         for url in results:
             if url:
                 f.write(url + "\n")
-
-async def run_and_store(session, url, keyword, results):
-    result = await resolve_redirect(session, url, keyword)
-    if result:
-        results.append(result)
 
 if __name__ == "__main__":
     anyio.run(main)
