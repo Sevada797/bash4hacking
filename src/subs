@@ -23,8 +23,6 @@ subs() {
     filetocheck="$2"
   fi
 
-echo "[DEBUG] domain='$domain' domainsfile='$domainsfile' filetocheck='$filetocheck'"
-
 
   if [[ -n "$domainsfile" ]]; then
     if [[ ! -f "$domainsfile" ]]; then
