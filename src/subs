@@ -1,18 +1,55 @@
 subs() {
-  local domain=$1
-  local file=$2
-
-  if [[ -z "$domain" ]]; then
-    echo "Usage: subs <domain> [file]"
-    echo "If no file given, reads URLs from stdin."
-    return 1
+  local domainsfile=""
+  local domain=""
+  local filetocheck=""
+  input=""
+  if [[ ! -t 0 ]]; then
+    input=$(cat)
   fi
 
-  if [[ -n "$file" ]]; then
-    # domain + file mode
-    grep -Eo "([a-zA-Z0-9-]+\.)?$domain" "$file" | sort -u
+
+  # Normalize -f flag usage
+  if [[ "$1" == "-f" ]]; then
+    domainsfile="$2"
+    filetocheck="$3"
+  elif [[ "$2" == "-f" ]]; then
+    domainsfile="$1"
+    filetocheck="$3"
+  elif [[ "$3" == "-f" ]]; then
+    domainsfile="$1"
+    filetocheck="$2"
   else
-    # domain + stdin mode
-    grep -Eo "([a-zA-Z0-9-]+\.)?$domain" | sort -u
+    domain="$1"
+    filetocheck="$2"
+  fi
+
+echo "[DEBUG] domain='$domain' domainsfile='$domainsfile' filetocheck='$filetocheck'"
+
+
+  if [[ -n "$domainsfile" ]]; then
+    if [[ ! -f "$domainsfile" ]]; then
+      echo "[-] Domains file not found: $domainsfile"
+      return 1
+    fi
+    while read -r domain; do
+      if [[ -n "$filetocheck" && -f "$filetocheck" ]]; then
+        grep -Eo "[a-zA-Z0-9]{1,}\.$domain" "$filetocheck" | sort -u
+      else
+        echo "$input" | grep -Eo "[a-zA-Z0-9]{1,}\.$domain" | sort -u
+      fi
+    done < "$domainsfile"
+  elif [[ -n "$domain" ]]; then
+    if [[ -n "$filetocheck" && -f "$filetocheck" ]]; then
+      grep -Eo "[a-zA-Z0-9]{1,}\.$domain" "$filetocheck" | sort -u
+    else
+      grep -Eo "[a-zA-Z0-9]{1,}\.$domain" | sort -u
+    fi
+  else
+    echo "Usage:"
+    echo "  subs domain.com [filetocheck]"
+    echo "  subs -f domains.txt [filetocheck]"
+    echo "  cat filetocheck.txt | subs domain.com"
+    echo "  cat filetocheck.txt | subs -f domains.txt"
+    return 1
   fi
 }
