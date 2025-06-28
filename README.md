@@ -19,8 +19,8 @@ Just run menu for this ;)
 Also I provided screen
 
 ## Intrusive Thoughts
-~~Should make this thing more structured + push not useful funcs in /archive (time 2 mkdir it) + add descriptions show up during menu() ~mm, yeah defo would be better.~~
-~~If you are perfectionist ahh person, just keep an eye on my repo :) defo I'll make it better day by day.~~
+~~Should make this thing more structured + push not useful funcs in /archive (time 2 mkdir it) + add descriptions show up during menu(), mm, yeah defo would be better.
+If you are perfectionist ahh person, just keep an eye on my repo :) defo I'll make it better day by day.~~
 
 Kinda done, still some funcs now may lack requiremenets, I may fix that also sooner or later
 
