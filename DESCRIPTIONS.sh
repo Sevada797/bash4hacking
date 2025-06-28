@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
+mails_desc() {
+echo "Grep -ao mail patterns."
+}
 
 asubs_desc() {
   echo "Find active subdomains using assetfinder, subfinder, subr, and httpx-go. Also checks CNs of dead subs."
