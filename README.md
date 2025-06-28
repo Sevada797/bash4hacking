@@ -15,7 +15,7 @@ bash setup.sh
 ```
 
 ## 🛠️ Tools available
-Just run menu for this ;)
+Just run `menu` for this ;)
 
 Also I provided screen
 
