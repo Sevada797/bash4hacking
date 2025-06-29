@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
+
+gapi_desc() {
+echo "Checks google API key in several paid API endpoints"
+}
+
 mails_desc() {
 echo "Grep -ao mail patterns."
 }

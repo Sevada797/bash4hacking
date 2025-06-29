@@ -1,0 +1,31 @@
+gapi() {
+  key="$1"
+  if [[ -z "$key" ]]; then
+    echo "Usage: gapi <API_KEY>"
+    return 1
+  fi
+
+  apis=(
+    "https://maps.googleapis.com/maps/api/directions/json?origin=Paris&destination=Berlin"
+    "https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants+in+New+York"
+    "https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452"
+    "https://translation.googleapis.com/language/translate/v2?q=hello&target=es"
+    "https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video"
+    "https://www.googleapis.com/books/v1/volumes?q=hacking"
+    "https://maps.googleapis.com/maps/api/timezone/json?location=39.6034810,-119.6822510&timestamp=1331161200"
+    "https://maps.googleapis.com/maps/api/staticmap?center=40.714728,-73.998672&zoom=12&size=400x400"
+    "https://maps.googleapis.com/maps/api/distancematrix/json?origins=Seattle&destinations=San+Francisco"
+    "https://maps.googleapis.com/maps/api/elevation/json?locations=36.578581,-118.291994"
+  )
+
+  for url in "${apis[@]}"; do
+    full_url="$url&key=$key"
+    body=$(curl -s "$full_url")
+
+    if echo "$body" | grep -Eiq "denied|rejected|not authorized"; then
+      echo "🔴 $full_url"
+    else
+      echo "🟢 $full_url"
+    fi
+  done
+}
