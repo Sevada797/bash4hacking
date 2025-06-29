@@ -1,5 +1,5 @@
 mails() {
-  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo -e "Usage:\n  echo 'text' | mails\n  mails from somefile.txt"
     return
   fi
@@ -7,9 +7,9 @@ mails() {
 
   # Check if second arg is a readable file
   if [[ -n "$1" && -f "$1" ]]; then
-    grep -aEo "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" "$1"
+    grep -aEro "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" "$1"
   else
-    grep -aEo "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+    grep -aEro "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
   fi
 }
 
