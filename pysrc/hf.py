@@ -7,6 +7,7 @@ import resource
 
 soft, _ = resource.getrlimit(resource.RLIMIT_NOFILE)
 safe_limit = min(soft - 100, 10000)
+safe_limit=500
 print(f"[INFO] Using max {safe_limit} connections")
 
 from aiohttp.client_exceptions import (
@@ -18,7 +19,7 @@ from aiohttp.client_exceptions import (
     ClientSSLError
 )
 
-async def fetch(session, url, values, f_log, log_lock, counter, total):
+async def fetch(session, url, values, f_log, log_lock, counter, total, a_chars=0, b_chars=0):
     try:
         async with session.get(url, timeout=5, ssl=False) as resp:
             content_type = resp.headers.get("Content-Type", "").lower()
@@ -35,21 +36,18 @@ async def fetch(session, url, values, f_log, log_lock, counter, total):
                     html = ""
 
             for val in values:
-                if val.lower() in html.lower():
+                val_lower = val.lower()
+                html_lower = html.lower()
+                for match in re.finditer(re.escape(val_lower), html_lower):
+                    start = max(0, match.start() - b_chars)
+                    end = min(len(html), match.end() + a_chars)
+                    snippet = html[start:end].replace('\n', ' ').replace('\r', '')
                     async with log_lock:
-                        f_log.write(f"{url} -> {val}\n")
+                        f_log.write(f"{url} -> {val}\nContext: {snippet}\n\n")
                         f_log.flush()
 
-    except (
-        ClientConnectorError,
-        ClientProxyConnectionError,
-        ClientOSError,
-        ClientResponseError,
-        ServerTimeoutError,
-        asyncio.TimeoutError,
-        ClientSSLError,
-        aiohttp.InvalidURL
-    ):
+    except (ClientConnectorError, ClientProxyConnectionError, ClientOSError, ClientResponseError,
+            ServerTimeoutError, asyncio.TimeoutError, ClientSSLError, aiohttp.InvalidURL):
         pass
     except Exception as e:
         print(f"\n[ERROR] Unexpected error for {url}: {e}")
@@ -58,7 +56,7 @@ async def fetch(session, url, values, f_log, log_lock, counter, total):
         print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
 
 
-async def main(file, values, use_ua, use_burp, custom_headers):
+async def main(file, values, use_ua, use_burp, custom_headers, a_chars, b_chars):
     if not os.path.exists(file):
         print(f"[ERROR] File {file} not found.")
         return
@@ -78,7 +76,7 @@ async def main(file, values, use_ua, use_burp, custom_headers):
 
     headers = {}
     if use_ua:
-        headers["User-Agent"] = "chrome"
+        headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/113.0.0.0"
 
     if custom_headers:
         for h in custom_headers:
@@ -89,7 +87,7 @@ async def main(file, values, use_ua, use_burp, custom_headers):
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
     connector = aiohttp.TCPConnector(limit=safe_limit)
-    timeout = aiohttp.ClientTimeout(total=6)
+    timeout = aiohttp.ClientTimeout(total=10)
     counter = [0]
     total = len(urls)
     sem = asyncio.Semaphore(safe_limit)
@@ -102,9 +100,9 @@ async def main(file, values, use_ua, use_burp, custom_headers):
 
             async def sem_fetch(url):
                 async with sem:
-                    await fetch(session, url, values, f_log, log_lock, counter, total)
+                    await fetch(session, url, values, f_log, log_lock, counter, total, a_chars, b_chars)
 
-            tasks = [sem_fetch(url) for url in urls]
+            tasks = [asyncio.create_task(sem_fetch(url)) for url in urls]
             await asyncio.gather(*tasks)
 
     print(f"\n[INFO]: Check {log_file} for successful finds")
@@ -118,6 +116,8 @@ if __name__ == "__main__":
     parser.add_argument("--ua-chrome", action="store_true", help="Use Chrome User-Agent")
     parser.add_argument("--burp", action="store_true", help="Use Burp Proxy")
     parser.add_argument("-H", action="append", help="Custom headers (e.g., -H 'X-Test: 1'). Use multiple times.")
+    parser.add_argument("-A", type=int, default=0, help="Additional characters AFTER match")
+    parser.add_argument("-B", type=int, default=0, help="Additional characters BEFORE match")
 
     args = parser.parse_args()
 
@@ -127,6 +127,6 @@ if __name__ == "__main__":
     value_list = args.E.split("|") if args.E else [args.value]
 
     try:
-        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H))
+        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H, args.A, args.B))
     except KeyboardInterrupt:
         print("\n[INFO] Interrupted by user.")
