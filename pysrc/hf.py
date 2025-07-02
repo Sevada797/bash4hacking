@@ -127,6 +127,7 @@ if __name__ == "__main__":
     value_list = args.E.split("|") if args.E else [args.value]
 
     try:
+        print("Looking for 🔎️ [" + ", ".join(value_list)+"] values")
         asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H, args.A, args.B))
     except KeyboardInterrupt:
         print("\n[INFO] Interrupted by user.")
