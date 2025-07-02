@@ -1,0 +1,43 @@
+filter() {
+  if [ $# -lt 2 ]; then
+    echo "Usage: filter <similarity_threshold> <filename>"
+    return 1
+  fi
+
+  local threshold=$1
+  local filename=$2
+
+  declare -A urls_by_length=()
+
+  while IFS= read -r url; do
+    len=${#url}
+    urls_by_length[$len]+="$url"$'\n'
+  done < "$filename"
+
+  similarity() {
+    local a=$1 b=$2 max_len=${#a}
+    (( ${#b} > max_len )) && max_len=${#b}
+    local prefix_len=0
+    for ((i=0; i<${#a} && i<${#b}; i++)); do
+      [[ "${a:i:1}" == "${b:i:1}" ]] || break
+      ((prefix_len++))
+    done
+    echo $(( prefix_len * 100 / max_len ))
+  }
+
+  for len in "${!urls_by_length[@]}"; do
+    mapfile -t group_urls < <(printf '%s' "${urls_by_length[$len]}")
+    filtered=()
+    for url in "${group_urls[@]}"; do
+      skip=0
+      for f in "${filtered[@]}"; do
+        sim=$(similarity "$url" "$f")
+        (( sim >= threshold )) && { skip=1; break; }
+      done
+      (( skip == 0 )) && filtered+=("$url")
+    done
+
+#    echo "Filtered URLs for length $len (similarity ≥ $threshold%):"
+    printf '%s\n' "${filtered[@]}"
+  done
+}

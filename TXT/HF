@@ -1,6 +1,9 @@
 
 !!! All use with -E  don't forgett
 
+# Mail Injection hunting
+hf 4hf -E ' name="email"| name="emailAddress"' --ua-chrome
+
 # Subdomain takeover checks :D
 ==================================
 "There isn't a GitHub Pages|No such app|404 Web Site not found|This web app has been stopped|NoSuchBucket|The specified bucket does not exist|Repository not found|Fastly error|Sorry, this shop is currently unavailable|Help Center Closed|Doesn’t exist here|Looks like you’ve followed a broken link|There's nothing here|The page you are looking for doesn't exist"
