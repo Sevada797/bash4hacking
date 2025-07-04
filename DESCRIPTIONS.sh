@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+subsubs2() {
+echo "Again for pulling unique new subs from existing subs, but this time from headers, since CSP can point to smth interesting (e.g. allow-origin)"
+}
+
 filter_desc() {
 echo "This function is super helpfull (and slow haha), but you can defo run it on like 100K urls to get filtered unique ones based on static_percent"
 }
