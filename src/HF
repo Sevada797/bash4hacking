@@ -1,6 +1,13 @@
 #!/bin/bash
 
 hf() {
+
+if [[ "$1" == "menu" ]]; then
+  cat "$BFH_PATH/TXT/HF" | sed "s|@WORDLIST@|$2|g"
+  return 1
+fi
+
+
 ulimit -n 100000
     # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"]
     

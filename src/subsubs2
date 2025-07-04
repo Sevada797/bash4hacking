@@ -1,0 +1,15 @@
+subsubs2() {
+    subs="$1"
+
+    if [[ ! -f "$subs" ]]; then
+        echo "[-] File not found: $subs" >&2
+        return 1
+    fi
+
+    for url in $(awk '{print "https://"$0}' "$subs"); do
+        tmp="tmp_$(openssl rand -hex 8)"
+        curl -sk -m 5 -D "$tmp" "$url" -o /dev/null
+        grep -vxf "$subs" <(subs -f "$subs" "$tmp")
+        rm -f "$tmp"
+    done
+}

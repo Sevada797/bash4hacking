@@ -1,6 +1,6 @@
 filter() {
   if [ $# -lt 2 ]; then
-    echo "Usage: filter <similarity_threshold> <filename>"
+    echo "Usage: filter <static_percent> <filename>"
     return 1
   fi
 

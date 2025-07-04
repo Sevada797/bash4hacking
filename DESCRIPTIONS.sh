@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+filter_desc() {
+echo "This function is super helpfull (and slow haha), but you can defo run it on like 100K urls to get filtered unique ones based on static_percent"
+}
+
 gapi_desc() {
 echo "Checks google API key in several paid API endpoints"
 }

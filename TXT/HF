@@ -1,34 +1,52 @@
+========================
+  HF QUICKSTART MENU
+========================
 
-!!! All use with -E  don't forgett
+📧 MAIL INJECTION CHECKS  
+hf @WORDLIST@ -E "name=\"email\"|name=\"emailAddress\"" --ua-chrome -A 200
 
-# Mail Injection hunting
-hf 4hf -E ' name="email"| name="emailAddress"' --ua-chrome
+🔥 SQLi VULN ERRORS  
+hf @WORDLIST@ -E "You have an error in your SQL syntax|mysql_fetch_array|Unclosed quotation mark|SQLSTATE" --ua-chrome
 
-# Subdomain takeover checks :D
-==================================
-"There isn't a GitHub Pages|No such app|404 Web Site not found|This web app has been stopped|NoSuchBucket|The specified bucket does not exist|Repository not found|Fastly error|Sorry, this shop is currently unavailable|Help Center Closed|Doesn’t exist here|Looks like you’ve followed a broken link|There's nothing here|The page you are looking for doesn't exist"
+📜 XSS REFLECTION SOURCES  
+hf @WORDLIST@ -E "document.cookie|window.location|new URLSearchParams|params.get" --ua-chrome
 
-# XSS-related patterns
-"new URLSearchParams|window.location.search|document.cookie"
+🔐 API KEY / SECRET LEAKS  
+hf @WORDLIST@ -E "api_key|auth_token|aws_access_key_id|PRIVATE_KEY|Authorization: Bearer" --ua-chrome
 
-# Possible XSSI -> if git user&repo not exist takeover :D
-"raw.githubusercontent.com"
+🛑 ERROR DISCLOSURES / DEBUG OUTPUT  
+hf @WORDLIST@ -E "Warning:|Notice:|Fatal error:|Traceback|Stack trace|ORA-00933|Microsoft OLE DB Provider" --ua-chrome
 
-# SQL Injection error messages
-"You have an error in your SQL syntax|Warning: mysql_fetch_array|Unclosed quotation mark|SQL syntax error|mysql_num_rows\(|ODBC SQL Server Driver|Microsoft OLE DB Provider for SQL Server|Microsoft SQL Native Client error|pg_query\(\)|syntax error at or near|SQLite3::query\(|invalid query|SQLSTATE\[HY000\]|You have an error in your query"
+🏚️ SUBDOMAIN TAKEOVER DETECT  
+hf @WORDLIST@ -E "There isn't a GitHub Pages|NoSuchBucket|Repository not found|Fastly error|shop is currently unavailable" --ua-chrome
 
-# Debug mode & backend error disclosures
-"Warning:|Notice:|Fatal error:|Parse error:|Exception in thread|Stack trace:|Traceback \(most recent call last\):|at line [0-9]+|on line [0-9]+|ORA-00933|ORA-01756|Microsoft JET Database Engine|System.Data.SqlClient.SqlException|Zend_Exception|PDOException|javax.servlet.ServletException|runtime error|ErrorException"
+📂 OPEN DIRECTORIES  
+hf @WORDLIST@ -E "Index of /|Parent Directory|Directory Listing For|Welcome to nginx" --ua-chrome
 
-# API Key leaks (common patterns in responses or files)
-"api_key|api-key|apikey|access_token|access-token|auth_token|auth-token|secret=|client_secret|aws_secret_access_key|aws_access_key_id|PRIVATE_KEY|SECRET_KEY|BEGIN PRIVATE KEY|Authorization: Bearer|X-API-KEY|X-Amz-Security-Token|Authorization: Basic"
+🪪 JWT LEAK CHECK (base64 m64)  
+hf @WORDLIST@ -E "IkpXVC|JKV1Q|iSldUI" --ua-chrome
 
-# Directory listing / open directories / info leaks
-"Index of /|Parent Directory|Directory Listing For|Apache/2|nginx/|Welcome to nginx|Directory Listing|Index of|Listing denied|Cannot list directory contents"
+🧪 INJECT → DETECT SQLi (COMBO MODE)  
+cat @WORDLIST@ | qsreplace -a "'\"" >injected.txt  
+hf injected.txt -E "SQL syntax|mysql_fetch|SQLSTATE|ORA-" --ua-chrome
+
+🧬 INJECT → DETECT XSS (worst payload)
+cat @WORDLIST@ | qsreplace '<script>alert(1)</script>' > injected.txt  
+hf injected.txt -E "<script>alert(1)</script>" --ua-chrome
+
+😎 INJECT COOKIE → DETECT XSS  
+hf @WORDLIST@ -E "checkingforreflect" -H "Cookie: cookie=checkingforreflect" --ua-chrome -A 30 -B 30
+
+🦠 INJECT single quote PAYLOAD + DETECT UNCOMMON COMMON XSS
+cat @WORDLIST@ | qsreplace "NoWayThisCouldBeInHTML'" > injected.txt  
+hf injected.txt "NoWayThisCouldBeInHTML'" --ua-chrome -A 200 -B 200
+
+✨ XSS in href/form action=  
+cat @WORDLIST@ | qsreplace findm3 >4hf_action_href_XSS  
+hf 4hf_action_href_XSS -E "href=\"findm3\"|action=\"findm3\"|href='findm3'|action='findm3" --ua-chrome  
 
 
-
-# For looking for JWT leaks in all pages, combine HF+m64
-#m64 '"JWT"'
-#Look for: IkpXVC JKV1Q iSldUI 
-"IkpXVC|JKV1Q|iSldUI"
+🧠 For more custom payload combos, check out:  
+- qsreplace  
+- ffuf + hf  
+- m64 + hf
