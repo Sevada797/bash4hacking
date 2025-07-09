@@ -1,0 +1,31 @@
+depo() {
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    echo -e "Usage: depo [package.json]\n"
+    echo "  -h, --help         Show this help message"
+    echo "  No argument        Prompts you to paste JSON input"
+    return 0
+  fi
+
+  if [[ -z "$1" ]]; then
+    echo "[*] No input file provided."
+    echo "Paste your full package.json content and press Ctrl+D when done:"
+    json_input_file=$(mktemp)
+    cat > "$json_input_file"
+  else
+    json_input_file="$1"
+    if [[ ! -f "$json_input_file" ]]; then
+      echo "[-] File '$json_input_file' not found."
+      return 1
+    fi
+  fi
+
+  tmpfile=$(mktemp)
+
+  jq -r '(.dependencies // {} | keys[]) , (.devDependencies // {} | keys[]) , (.resolutions // {} | keys[])' "$json_input_file" \
+    | sort -u > "$tmpfile"
+
+  echo "[+] Found $(wc -l < "$tmpfile") unique packages"
+  echo "[*] Starting ffuf against npmjs.com/package/FUZZ..."
+
+  ffuf -w "$tmpfile" -u https://www.npmjs.com/package/FUZZ -mc all -fc 200
+}

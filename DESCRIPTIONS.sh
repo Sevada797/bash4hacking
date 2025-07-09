@@ -2,7 +2,11 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
-subsubs2() {
+depo_desc() {
+echo "Checks for possible dependency confusion RCE in node"
+}
+
+subsubs2_desc() {
 echo "Again for pulling unique new subs from existing subs, but this time from headers, since CSP can point to smth interesting (e.g. allow-origin)"
 }
 
