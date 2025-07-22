@@ -1,30 +1,51 @@
-BASHRC="$HOME/.bashrc"
+#!/bin/bash
+
+# Determine which RC file to use
+if [ -n "$ZSH_VERSION" ]; then
+    RC_FILE="$HOME/.zshrc"
+elif [ -n "$BASH_VERSION" ]; then
+    RC_FILE="$HOME/.bashrc"
+else
+    # Fallback: check current shell manually
+    SHELL_NAME=$(basename "$SHELL")
+    if [ "$SHELL_NAME" = "zsh" ]; then
+        RC_FILE="$HOME/.zshrc"
+    else
+        RC_FILE="$HOME/.bashrc"
+    fi
+fi
+
 IMPORT_MARK="# IMPORT for Bash4hacking"
 SRC_DIR="$(pwd)/src"
+BFH_PATH="$(pwd)"
 
-# Command that loops and sources only regular files
-IMPORT_CMD='for file in '"$SRC_DIR"'/*; do [ -f "$file" ] && source "$file"; done'
-
+# Universal source command (POSIX-safe)
+IMPORT_CMD='for file in '"$SRC_DIR"'/*; do [ -f "$file" ] && . "$file"; done'
 
 # Check if already added
-if ! grep -qi "bash4hacking" "$BASHRC"; then
+if ! grep -qi "bash4hacking" "$RC_FILE"; then
     {
         echo -e "\n##############################"
         echo -e "## IMPORT for Bash4hacking"
         echo -e "##############################"
         echo "$IMPORT_CMD"
-        echo "BFH_PATH=\""$(pwd)"\""
+        echo "BFH_PATH=\"$BFH_PATH\""
         echo -e "################################"
         echo -e "## ENDOF IMPORT for Bash4hacking"
         echo -e "################################"
-
-
-    } >> "$BASHRC"
-    echo -e "\n✅ Bash4hacking setup added to ~/.bashrc"
+    } >> "$RC_FILE"
+    echo -e "\n✅ Bash4hacking setup added to $RC_FILE"
 else
-    echo -e "\nℹ️ Bash4hacking import already exists in ~/.bashrc"
+    echo -e "\nℹ️ Bash4hacking import already exists in $RC_FILE"
 fi
 
-# Reload .bashrc
-source "$BASHRC"
-echo -e "🔁 Reloaded ~/.bashrc\n✅ Setup done!"
+# Reload the correct RC file
+if [ -n "$BASH_VERSION" ]; then
+    . "$RC_FILE"
+    echo -e "🔁 Reloaded $RC_FILE\n✅ Setup done!"
+elif [ -n "$ZSH_VERSION" ]; then
+    source "$RC_FILE"
+    echo -e "🔁 Reloaded $RC_FILE\n✅ Setup done!"
+else
+    echo -e "⚠️ Unknown shell — please restart your terminal or run:\n   source $RC_FILE"
+fi
