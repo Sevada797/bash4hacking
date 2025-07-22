@@ -1,0 +1,25 @@
+rocket() {
+  awk '
+  {
+    url = $0
+    len = length(url)
+    count[len]++
+    lines[NR] = url
+    lens[NR] = len
+  }
+  END {
+    maxc = 0
+    for (l in count) {
+      if (count[l] > maxc) {
+        maxc = count[l]
+        maxlen = l
+      }
+    }
+
+    for (i = 1; i <= NR; i++) {
+      if (lens[i] != maxlen) {
+        print lines[i]
+      }
+    }
+  }'
+}

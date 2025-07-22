@@ -19,13 +19,30 @@ depo() {
     fi
   fi
 
-  tmpfile=$(mktemp)
+  pkglist=$(mktemp)
+  verslist=$(mktemp)
 
-  jq -r '(.dependencies // {} | keys[]) , (.devDependencies // {} | keys[]) , (.resolutions // {} | keys[])' "$json_input_file" \
-    | sort -u > "$tmpfile"
+  jq -r '
+    to_entries[] | select(.value | type == "object") | .value | to_entries[] |
+    "\(.key) \(.value)"
+  ' "$json_input_file" | while read -r name version; do
+    cleanver=$(echo "$version" | sed 's/[^0-9.]*//g')
+    echo "$name" >> "$pkglist"
+    if [[ -n "$cleanver" ]]; then
+      echo "https://registry.npmjs.org/$name/$cleanver" >> "$verslist"
+    fi
+  done
 
-  echo "[+] Found $(wc -l < "$tmpfile") unique packages"
-  echo "[*] Starting ffuf against npmjs.com/package/FUZZ..."
+  echo "[+] Total unique packages: $(sort -u "$pkglist" | wc -l)"
+  echo "[*] Fuzzing package names on https://npmjs.com/package/FUZZ ..."
+  ffuf -w "$pkglist" -u https://www.npmjs.com/package/FUZZ -mc all -fc 200
 
-  ffuf -w "$tmpfile" -u https://www.npmjs.com/package/FUZZ -mc all -fc 200
+  echo "[*] Checking version-specific URLs..."
+  while read -r url; do
+    code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+    if [[ "$code" == "404" ]]; then
+      echo "❌ Missing version: $url"
+    fi
+  done < "$verslist"
 }
+

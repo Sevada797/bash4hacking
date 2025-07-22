@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+rocket_desc() {
+echo "Drops maximum amount of same lengthed data (URLs)"
+}
+
 depo_desc() {
 echo "Checks for possible dependency confusion RCE in node"
 }

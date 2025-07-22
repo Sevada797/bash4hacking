@@ -1,0 +1,42 @@
+fcheck() {
+  if [ -z "$1" ]; then
+    echo "Usage: fcheck url"
+    return 1
+  fi
+
+  url="$1"
+  ext="${url##*.}"
+  filename="test.${ext}"
+
+  echo "[*] Downloading $url"
+  curl -s "$url" -L -o "$filename" -H "User-Agent: Chrome" || {
+    echo "[!] Failed to download"
+    return 1
+  }
+
+  echo "[*] Hexdump (first 20 lines):"
+  xxd "$filename" | head -n 20
+
+  echo "===================="
+  echo "[*] Running exiftool:"
+  exiftool "$filename"
+
+  echo "===================="
+  echo "[*] Checking for vulnerable image signatures (CVE detectors):"
+
+  grep -aE -i '(?:
+      push graphic-context|                # ImageTragick (CVE-2016-3714)
+      MVG|                                 # ImageTragick vector format
+      pattern:|                            # SSRF via SVG/patterns
+      file:////|                           # local file inclusion
+      https?://[^ ]+|                      # SSRF to remote URL
+      data:image|                          # data URI injection
+      <svg|<script|onload=|xlink:href=|    # SVG XSS/SSRF
+      <image[^>]+xlink:href|               # SVG image SSRF
+      <?php|eval|base64_decode|            # RCE payloads
+      \.htaccess|\.bash_history|           # leak attempts
+      %PDF-|^GIF89a|^PNG|^BM|^\xFF\xD8     # malformed/magic header mismatches
+  )' "$filename" | head -n 10
+
+  echo "===================="
+}

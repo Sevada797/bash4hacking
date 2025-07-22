@@ -1,0 +1,8 @@
+ssrfgen() {
+  echo "[*] Extracting possible file URLs and SSRF params with '=' sign..."
+
+  grep -iE '=\s*(https?://|file:///|/|%2F|[a-zA-Z0-9._/%2F-]+\.(jpg|jpeg|png|webp|svg|bmp|gif|pdf|doc|docx|xls|xlsx|ppt|pptx|odt|ods|odp|rtf|txt|csv|log|sql|xml|json|yml|yaml|ini|conf|config|zip|rar|7z|gz|tar|tar\.gz|tar\.xz|xz|bz2|tgz|apk|exe|dll|bin|sh|py|rb|pl|go|c$|cpp|so|o$|wasm))' "$1" | tee 4ssrf
+
+  echo "[+] Saved to 4ssrf ✅"
+  echo "[I] Use ssrfhunt to inject your hook 🧪"
+}
