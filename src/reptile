@@ -1,0 +1,24 @@
+#!/bin/bash
+
+reptile() {
+    if [[ "$1" == "menu" ]]; then
+        cat "$BFH_PATH/TXT/REPTILE" | sed "s|@WORDLIST@|$2|g"
+        return 1
+    fi
+
+    if [[ "$1" == "log" ]]; then
+        cat reptile/log.txt 2>/dev/null || echo "[!] No reptile/log.txt found"
+        return 0
+    fi
+
+    # Usage: reptile <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"]
+    PY_TOOL="$BFH_PATH/pysrc/reptile.py"
+
+    if [ $# -lt 2 ]; then
+        echo "Usage: reptile <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-A num] [-B num] [-H \"Header: value\"]"
+        return 1
+    fi
+
+    python3 "$PY_TOOL" "$@"
+}
+

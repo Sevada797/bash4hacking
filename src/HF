@@ -7,6 +7,11 @@ if [[ "$1" == "menu" ]]; then
   return 1
 fi
 
+if [[ "$1" == "log" ]]; then
+    cat hf/log.txt 2>/dev/null || echo "[!] No hf/log.txt found"
+    return 0
+fi
+
 
 ulimit -n 100000
     # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"]

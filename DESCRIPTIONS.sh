@@ -2,6 +2,26 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+reptile_desc() {
+echo "Same as HF just uses headless browser from playwright"
+}
+
+fcheck_desc() {
+echo "Provide file link, it downloads and does exif + first lines hexdump, so you can know the file processors of target"
+}
+
+fuzz_desc() {
+echo "Just does fuzz, I created it for using after ssrfhunt"
+}
+
+ssrfgen_desc() {
+echo "Greps out possible to ssrf links"
+}
+
+ssrfhunt_desc() {
+echo "Replaces all occurencies of possible path/link param values with your hook"
+}
+
 rocket_desc() {
 echo "Drops maximum amount of same lengthed data (URLs)"
 }
@@ -75,7 +95,7 @@ gr_desc() {
 }
 
 hf_desc() {
-  echo "Powerful param reflection tester using Python. Accepts filters, headers, and user agents."
+  echo "Powerful reflection finder using Python. Accepts filters, headers, and user agents."
 }
 
 kage_desc() {
