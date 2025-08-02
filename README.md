@@ -25,7 +25,7 @@ If you are perfectionist ahh person, just keep an eye on my repo :) defo I'll ma
 
 Kinda done, still some funcs now may lack requiremenets, I may fix that also sooner or later.
 
-##Todo
+## Todo
 
 Create 
 
