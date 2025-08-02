@@ -12,10 +12,11 @@ async def resolve_redirect(session, url, keyword=None):
         if keyword is None or keyword in final:
             print(f"[+] {url} -> {final}")
             return final
-        else:
-            print(f"[-] {url} -> {final} (filtered)")
+#        else:
+            #print(f"[-] {url} -> {final} (filtered)")
     except Exception as e:
-        print(f"[-] {url} failed: {e}")
+        ""
+        #print(f"[-] {url} failed: {e}")
     return None
 
 async def run_and_store(session, url, keyword, results):

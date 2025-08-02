@@ -62,10 +62,10 @@ filip() {
     echo "-------------------------------------------"
 
     extensions=(
-        "\.env" "\.git/config" "\.sql" "\.csv" "\.zip" "\.rar" "\.tar" "\.gz" "\.tgz"
+        "\.env" "\.git" "\.sql" "\.csv" "\.zip" "\.rar" "\.tar" "\.gz" "\.tgz"
         "\.log" "\.bak" "\.backup" "\.old" "\.7z" "\.db" "\.sqlite" "\.xml" "\.conf"
         "\.json" "\.yml" "\.yaml" "\.ini" "\.pem" "\.crt" "\.p12" "\.key"
-        "\.htpasswd" "\.htaccess" "\.pfx" "\.swp" "\.tmp"
+        "\.htpasswd" "\.htaccess" "\.pfx" "\.swp" "\.tmp" "\.sh"
         "\.xls" "\.xlsx" "\.doc" "\.docx" "\.ppt" "\.pptx" "\.pdf"
         "\.inc" "\.jar" "\.war" "\.bin" "\.exe" "\.apk" "\.ipa"
         "\.dat" "\.mdb" "\.accdb" "\.bak1" "\.dump" "\.bak\.sql" "\.sql\.gz"
