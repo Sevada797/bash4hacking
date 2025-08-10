@@ -2,48 +2,56 @@
   HF QUICKSTART MENU
 ========================
 
-📧 MAIL INJECTION CHECKS  
-hf @WORDLIST@ -E "name=\"email\"|name=\"emailAddress\"" --ua-chrome -A 200
+📧 MAIL INJECTION+ARBITRARY FILE UPLOAD CHECKS  
+hf @WORDLIST@ -E "=\"email|='email|=\"file|='file" --ua-chrome -A 200 && hf log
+#shortest possible substrs, scenarios considered: name= type= id= with email :D
+#unclosed quote since can be prefix e.g. name="emailAddress" or id="email-160" these cases I studied by observation
 
-🔥 SQLi VULN ERRORS  
-hf @WORDLIST@ -E "You have an error in your SQL syntax|mysql_fetch_array|Unclosed quotation mark|SQLSTATE" --ua-chrome
+📜 RXSS ULTIMATE OBSERVATION
+hf @WORDLIST@ -E "storage.|innerHTML|document.cookie|cookie|window.location|location.replace|URLSearchParams|params.get|html(|append(|prepend(|after(|before(|replaceWith(|wrap(|wrapAll(|wrapInner(|attr(|prop(" --ua-chrome -A 900 -B 900 &&  echo -e "==== HTML common XSS vectors ==== (including cookie/storage 2nd order XSS triggers)\n" && hf log | grep -E "storage\.|innerHTML|document\.cookie|cookie\(|window\.location|location\.replace|URLSearchParams" && echo -e "==== JQuery XSS triger vectors ====\n" && hf log | grep -E "params\.get|html\(|append\(|prepend\(|after\(|before\(|replaceWith\(|wrap\(|wrapAll\(|wrapInner\(|attr\(|prop\("
+#JQuery included, getting params from url, set and get storage, and set/get cookie included
 
-📜 XSS REFLECTION SOURCES  
-hf @WORDLIST@ -E "document.cookie|window.location|new URLSearchParams|params.get" --ua-chrome
+📡 SOCIAL LINK JACKING CHECK
+hf @WORDLIST@ -E "t.me|fb.com|facebook.com|instagram.com|x.com|twitter.com|linkedin.com|youtube.com|github.com|medium.com|reddit.com|pinterest.com|tiktok.com" --ua-chrome -A 400 -B 400 \
+&& hf log | grep -oE '(t\.me/[a-zA-Z0-9_-]+|facebook\.com/[a-zA-Z0-9._-]+|fb\.com/[a-zA-Z0-9._-]+|instagram\.com/[a-zA-Z0-9._-]+|x\.com/[a-zA-Z0-9._-]+|twitter\.com/[a-zA-Z0-9._-]+|linkedin\.com/(in|company)/[a-zA-Z0-9._-]+|youtube\.com/(user|channel|@)[a-zA-Z0-9._-]+|github\.com/[a-zA-Z0-9._-]+|medium\.com/@[a-zA-Z0-9._-]+|reddit\.com/u/[a-zA-Z0-9._-]+|pinterest\.com/[a-zA-Z0-9._-]+|tiktok\.com/@[a-zA-Z0-9._-]+)' | sort -u > possible_claims.txt \
+&& while read p; do code=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: chrome" "https://$p"); [[ "$code" =~ ^(404|410)$ ]] && echo "[!] Claimable: https://$p"; done < possible_claims.txt
+
+📡 SOCIAL LINK JACKING CHECK after SHORTENED URLS
+hf @WORDLIST@ -E "//bit.ly/|//tinyurl.com/|//t.co/|//goo.gl/|//ow.ly/|//buff.ly/|//is.gd/|//rebrand.ly/" --ua-chrome -A 400 -B 400 && gr shortened_urls && grep -Eo '(t\.me/[a-zA-Z0-9_-]+|facebook\.com/[a-zA-Z0-9._-]+|fb\.com/[a-zA-Z0-9._-]+|instagram\.com/[a-zA-Z0-9._-]+|x\.com/[a-zA-Z0-9._-]+|twitter\.com/[a-zA-Z0-9._-]+|linkedin\.com/(in|company)/[a-zA-Z0-9._-]+|youtube\.com/(user|channel|@)[a-zA-Z0-9._-]+|github\.com/[a-zA-Z0-9._-]+|medium\.com/@[a-zA-Z0-9._-]+|reddit\.com/u/[a-zA-Z0-9._-]+|pinterest\.com/[a-zA-Z0-9._-]+|tiktok\.com/@[a-zA-Z0-9._-]+)' redirects.txt | sort -u | while read p; do code=$(ccurl -s -o /dev/null -w "%{http_code}" -H "User-Agent: chrome" "https://$p"); [[ "$code" =~ ^(404|410)$ ]] && echo "[!] Claimable: https://$p"; done
+
+
+
 
 🔐 API KEY / SECRET LEAKS  
-hf @WORDLIST@ -E "'apikey':|'apikey\":|\"apikey\":|'api-key':|'api-key\":|\"api-key\":|'api_key':|'api_key\":|\"api_key\":|'auth_token':|'auth_token\":|\"auth_token\":|'access_token':|'access_token\":|\"access_token\":|'authToken':|'authToken\":|\"authToken\":|'x-api-key':|'x-api-key\":|\"x-api-key\":|'x_auth_token':|'x_auth_token\":|\"x_auth_token\":|'client_secret':|'client_secret\":|\"client_secret\":|'clientSecret':|'clientSecret\":|\"clientSecret\":|'secret_key':|'secret_key\":|\"secret_key\":|'secretKey':|'secretKey\":|\"secretKey\":|'session_token':|'session_token\":|\"session_token\":|'PRIVATE_KEY':|'PRIVATE_KEY\":|\"PRIVATE_KEY\":|'privateKey':|'privateKey\":|\"privateKey\":|'Authorization':|'Authorization\":|\"Authorization\":|'Bearer':|'Bearer\":|\"Bearer\":|'auth_key':|'auth_key\":|\"auth_key\":|'authKey':|'authKey\":|\"authKey\":|'consumer_secret':|'consumer_secret\":|\"consumer_secret\":|'app_secret':|'app_secret\":|\"app_secret\":|'firebase':|'firebase\":|\"firebase\":|'sentry_dsn':|'sentry_dsn\":|\"sentry_dsn\":|'dsn':|'dsn\":|\"dsn\":|'stripe':|'stripe\":|\"stripe\":|'paypal':|'paypal\":|\"paypal\":|'jwt':|'jwt\":|\"jwt\":" --ua-chrome -A 500
+hf @WORDLIST@ -E "'apikey':|\"apikey\":|'api-key':|\"api-key\":|'api_key':|\"api_key\":|'auth_token':|\"auth_token\":|'access_token':|\"access_token\":|'authToken':|\"authToken\":|'x-api-key':|\"x-api-key\":|'x_auth_token':|\"x_auth_token\":|'client_secret':|\"client_secret\":|'clientSecret':|\"clientSecret\":|'secret_key':|\"secret_key\":|'secretKey':|\"secretKey\":|'session_token':|\"session_token\":|'PRIVATE_KEY':|\"PRIVATE_KEY\":|'privateKey':|\"privateKey\":|'Authorization':|\"Authorization\":|'Bearer':|\"Bearer\":|'auth_key':|\"auth_key\":|'authKey':|\"authKey\":|'consumer_secret':|\"consumer_secret\":|'app_secret':|\"app_secret\":|'firebase':|\"firebase\":|'sentry_dsn':|\"sentry_dsn\":|'dsn':|\"dsn\":|'stripe':|\"stripe\":|'paypal':|\"paypal\":|'jwt':|\"jwt\":" --ua-chrome -A 500 && hf log
 
 🛑 ERROR DISCLOSURES / DEBUG OUTPUT  
-hf @WORDLIST@ -E "Warning:|Notice:|Fatal error:|Traceback|Stack trace|ORA-00933|Microsoft OLE DB Provider" --ua-chrome
+hf @WORDLIST@ -E "Warning:|Notice:|Fatal error:|Traceback|Stack trace|ORA-00933|Microsoft OLE DB Provider|error on line:" --ua-chrome && hf log
 
 🏚️ SUBDOMAIN TAKEOVER DETECT  
-hf @WORDLIST@ -E "There isn't a GitHub Pages|NoSuchBucket|Repository not found|Fastly error|shop is currently unavailable" --ua-chrome
+hf @WORDLIST@ -E "There isn't a GitHub Pages|NoSuchBucket|Repository not found|Fastly error|shop is currently unavailable" --ua-chrome && hf log
 
 📂 OPEN DIRECTORIES  
-hf @WORDLIST@ -E "Index of /|Parent Directory|Directory Listing For|Welcome to nginx" --ua-chrome
+hf @WORDLIST@ -E "Index of /|Parent Directory|Directory Listing For|Welcome to nginx" --ua-chrome && hf log
 
 🪪 JWT LEAK CHECK (base64 m64)  
-hf @WORDLIST@ -E "IkpXVC|JKV1Q|iSldUI" --ua-chrome
+hf @WORDLIST@ -E "IkpXVC|JKV1Q|iSldUI" --ua-chrome && hf log
 
 🧪 INJECT → DETECT SQLi (COMBO MODE)  
 cat @WORDLIST@ | qsreplace -a "'\"" >injected.txt  
-hf injected.txt -E "SQL syntax|mysql_fetch|SQLSTATE|ORA-" --ua-chrome
+hf injected.txt -E "SQL | SQL|mysql_fetch|SQLSTATE|ORA-" --ua-chrome && hf log
 
-🧬 INJECT → DETECT XSS (worst payload)
-cat @WORDLIST@ | qsreplace '<script>alert(1)</script>' > injected.txt  
-hf injected.txt -E "<script>alert(1)</script>" --ua-chrome
-
-😎 INJECT COOKIE → DETECT XSS  
-hf @WORDLIST@ -E "checkingforreflect" -H "Cookie: cookie=checkingforreflect" --ua-chrome -A 30 -B 30
+😎 INJECT COOKIE+REFERER → DETECT XSS  
+hf @WORDLIST@ "cookieORrefererReflection" -H "Cookie: cookie=cookieORrefererReflection" -H "Referer: cookieORrefererReflection" --ua-chrome -A 30 -B 30 && hf log
+#note if gbr dc has logs, use these cookies, chances_of_cookie_reflection++
 
 🦠 INJECT single quote PAYLOAD + DETECT UNCOMMON COMMON XSS
 cat @WORDLIST@ | qsreplace "NoWayThisCouldBeInHTML'" > injected.txt  
-hf injected.txt "NoWayThisCouldBeInHTML'" --ua-chrome -A 200 -B 200
+hf injected.txt "NoWayThisCouldBeInHTML'" --ua-chrome -A 200 -B 200 && hf log
 
 ✨ XSS in href/form action=  
 cat @WORDLIST@ | qsreplace findm3 >4hf_action_href_XSS  
-hf 4hf_action_href_XSS -E "href=\"findm3\"|action=\"findm3\"|href='findm3'|action='findm3" --ua-chrome  
+hf 4hf_action_href_XSS -E "findm3" --ua-chrome  -A 300 -B 300 && hf log | grep -E "href=\"findm3|action=\"findm3|href='findm3|action='findm3"
 
 
 🧠 For more custom payload combos, check out:  

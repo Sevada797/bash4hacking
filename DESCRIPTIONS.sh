@@ -2,6 +2,14 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+pcut_desc() {
+echo "Cut all urls, after looping for each param from given params list, and grepping out them and after each using '| head -n<amount_you_choose>'"
+}
+
+lsubs_desc() {
+echo "Give subs list and get 4 files, live subs and status code 200 subs, with and without 'https://' prefix"
+}
+
 reptile_desc() {
 echo "Same as HF just uses headless browser from playwright"
 }
@@ -133,7 +141,7 @@ subr_desc() { echo "Run passive subdomain enumeration using subr.py script."; }
 
 subs_desc() { echo "Extract subdomains matching given domain from file or stdin."; }
 
-subs443_desc() { echo "Check which subdomains are alive over port 443 using Python script."; }
+subs443_desc() { echo "Check dead subs CN, to get other subdomains."; }
 
 subsubs_desc() { echo "Use gospider to crawl existing subs and extract unseen subdomains."; }
 

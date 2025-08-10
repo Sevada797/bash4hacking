@@ -12,6 +12,10 @@ if [[ "$1" == "log" ]]; then
     return 0
 fi
 
+if [[ "$1" == "finds" ]]; then
+    hf log | grep -E "^http" | cut -d" " -f3 | sort -u
+    return 0
+fi
 
 ulimit -n 100000
     # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"]
@@ -19,7 +23,7 @@ ulimit -n 100000
     PY_TOOL="$BFH_PATH/pysrc/hf.py"
 
     if [ $# -lt 2 ]; then
-        echo "Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-A num] [-B num] [-H \"Header: value\"]"
+        echo -e "Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-A num] [-B num] [-H \"Header: value\"]\nhf finds -> shows which strings were found\nhf log -> shows all findings\nhf menu <url_list> -> shows my used common combo commands with that file"
         return 1
     fi
 

