@@ -19,9 +19,6 @@ hf @WORDLIST@ -E "t.me|fb.com|facebook.com|instagram.com|x.com|twitter.com|linke
 📡 SOCIAL LINK JACKING CHECK after SHORTENED URLS
 hf @WORDLIST@ -E "//bit.ly/|//tinyurl.com/|//t.co/|//goo.gl/|//ow.ly/|//buff.ly/|//is.gd/|//rebrand.ly/" --ua-chrome -A 400 -B 400 && gr shortened_urls && grep -Eo '(t\.me/[a-zA-Z0-9_-]+|facebook\.com/[a-zA-Z0-9._-]+|fb\.com/[a-zA-Z0-9._-]+|instagram\.com/[a-zA-Z0-9._-]+|x\.com/[a-zA-Z0-9._-]+|twitter\.com/[a-zA-Z0-9._-]+|linkedin\.com/(in|company)/[a-zA-Z0-9._-]+|youtube\.com/(user|channel|@)[a-zA-Z0-9._-]+|github\.com/[a-zA-Z0-9._-]+|medium\.com/@[a-zA-Z0-9._-]+|reddit\.com/u/[a-zA-Z0-9._-]+|pinterest\.com/[a-zA-Z0-9._-]+|tiktok\.com/@[a-zA-Z0-9._-]+)' redirects.txt | sort -u | while read p; do code=$(ccurl -s -o /dev/null -w "%{http_code}" -H "User-Agent: chrome" "https://$p"); [[ "$code" =~ ^(404|410)$ ]] && echo "[!] Claimable: https://$p"; done
 
-
-
-
 🔐 API KEY / SECRET LEAKS  
 hf @WORDLIST@ -E "'apikey':|\"apikey\":|'api-key':|\"api-key\":|'api_key':|\"api_key\":|'auth_token':|\"auth_token\":|'access_token':|\"access_token\":|'authToken':|\"authToken\":|'x-api-key':|\"x-api-key\":|'x_auth_token':|\"x_auth_token\":|'client_secret':|\"client_secret\":|'clientSecret':|\"clientSecret\":|'secret_key':|\"secret_key\":|'secretKey':|\"secretKey\":|'session_token':|\"session_token\":|'PRIVATE_KEY':|\"PRIVATE_KEY\":|'privateKey':|\"privateKey\":|'Authorization':|\"Authorization\":|'Bearer':|\"Bearer\":|'auth_key':|\"auth_key\":|'authKey':|\"authKey\":|'consumer_secret':|\"consumer_secret\":|'app_secret':|\"app_secret\":|'firebase':|\"firebase\":|'sentry_dsn':|\"sentry_dsn\":|'dsn':|\"dsn\":|'stripe':|\"stripe\":|'paypal':|\"paypal\":|'jwt':|\"jwt\":" --ua-chrome -A 500 && hf log
 
