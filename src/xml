@@ -1,0 +1,16 @@
+xml() {
+  local subsfile="$1"
+  local method="${2:-GET}"
+  [ -z "$subsfile" ] && { echo "usage: xml <subs_file> [get|post]"; return 1; }
+  method=$(echo "$method" | tr '[:upper:]' '[:lower:]')
+  [ "$method" != "get" ] && [ "$method" != "post" ] && { echo "invalid method: $method"; return 1; }
+  > ct  # clear output file before start
+  while IFS= read -r url; do
+    echo "request to $url" >> ct
+    if [ "$method" = "post" ]; then
+      curl -s -X POST "$url" -H "content-type: application/xml" -H "User-Agent: chrome" -D - -o /dev/null >> ct
+    else
+      curl -s -X GET "$url" -H "content-type: application/xml" -H "User-Agent: chrome" -D - -o /dev/null >> ct
+    fi
+  done < "$subsfile"
+}

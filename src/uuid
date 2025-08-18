@@ -1,0 +1,16 @@
+uuid() {
+    local regex='[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+
+    if [ -p /dev/stdin ]; then
+        # Pipeline mode
+        grep -E "$regex"
+    elif [ $# -gt 0 ]; then
+        # File mode
+        grep -E "$regex" "$@"
+    else
+        echo "Usage:"
+        echo "  cat file.txt | uuid"
+        echo "  uuid file.txt"
+        return 1
+    fi
+}

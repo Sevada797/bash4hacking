@@ -1,0 +1,16 @@
+p2() {
+if [ $# -eq 0 ]; then
+echo "Usage: p2 <urls_file>"
+return 1
+fi
+
+file="$1_p2"
+{
+    grep -iE "id=|/[0-9]{1,20}/" "$1" &&
+    uuid "$1" &&
+    mdd "$1"
+} > "$file"
+
+hf "$file" -E "gmail|yahoo|outlook|\"phone|'phone|\"tel|'tel|\"contact|'contact|\"mobile|'mobile" --ua-chrome -A 500 -B 500 && hf finds
+
+}

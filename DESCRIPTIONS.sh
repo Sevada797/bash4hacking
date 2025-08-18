@@ -99,7 +99,7 @@ gqli_desc() {
 }
 
 gr_desc() {
-  echo "Wrapper for gecko.py that filters or parses URL files for reflection-based recon."
+  echo "Wrapper for gecko.py , follows redirs and logs em, also has filter, easy use also for open-redir finding after rr()."
 }
 
 hf_desc() {

@@ -1,0 +1,17 @@
+#!/bin/bash
+lql() {
+if [ $# -lt 1 ]; then
+    echo "Usage: lql <urls_file> | lql log"
+    exit 1
+fi
+
+if [ "$1" == "log" ]; then
+    if [ -f "lql_results.txt" ]; then
+        cat "lql_results.txt"
+    else
+        echo "No results yet. Run LQL first."
+    fi
+else
+    python3 "$BFH_PATH/pysrc/light_sqli_hunter.py" "$1"
+fi
+}
