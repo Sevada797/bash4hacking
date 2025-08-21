@@ -6,8 +6,8 @@ if [ $# -lt 1 ]; then
 fi
 
 if [ "$1" == "log" ]; then
-    if [ -f "lql_results.txt" ]; then
-        cat "lql_results.txt"
+    if [ -f "lql_time_results.txt" ]; then
+        cat "lql_time_results.txt"
     else
         echo "No results yet. Run LQL first."
     fi

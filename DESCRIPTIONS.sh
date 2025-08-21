@@ -2,6 +2,30 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+phones_desc() {
+echo "Greps possible phone number patterns"
+}
+
+p2_desc() {
+echo "Automatically check for p2 leakage via id/uuid/md5 + other greps & hf"
+}
+
+xml_desc() {
+echo "Checking for xml acceptance on subs"
+}
+
+uuid_desc() {
+echo "Greps uuid patterns"
+}
+
+freg_desc() {
+echo "Fuzz possible register endps"
+}
+
+lql_desc() {
+echo "Test for times based SQL injections"
+}
+
 pcut_desc() {
 echo "Cut all urls, after looping for each param from given params list, and grepping out them and after each using '| head -n<amount_you_choose>'"
 }

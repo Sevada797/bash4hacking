@@ -6,6 +6,11 @@
 hf @WORDLIST@ "some.com" -B 500 --ua-chrome && hf log | grep Context: | cut -d" " -f2- | tee hfsubs
 
 
+CVE HUNT
+
+hf @WORDLIST@ -E "php 5.|php 6.|php 4.|wordpress 4.|wordpress 5.|joomla 1.|joomla 2.|joomla 3.|drupal 6.|drupal 7.|drupal 8.|magento 1.|magento 1.|magento 1.|magento 2.|magento 2.|prestashop 1.6|prestashop 1.7|typo3 6.2|typo3 7.6|typo3 8.7|moodle 2.7|moodle 2.8|moodle 2.9|moodle 3.0|mediawiki 1.19|mediawiki 1.20|mediawiki 1.21|opencart 1.5|opencart 2.0|opencart 2.1|zend 1.0|zend 1.11|cakephp 2.0|cakephp 2.1|cakephp 2.2|symfony 2.0|symfony 2.1|symfony 2.2|typo3 4.5|typo3 4.6" --ua-chrome -A 500 -B 500 && hf log
+
+
 📧 MAIL INJECTION+ARBITRARY FILE UPLOAD CHECKS  
 hf @WORDLIST@ -E "=\"email|='email|=\"file|='file" --ua-chrome -A 200 && hf log
 #shortest possible substrs, scenarios considered: name= type= id= with email :D
