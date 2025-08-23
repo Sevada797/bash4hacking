@@ -10,6 +10,7 @@ if [[ -z "$1" ]]; then
 
   echo "[*] Filtering possible redirect URLs from $urls ..."
   grep -Ei "$redirect_params" "$urls" | sort -u | qsreplace https://evil.com > rr
+  for x in $(grep -Ei "$redirect_params" "$urls" | sort -u); do  echo $x | qsreplace https://$(echo $x | cut -d/ -f3)@evil.com>>rr ; done
 
   echo ""
   echo "[+] Saved to: rr"
