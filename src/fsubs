@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Double fuzzing for subdomains + directories
+fsubs() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: fsubs <subs/domains_list>"
+        return 1
+    fi
+
+    ffuf -u https://FUZZ/BUZZ -c -fs 0 \
+        -w "$1:FUZZ" \
+        -w "$BFH_PATH/TXT/directory-list-2.3-big.txt:BUZZ" \
+        -H "User-Agent: chrome" -e .php,.html
+}
