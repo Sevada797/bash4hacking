@@ -40,7 +40,7 @@ f2() {
   fi
 
   echo "[*] Checking HTTP services with httpx..."
-  httpx-go -silent -title -status-code -no-color < "$NAABU_OUT" > "$ALIVE"
+  httpx -silent -title -status-code -no-color < "$NAABU_OUT" > "$ALIVE"
 
   echo "[+] Alive HTTP services:"
   cat "$ALIVE"

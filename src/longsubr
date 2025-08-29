@@ -1,0 +1,45 @@
+#!/bin/bash
+longsubr() {
+    domains_file="$1"
+    longlist="$BFH_PATH/TXT/alfa3-4"       # pre-generated 3–4 letter combos
+    shortlist="$BFH_PATH/TXT/subdomains.txt" # curated SecLists wordlist
+    outputfile="all_subs_longbr_results.txt"
+
+    if [ ! -f "$domains_file" ]; then
+        echo "Usage: longsubr <file_with_domains>"
+        return 1
+    fi
+
+    if [ ! -f "$longlist" ]; then
+        echo "[!] Missing $longlist — run the generator first!"
+        return 1
+    fi
+
+    if [ ! -f "$shortlist" ]; then
+        echo "[!] Missing $shortlist"
+        echo "Run this to download:"
+        echo "curl -LO https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt -o $shortlist"
+        return 1
+    fi
+
+    # reset output
+    > "$outputfile"
+    sublist=$(mktemp)
+
+    echo "[*] Preparing all subdomains..."
+    while read -r domain; do
+        [ -z "$domain" ] && continue
+        echo "[*] Adding prefixes for $domain..."
+        # merge longlist + shortlist into domain
+        cat "$longlist" "$shortlist" | while read -r prefix; do
+            echo "${prefix}.${domain}" >> "$sublist"
+        done
+    done < "$domains_file"
+
+    echo "[*] Total subdomains to check: $(wc -l < "$sublist")"
+    echo "[*] Running dnsx..."
+    dnsx -l "$sublist" -silent -t 200 | tee "$outputfile"
+
+    echo "[+] All results saved in $outputfile"
+    rm -f "$sublist"
+}

@@ -1,0 +1,21 @@
+#!/bin/bash
+sto() {
+    subfile="$1"
+    outputfile="sto_results.txt"
+
+    if [ ! -f "$subfile" ]; then
+        echo "Usage: sto <file_of_subdomains>"
+        return 1
+    fi
+
+    # reset results file
+    > "$outputfile"
+
+    echo "[*] Running dnsx in bulk mode..."
+    dnsx -l "$subfile" -cname -silent  | tee "$outputfile"
+
+    echo
+    echo "[*] Saved all CNAMEs into $outputfile"
+    echo "[*] Grepping out subdomain takeover matches for you ~"
+    grep -f "$outputfile" "$BFH_PATH/TXT/sto_matches"
+}

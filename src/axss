@@ -12,7 +12,7 @@
 # subfinder       - For active subdomain enumeration
 # subr            - My custom subdomain recon tool (bash4hacking)
 # subs443         - My custom subdomain recon tool (bash4hacking)
-# httpx-go        - Fast HTTP probing and checking live subs
+# httpx        - Fast HTTP probing and checking live subs
 # katana          - URL discovery and scraping
 # waybackurls     - Collect archived URLs from Wayback Machine
 # params          - My custom tool, extract URL parameters (bash4hacking)
@@ -47,15 +47,15 @@ axss() {
   echo "[*] Adding main domains (critical patch)..."
   cat "$targets" >> "$subsgathered"
 
-  echo "[*] Resolving live subdomains with httpx-go..."
-  httpx-go -l "$subsgathered" -silent > "$tmp"
+  echo "[*] Resolving live subdomains with httpx..."
+  httpx -l "$subsgathered" -silent > "$tmp"
   
   echo "[*] Extracting dead subs..."
   comm -23 <(sort "$subsgathered") <(sort "$tmp") > "$tmp_dead"
   ## get the tmp back to original
   mv "$tmp" "$subsgathered"
   echo "[*] Extracting CN's from dead subs..."
-  subs443 "$tmp_dead" | httpx-go -silent | sort -u>>"$tmp"
+  subs443 "$tmp_dead" | httpx -silent | sort -u>>"$tmp"
 
   echo "[*] Filtering in-scope subdomains..."
   grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"

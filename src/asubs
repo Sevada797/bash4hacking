@@ -17,15 +17,15 @@ asubs() {
   echo "[*] Adding main domains (critical patch)..."
   cat "$targets" >> "$subsgathered"
 
-  echo "[*] Resolving live subdomains with httpx-go..."
-  httpx-go -l "$subsgathered" -silent > "$tmp"
+  echo "[*] Resolving live subdomains with httpx..."
+  httpx -l "$subsgathered" -silent > "$tmp"
   
   echo "[*] Extracting dead subs..."
   comm -23 <(sort "$subsgathered") <(sort "$tmp") > "$tmp_dead"
   ## get the tmp back to original
   mv "$tmp" "$subsgathered"
   echo "[*] Extracting CN's from dead subs..."
-  subs443 "$tmp_dead" | httpx-go -silent | sort -u>>"$tmp"
+  subs443 "$tmp_dead" | httpx -silent | sort -u>>"$tmp"
 
   echo "[*] Filtering in-scope subdomains..."
   grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"

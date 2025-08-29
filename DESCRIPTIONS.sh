@@ -79,7 +79,7 @@ echo "Grep -ao mail patterns."
 }
 
 asubs_desc() {
-  echo "Find active subdomains using assetfinder, subfinder, subr, and httpx-go. Also checks CNs of dead subs."
+  echo "Find active subdomains using assetfinder, subfinder, subr, and httpx. Also checks CNs of dead subs."
 }
 
 axss_desc() {
