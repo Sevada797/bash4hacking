@@ -1,0 +1,30 @@
+deadsubs() {
+  local targets=$1
+  if [[ -z "$targets" ]]; then
+    echo "Usage: deadsubs <target_domains_file>"
+    return 1
+  fi
+
+  local subsgathered="${targets}_dsubs"
+  local tmp_live="tmp_live_$(openssl rand -hex 8)"
+  local allresults="tmp_allresults_$(openssl rand -hex 8)"
+
+  echo "[*] Gathering subdomains from assetfinder & subfinder..."
+  cat "$targets" | assetfinder >> "$allresults"
+  subfinder -dL "$targets" -silent >> "$allresults"
+  subr "$targets" >> "$allresults"
+
+  echo "[*] Adding main domains..."
+  cat "$targets" >> "$allresults"
+
+  echo "[*] Resolving live subdomains..."
+  httpx -l "$allresults" -silent > "$tmp_live"
+
+  echo "[*] Extracting dead subdomains..."
+  comm -23 <(sort "$allresults") <(sort "$tmp_live") > "$subsgathered"
+  echo "[*] Moving results to current directory"
+
+  rm -f "$tmp_live" "$allresults"
+
+  echo "[+] Dead subdomains saved in: $subsgathered"
+}
