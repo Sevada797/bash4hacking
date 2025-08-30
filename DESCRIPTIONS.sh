@@ -2,6 +2,22 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+deadsubs_desc() {
+echo "Should've collect deadsubs, but maybe I messed smth here"
+}
+
+sto_desc() {
+echo "Subdomain takeover checker -- No luck hunting STO yet ~_~"
+}
+
+longsubr2_desc() {
+echo "Brute subdomains - Takes a day, smart filter for 5 letter combos, removed 3 consequent vowels and consonants + removed 2 repetitive consequent letters"
+}
+
+longsubr_desc() {
+echo "Brute subdomains - Takes some 1-2 hours if you scan one domain, tests alfa3-4 + list from danielmiessler/SecLists"
+}
+
 phones_desc() {
 echo "Greps possible phone number patterns"
 }

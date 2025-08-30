@@ -1,3 +1,0 @@
-testtt() {
-httpx -l "$1" -silent 
-}
