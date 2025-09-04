@@ -2,6 +2,9 @@
 # f2 - Fast AF subdomains port scanner with naabu + httpx
 
 f2() {
+
+shopt -s expand_aliases
+
   COMMON_PORTS="80,443,8000,8080,8443,3000,5000,8888,7001,2082,2096,9000,10000,5601,8181,6543"
   TMP_DIR="f2"
   mkdir -p "$TMP_DIR"

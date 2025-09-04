@@ -1,4 +1,7 @@
 lsubs() {
+
+shopt -s expand_aliases
+
   if [ -z "$1" ]; then
     echo "Usage: lsubs <filename>"
     echo "Example: lsubs domains.txt"

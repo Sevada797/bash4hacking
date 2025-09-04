@@ -13,7 +13,7 @@ if [[ "$1" == "log" ]]; then
 fi
 
 if [[ "$1" == "finds" ]]; then
-    hf log | grep -E "^http" | cut -d" " -f3 | sort -u
+    hf log | grep -E "^http" | cut -d" " -f3- | sort -u
     return 0
 fi
 

@@ -1,4 +1,7 @@
 asubs() {
+
+shopt -s expand_aliases
+
   local targets=$1
   if [[ -z "$targets" ]]; then
     echo "Usage: asubs <target_domains_file>"

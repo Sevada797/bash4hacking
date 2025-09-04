@@ -27,6 +27,9 @@
 
 
 axss() {
+
+shopt -s expand_aliases
+
   local targets=$1
   if [[ -z "$targets" ]]; then
     echo "Usage: axss <target_domains_file>"

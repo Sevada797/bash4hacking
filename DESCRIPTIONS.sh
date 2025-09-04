@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+fsubs_desc() {
+echo "Fuzz subs - double fuzzing for directory discovery"
+}
+
 deadsubs_desc() {
 echo "Should've collect deadsubs, but maybe I messed smth here"
 }
