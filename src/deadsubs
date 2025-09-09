@@ -1,6 +1,5 @@
 deadsubs() {
 
-shopt -s expand_aliases
 
   local targets=$1
   if [[ -z "$targets" ]]; then
@@ -21,7 +20,7 @@ shopt -s expand_aliases
   cat "$targets" >> "$allresults"
 
   echo "[*] Resolving live subdomains..."
-  httpx -l "$allresults" -silent > "$tmp_live"
+  ~/go/bin/httpx -l "$allresults" -silent > "$tmp_live"
 
   echo "[*] Extracting dead subdomains..."
   comm -23 <(sort "$allresults") <(sort "$tmp_live") > "$subsgathered"

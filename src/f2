@@ -1,9 +1,8 @@
 #!/bin/bash
-# f2 - Fast AF subdomains port scanner with naabu + httpx
+# f2 - Fast AF subdomains port scanner with naabu + ~/go/bin/httpx
 
 f2() {
 
-shopt -s expand_aliases
 
   COMMON_PORTS="80,443,8000,8080,8443,3000,5000,8888,7001,2082,2096,9000,10000,5601,8181,6543"
   TMP_DIR="f2"
@@ -42,8 +41,8 @@ shopt -s expand_aliases
     cat "$TARGETS_FILE" | naabu -p "$COMMON_PORTS" -rate 10000 -c 1000 -timeout 1000 -retries 1 -silent > "$NAABU_OUT"
   fi
 
-  echo "[*] Checking HTTP services with httpx..."
-  httpx -silent -title -status-code -no-color < "$NAABU_OUT" > "$ALIVE"
+  echo "[*] Checking HTTP services with ~/go/bin/httpx..."
+  ~/go/bin/httpx -silent -title -status-code -no-color < "$NAABU_OUT" > "$ALIVE"
 
   echo "[+] Alive HTTP services:"
   cat "$ALIVE"

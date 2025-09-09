@@ -1,15 +1,13 @@
 lsubs() {
 
-shopt -s expand_aliases
-
   if [ -z "$1" ]; then
     echo "Usage: lsubs <filename>"
     echo "Example: lsubs domains.txt"
     return 1
   fi
 
-  httpx -l "$1" -o "l${1}urls"
-  httpx -l "$1" -mc 200 -o "${1}200urls"
+  ~/go/bin/httpx -l "$1" -o "l${1}urls"
+  ~/go/bin/httpx -l "$1" -mc 200 -o "${1}200urls"
   cut -d/ -f3 "l${1}urls" > "l${1}"
   cut -d/ -f3 "${1}200urls" > "${1}200"
 }

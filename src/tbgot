@@ -1,0 +1,9 @@
+tgbot() {
+    if [ -z "$1" ]; then
+        echo "Usage: tgbot <BOT_TOKEN>"
+        return 1
+    fi
+
+    BOT_TOKEN="$1"
+    curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getUpdates" | jq .
+}

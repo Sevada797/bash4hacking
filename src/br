@@ -1,0 +1,3 @@
+br() {
+python3 $BFH_PATH/pysrc/bruter.py
+}
