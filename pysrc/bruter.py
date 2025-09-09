@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-import re, json
+import os, re, json
 from itertools import product
 import requests
 
@@ -34,38 +34,115 @@ tracker = {}
 # --- add wlist array ---
 wlist=[]
 for i in re.findall("[FBCD]{1}UZZ", payload):
-   wlist.append(input(f"Please enter wodlist for {i}: ") )
+   wlist.append(input(f"Please enter wodlist for {i}: ").replace('~/', '/home/'+os.getlogin()+'/') )
 
 def brutemain(url, headers, payload, wlist, method, tracker, f1=None,f2=None,f3=None,f4=None):
-    if method == "POST":
-        ''
-    #r = requests.post(url, headers=headers, verify=False, data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
+    current = {} # current req details
+    if (f1 and f2 and f3 and f4):
+        payload=payload.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3).replace("DUZZ", f4)
+        url=url.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3).replace("DUZZ", f4)
+    elif (f1 and f2 and f3):
+        payload=payload.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3)
+        url=url.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3)
+    elif (f1 and f2):
+        payload=payload.replace("FUZZ", f1).replace("BUZZ", f2)
+        url=url.replace("FUZZ", f1).replace("BUZZ", f2)
+    elif (f1):
+        payload=payload.replace("FUZZ", f1)
+        url=url.replace("FUZZ", f1)
+    else:
+        payload=payload # just for the sake of philosophy ;D
+        url=url # just for the sake of philosophy ;D
+
+    if method=="POST":
+        r = requests.post(url, headers=headers, verify=False, data=payload)
+    elif method=="GET":
+        r = requests.post(url, headers=headers, verify=False)
+    print (f"[I]: Bruting, req sent ~ [{method}] {url} with payload {payload}\nHeaders: {str(headers)}")
+    current["sc"] = r.status_code
+    current["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8")) # headers size
+    current["rsize"] = len(r.text)
+    current["words"] = len(r.text.split(' '))
+    current["lines"] = len(r.text.split("\n"))
+    for i in tracker:
+        if (tracker[i]!="DYNAMIC"):
+            if ((tracker[i]!=current[i]) or 
+        (tracker[i]!=current[i])
+        or (tracker[i]!=current[i])
+        or (tracker[i]!=current[i])
+        or (tracker[i]!=current[i]) ):
+                f=open('finds.txt', 'a')
+                f.write(f"Default req: sc={tracker['sc']},hsize={tracker['hsize']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  VS sc={current['sc']},hsize={current['hsize']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4},\n\n")
+                f.close()
+                return ""
+
 
 def brute(url, headers, payload, wlist, method, tracker):
-
+    # 4 wordlists
     try:
         with open(wlist[0]) as f1:
-            with open(wlist[1]) as f2:
-                with open(wlist[2]) as f3:
-                    with open(wlist[3]) as f4:
-                        brutemain(url, headers, payload, wlist, method, tracker, f1, f2, f3, f4)
-    except:
+            for line1 in f1:
+                word1 = line1.strip()
+                if not word1:
+                    continue
+                with open(wlist[1]) as f2:
+                    for line2 in f2:
+                        word2 = line2.strip()
+                        if not word2:
+                            continue
+                        with open(wlist[2]) as f3:
+                            for line3 in f3:
+                                word3 = line3.strip()
+                                if not word3:
+                                    continue
+                                with open(wlist[3]) as f4:
+                                    for line4 in f4:
+                                        word4 = line4.strip()
+                                        if not word4:
+                                            continue
+                                        brutemain(url, headers, payload, wlist, method, tracker, word1, word2, word3, word4)
+    except IndexError:
+        # fallback for fewer than 4 wordlists
         try:
             with open(wlist[0]) as f1:
-               with open(wlist[1]) as f2:
-                   with open(wlist[2]) as f3:
-                        brutemain(url, headers, payload, wlist, method, tracker, f1, f2, f3)
-        except:
+                for line1 in f1:
+                    word1 = line1.strip()
+                    if not word1:
+                        continue
+                    with open(wlist[1]) as f2:
+                        for line2 in f2:
+                            word2 = line2.strip()
+                            if not word2:
+                                continue
+                            with open(wlist[2]) as f3:
+                                for line3 in f3:
+                                    word3 = line3.strip()
+                                    if not word3:
+                                        continue
+                                    brutemain(url, headers, payload, wlist, method, tracker, word1, word2, word3)
+        except IndexError:
             try:
                 with open(wlist[0]) as f1:
-                    with open(wlist[1]) as f2:
-                        brutemain(url, headers, payload, wlist, method, tracker, f1, f2)
-            except:
-                try:
-                    with open(wlist[0]) as f1:
-                        brutemain(url, headers, payload, wlist, method, tracker, f1)
-                except:
-                    brutemain(url, headers, payload, wlist, method, tracker)
+                    for line1 in f1:
+                        word1 = line1.strip()
+                        if not word1:
+                            continue
+                        with open(wlist[1]) as f2:
+                            for line2 in f2:
+                                word2 = line2.strip()
+                                if not word2:
+                                    continue
+                                brutemain(url, headers, payload, wlist, method, tracker, word1, word2)
+            except IndexError:
+                with open(wlist[0]) as f1:
+                    for line1 in f1:
+                        word1 = line1.strip()
+                        if not word1:
+                            continue
+                        brutemain(url, headers, payload, wlist, method, tracker, word1)
+
+    print("Please check finds.txt for results")
+
 
 
 
@@ -94,7 +171,7 @@ for i in range(3):  #  " A " space + increasing is useful, to then not caught fa
         if tracker["lines"] != len(r.text.split("\n")):
             tracker["lines"] = "DYNAMIC"
 print("Okay fam static settings detected so far:")
-# if =="DYNAMIC" not static
+
 print("Status code staticism: "+str(tracker["sc"]))
 print("Headers size staticism: "+str(tracker["hsize"]))
 print("Response size staticism: "+str(tracker["rsize"]))
@@ -102,5 +179,7 @@ print("Words staticism: "+str(tracker["words"]))
 print("Lines staticism: "+str(tracker["lines"]))
 
 # STATICISIM DETECTD FOR FURTHER RESULT DETECTION, START BRUTE()
+
+open("finds.txt", "w").close() # Clear previous finds
 
 brute(url, headers, payload, wlist, method, tracker)
