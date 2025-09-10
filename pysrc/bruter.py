@@ -102,19 +102,15 @@ async def brute(url, headers, payload, wlist, method, tracker, sem, session, bat
         with open(wlist[0]) as f1:
             for line1 in f1:
                 w1 = line1.strip()
-                if not w1: continue
                 with open(wlist[1]) as f2:
                     for line2 in f2:
                         w2 = line2.strip()
-                        if not w2: continue
                         with open(wlist[2]) as f3:
                             for line3 in f3:
                                 w3 = line3.strip()
-                                if not w3: continue
                                 with open(wlist[3]) as f4:
                                     for line4 in f4:
                                         w4 = line4.strip()
-                                        if not w4: continue
                                         batch.append(brutemain(url, headers, payload, wlist, method, tracker,
                                                                w1, w2, w3, w4, sem, session))
                                         if len(batch) >= batch_size:
@@ -129,15 +125,12 @@ async def brute(url, headers, payload, wlist, method, tracker, sem, session, bat
         with open(wlist[0]) as f1:
             for line1 in f1:
                 w1 = line1.strip()
-                if not w1: continue
                 with open(wlist[1]) as f2:
                     for line2 in f2:
                         w2 = line2.strip()
-                        if not w2: continue
                         with open(wlist[2]) as f3:
                             for line3 in f3:
                                 w3 = line3.strip()
-                                if not w3: continue
                                 batch.append(brutemain(url, headers, payload, wlist, method, tracker,
                                                        w1, w2, w3, None, sem, session))
                                 if len(batch) >= batch_size:
@@ -152,11 +145,9 @@ async def brute(url, headers, payload, wlist, method, tracker, sem, session, bat
         with open(wlist[0]) as f1:
             for line1 in f1:
                 w1 = line1.strip()
-                if not w1: continue
                 with open(wlist[1]) as f2:
                     for line2 in f2:
                         w2 = line2.strip()
-                        if not w2: continue
                         batch.append(brutemain(url, headers, payload, wlist, method, tracker,
                                                w1, w2, None, None, sem, session))
                         if len(batch) >= batch_size:
@@ -170,7 +161,6 @@ async def brute(url, headers, payload, wlist, method, tracker, sem, session, bat
     with open(wlist[0]) as f1:
         for line1 in f1:
             w1 = line1.strip()
-            if not w1: continue
             batch.append(brutemain(url, headers, payload, wlist, method, tracker,
                                    w1, None, None, None, sem, session))
             if len(batch) >= batch_size:
