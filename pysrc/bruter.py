@@ -89,7 +89,7 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
 
 
 # --- ASYNC brute wrapper with batching ---
-async def brute(url, headers, payload, wlist, method, tracker, sem, session, batch_size=10000):
+async def brute(url, headers, payload, wlist, method, tracker, sem, session, batch_size=50000):
     batch = []
 
     async def run_batch(batch):
@@ -217,7 +217,7 @@ print("Lines staticism: "+str(tracker["lines"]))
 open("finds.txt", "w").close()
 
 async def main():
-    sem = asyncio.Semaphore(15)
+    sem = asyncio.Semaphore(100)
     async with aiohttp.ClientSession() as session:
         if os.path.isfile(url):
             with open(url) as uf:
