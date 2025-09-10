@@ -88,9 +88,15 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                 return ""
 
 
-# --- ASYNC brute wrapper ---
-async def brute(url, headers, payload, wlist, method, tracker, sem, session):
-    tasks = []
+# --- ASYNC brute wrapper with batching ---
+async def brute(url, headers, payload, wlist, method, tracker, sem, session, batch_size=10000):
+    batch = []
+
+    async def run_batch(batch):
+        if batch:
+            await asyncio.gather(*batch)
+            batch.clear()
+
     # try 4-wordlists
     try:
         with open(wlist[0]) as f1:
@@ -109,49 +115,68 @@ async def brute(url, headers, payload, wlist, method, tracker, sem, session):
                                     for line4 in f4:
                                         w4 = line4.strip()
                                         if not w4: continue
-                                        tasks.append(brutemain(url, headers, payload, wlist, method, tracker,
+                                        batch.append(brutemain(url, headers, payload, wlist, method, tracker,
                                                                w1, w2, w3, w4, sem, session))
+                                        if len(batch) >= batch_size:
+                                            await run_batch(batch)
+        await run_batch(batch)
+        return
     except IndexError:
-        # fallback to 3 wordlists
-        try:
-            with open(wlist[0]) as f1:
-                for line1 in f1:
-                    w1 = line1.strip()
-                    if not w1: continue
-                    with open(wlist[1]) as f2:
-                        for line2 in f2:
-                            w2 = line2.strip()
-                            if not w2: continue
-                            with open(wlist[2]) as f3:
-                                for line3 in f3:
-                                    w3 = line3.strip()
-                                    if not w3: continue
-                                    tasks.append(brutemain(url, headers, payload, wlist, method, tracker,
-                                                           w1, w2, w3, None, sem, session))
-        except IndexError:
-            # fallback to 2 wordlists
-            try:
-                with open(wlist[0]) as f1:
-                    for line1 in f1:
-                        w1 = line1.strip()
-                        if not w1: continue
-                        with open(wlist[1]) as f2:
-                            for line2 in f2:
-                                w2 = line2.strip()
-                                if not w2: continue
-                                tasks.append(brutemain(url, headers, payload, wlist, method, tracker,
-                                                       w1, w2, None, None, sem, session))
-            except IndexError:
-                # single wordlist
-                with open(wlist[0]) as f1:
-                    for line1 in f1:
-                        w1 = line1.strip()
-                        if not w1: continue
-                        tasks.append(brutemain(url, headers, payload, wlist, method, tracker,
-                                               w1, None, None, None, sem, session))
+        pass
 
-    if tasks:
-        await asyncio.gather(*tasks)
+    # fallback to 3 wordlists
+    try:
+        with open(wlist[0]) as f1:
+            for line1 in f1:
+                w1 = line1.strip()
+                if not w1: continue
+                with open(wlist[1]) as f2:
+                    for line2 in f2:
+                        w2 = line2.strip()
+                        if not w2: continue
+                        with open(wlist[2]) as f3:
+                            for line3 in f3:
+                                w3 = line3.strip()
+                                if not w3: continue
+                                batch.append(brutemain(url, headers, payload, wlist, method, tracker,
+                                                       w1, w2, w3, None, sem, session))
+                                if len(batch) >= batch_size:
+                                    await run_batch(batch)
+        await run_batch(batch)
+        return
+    except IndexError:
+        pass
+
+    # fallback to 2 wordlists
+    try:
+        with open(wlist[0]) as f1:
+            for line1 in f1:
+                w1 = line1.strip()
+                if not w1: continue
+                with open(wlist[1]) as f2:
+                    for line2 in f2:
+                        w2 = line2.strip()
+                        if not w2: continue
+                        batch.append(brutemain(url, headers, payload, wlist, method, tracker,
+                                               w1, w2, None, None, sem, session))
+                        if len(batch) >= batch_size:
+                            await run_batch(batch)
+        await run_batch(batch)
+        return
+    except IndexError:
+        pass
+
+    # single wordlist
+    with open(wlist[0]) as f1:
+        for line1 in f1:
+            w1 = line1.strip()
+            if not w1: continue
+            batch.append(brutemain(url, headers, payload, wlist, method, tracker,
+                                   w1, None, None, None, sem, session))
+            if len(batch) >= batch_size:
+                await run_batch(batch)
+    await run_batch(batch)
+
     print("Please check finds.txt for results")
 
 
