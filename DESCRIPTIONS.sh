@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+br_desc() {
+echo "ULTIMATE BRUTER"
+}
+
 fsubs_desc() {
 echo "Fuzz subs - double fuzzing for directory discovery"
 }
