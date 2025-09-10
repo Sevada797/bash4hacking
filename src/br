@@ -4,7 +4,7 @@ br() {
         if [[ -f finds.txt ]]; then
             cat finds.txt
         else
-            echo "No results found 🤷‍
+            echo "No results found 🤷 "
         fi
         return 1
     fi
