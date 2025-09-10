@@ -82,16 +82,32 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
         headers=json.loads(json.dumps(headers).replace("FUZZ", f1))
 
     async with sem:
-        if method=="POST":
-            async with session.post(url, headers=headers, data=payload, ssl=False) as r:
-                text = await r.text()
-                status = r.status
-                resp_headers = r.headers
-        elif method=="GET":
-            async with session.get(url, headers=headers, ssl=False) as r:
-                text = await r.text()
-                status = r.status
-                resp_headers = r.headers
+        try:
+            if method=="POST":
+                async with session.post(
+                    url,
+                    headers=headers,
+                    data=payload,
+                    ssl=False,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as r:
+                    text = await r.text()
+                    status = r.status
+                    resp_headers = r.headers
+            elif method=="GET":
+                async with session.get(
+                    url,
+                    headers=headers,
+                    ssl=False,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as r:
+                    text = await r.text()
+                    status = r.status
+                    resp_headers = r.headers
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            # skip this request if server disconnects or times out
+            print(f"[!] Skipped {url} due to disconnect/timeout")
+            return ""
 
     print(f"[I]: Bruting, req sent ~ [{method}] {url} with payload {payload}\nHeaders: {str(headers)}")
     current["sc"] = status
@@ -114,15 +130,20 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
 
     for i in range(3):
         # keep sync staticism detection as-is
-        if method == "GET":
-            r = requests.get(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                             headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                             verify=False)
-        if method == "POST":
-            r = requests.post(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                              headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                              verify=False,
-                              data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
+        try:
+            if method == "GET":
+                r = requests.get(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
+                                 headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
+                                 verify=False, timeout=5)
+            if method == "POST":
+                r = requests.post(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
+                                  headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
+                                  verify=False, timeout=5,
+                                  data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as e:
+            print(f"[!] Skipped {url} during staticism check: {e}")
+            return  # <<< quit brute() immediately
+
         if i==0:
             tracker["sc"] = r.status_code
             tracker["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8"))

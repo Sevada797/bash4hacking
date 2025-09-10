@@ -1,3 +1,14 @@
 br() {
-python3 $BFH_PATH/pysrc/bruter.py
+    # If called with "log", just show finds.txt and exit
+    if [[ "$1" == "log" ]]; then
+        if [[ -f finds.txt ]]; then
+            cat finds.txt
+        else
+            echo "No results found 🤷‍
+        fi
+        return 1
+    fi
+
+    # Otherwise, run the bruter
+    python3 "$BFH_PATH/pysrc/bruter.py"
 }

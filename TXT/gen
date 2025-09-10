@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+import os
+import base64
+
+# Paths
+qpins_file = os.path.expanduser("~/qpins")
+common_users = ["root", "admin", "test", "guest", "user"]
+common_passes = ["admin", "root", "1234", "password", "123456", ""]
+
+# SecLists sources (add paths as needed)
+extra_pass_lists = [
+    os.path.expanduser("~/t00ls/SecLists/Passwords/Common-Credentials/10k-most-common.txt"),
+    os.path.expanduser("~/t00ls/SecLists/Passwords/Common-Credentials/500-worst-passwords.txt"),
+]
+
+# Output files
+users_out = "users_raw.txt"
+passes_out = "passes_raw.txt"
+auth64_out = "authpwn64.txt"
+
+# --- Collect usernames ---
+users = set(common_users)
+
+# --- Collect passwords ---
+passes = set(common_passes)
+
+# Add PIN-based passes like root1234, admin9999
+pins = []
+if os.path.exists(qpins_file):
+    with open(qpins_file) as pf:
+        for pin in pf:
+            pin = pin.strip()
+            if pin.isdigit() and 3 <= len(pin) <= 4:
+                pins.append(pin)
+
+for u in ["root", "admin"]:
+    for pin in pins:
+        passes.add(u + pin)
+
+# Add external password lists
+for path in extra_pass_lists:
+    if os.path.exists(path):
+        with open(path, errors="ignore") as f:
+            for line in f:
+                p = line.strip()
+                if p:
+                    passes.add(p)
+
+# --- Write users file ---
+with open(users_out, "w") as uf:
+    for u in sorted(users):
+        uf.write(u + "\n")
+
+# --- Write passes file ---
+with open(passes_out, "w") as pf:
+    for p in sorted(passes):
+        pf.write(p + "\n")
+
+# --- Write authpwn64 file ---
+with open(auth64_out, "w") as af:
+    for u in users:
+        for p in passes:
+            combo = f"{u}:{p}"
+            af.write(base64.b64encode(combo.encode()).decode() + "\n")
+
+print(f"✅ Done! Generated:\n {users_out}\n {passes_out}\n {auth64_out}")
