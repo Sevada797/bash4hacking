@@ -8,6 +8,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # --- User input ---
 
 print("       Welcome back lieutenant       ")
+print("⚠️ Note: All FUZZ/BUZZ/CUZZ/DUZZ will be replaced if present in URL headers & payload")
 url = input("Target URL or URLs file: ").strip() # URL or URLs file
 method = input("HTTP method (GET/POST, default POST): ").strip().upper() or "POST"
 
@@ -25,25 +26,43 @@ else:
     headers['Content-Type'] = ct_input
 
 
-payload = input("Payload (use FUZZ/BUZZ/CUZZ/DUZZ placeholders): ").strip()
+payload = input("Payload: ").strip()
 
-print("⚠️ Note: All FUZZ/BUZZ/CUZZ/DUZZ will be replaced if present in URL headers & payload")
-# --- add tracker obj ---
-tracker = {}
+# Time to reset results !!
+open("finds.txt", "w").close()
+
+
 
 # --- add wlist array ---
-wlist=[]
-for i in re.findall("[FBCD]{1}UZZ", payload):
-   wlist.append(input(f"Please enter wodlist for {i} in payload: ").replace('~/', os.path.expanduser("~")+'/') )
-for i in re.findall("[FBCD]{1}UZZ", url):
-   wlist.append(input(f"Please enter wodlist for {i} in URL: ").replace('~/', os.path.expanduser("~")+'/') )
-for i in re.findall("[FBCD]{1}UZZ", json.dumps(headers)):
-   wlist.append(input(f"Please enter wodlist for {i} in headers: ").replace('~/', os.path.expanduser("~")+'/') )
+wlist = []
+
+# Collect scan target (file or single URL)
+if os.path.isfile(url):
+    with open(url) as uf:
+        scan_target = uf.read()
+else:
+    scan_target = url
+
+# Collect all placeholders from URL(s), payload, and headers
+all_placeholders = re.findall(r"[FBCD]UZZ", scan_target)
+all_placeholders += re.findall(r"[FBCD]UZZ", payload)
+all_placeholders += re.findall(r"[FBCD]UZZ", json.dumps(headers))
+
+# Deduplicate (preserve order)
+placeholders = list(dict.fromkeys(all_placeholders))
+
+# Prompt once per unique placeholder
+for ph in placeholders:
+    wlist.append(
+        input(f"Please enter wordlist for {ph}: ")
+        .replace('~/', os.path.expanduser("~") + '/')
+    )
+
 
 
 # --- ASYNC brutemain (replaces requests.*) ---
 async def brutemain(url, headers, payload, wlist, method, tracker,
-                    f1=None,f2=None,f3=None,f4=None, sem=None, session=None):
+            f1=None,f2=None,f3=None,f4=None, sem=None, session=None):
     current = {} # current req details
     if (f1 and f2 and f3 and f4):
         payload=payload.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3).replace("DUZZ", f4)
@@ -89,7 +108,42 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
 
 
 # --- ASYNC brute wrapper with batching ---
-async def brute(url, headers, payload, wlist, method, tracker, sem, session, batch_size=50000):
+async def brute(url, headers, payload, wlist, method, sem, session, batch_size=50000):
+    # --- add tracker obj ---
+    tracker = {}
+
+    for i in range(3):
+        # keep sync staticism detection as-is
+        if method == "GET":
+            r = requests.get(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
+                             headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
+                             verify=False)
+        if method == "POST":
+            r = requests.post(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
+                              headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
+                              verify=False,
+                              data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
+        if i==0:
+            tracker["sc"] = r.status_code
+            tracker["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8"))
+            tracker["rsize"] = len(r.text)
+            tracker["words"] = len(r.text.split(' '))
+            tracker["lines"] = len(r.text.split("\n"))
+        else:
+            if tracker["sc"] != r.status_code: tracker["sc"] = "DYNAMIC"
+            if tracker["hsize"] != len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8")): tracker["hsize"] = "DYNAMIC"
+            if tracker["rsize"] != len(r.text): tracker["rsize"] = "DYNAMIC"
+            if tracker["words"] != len(r.text.split(' ')): tracker["words"] = "DYNAMIC"
+            if tracker["lines"] != len(r.text.split("\n")): tracker["lines"] = "DYNAMIC"
+    
+    print("Okay fam static settings detected so far:")
+    print("Status code staticism: "+str(tracker["sc"]))
+    print("Headers size staticism: "+str(tracker["hsize"]))
+    print("Response size staticism: "+str(tracker["rsize"]))
+    print("Words staticism: "+str(tracker["words"]))
+    print("Lines staticism: "+str(tracker["lines"]))
+    
+
     batch = []
 
     async def run_batch(batch):
@@ -173,39 +227,6 @@ async def brute(url, headers, payload, wlist, method, tracker, sem, session, bat
 
 ## MAIN()
 
-for i in range(3):
-    # keep sync staticism detection as-is
-    if method == "GET":
-        r = requests.get(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                         headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                         verify=False)
-    if method == "POST":
-        r = requests.post(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                          headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                          verify=False,
-                          data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
-    if i==0:
-        tracker["sc"] = r.status_code
-        tracker["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8"))
-        tracker["rsize"] = len(r.text)
-        tracker["words"] = len(r.text.split(' '))
-        tracker["lines"] = len(r.text.split("\n"))
-    else:
-        if tracker["sc"] != r.status_code: tracker["sc"] = "DYNAMIC"
-        if tracker["hsize"] != len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8")): tracker["hsize"] = "DYNAMIC"
-        if tracker["rsize"] != len(r.text): tracker["rsize"] = "DYNAMIC"
-        if tracker["words"] != len(r.text.split(' ')): tracker["words"] = "DYNAMIC"
-        if tracker["lines"] != len(r.text.split("\n")): tracker["lines"] = "DYNAMIC"
-
-print("Okay fam static settings detected so far:")
-print("Status code staticism: "+str(tracker["sc"]))
-print("Headers size staticism: "+str(tracker["hsize"]))
-print("Response size staticism: "+str(tracker["rsize"]))
-print("Words staticism: "+str(tracker["words"]))
-print("Lines staticism: "+str(tracker["lines"]))
-
-open("finds.txt", "w").close()
-
 async def main():
     sem = asyncio.Semaphore(100)
     async with aiohttp.ClientSession() as session:
@@ -214,8 +235,8 @@ async def main():
                 for line in uf:
                     u = line.strip()
                     if u:
-                        await brute(u, headers, payload, wlist, method, tracker, sem, session)
+                        await brute(u, headers, payload, wlist, method, sem, session)
         else:
-            await brute(url, headers, payload, wlist, method, tracker, sem, session)
+            await brute(url, headers, payload, wlist, method, sem, session)
 
 asyncio.run(main())
