@@ -80,7 +80,7 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
         payload=payload.replace("FUZZ", f1)
         url=url.replace("FUZZ", f1)
         headers=json.loads(json.dumps(headers).replace("FUZZ", f1))
-
+    #proxy_url = "http://127.0.0.1:8080"
     async with sem:
         try:
             if method=="POST":
@@ -89,7 +89,7 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                     headers=headers,
                     data=payload,
                     ssl=False,
-                    timeout=aiohttp.ClientTimeout(total=10)
+                    timeout=aiohttp.ClientTimeout(total=15) #, proxy=proxy_url
                 ) as r:
                     text = await r.text()
                     status = r.status
@@ -99,7 +99,7 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                     url,
                     headers=headers,
                     ssl=False,
-                    timeout=aiohttp.ClientTimeout(total=10)
+                    timeout=aiohttp.ClientTimeout(total=15) #, proxy=proxy_url
                 ) as r:
                     text = await r.text()
                     status = r.status
@@ -120,6 +120,10 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
             if (tracker[i]!=current[i]):
                 with open('finds.txt', 'a') as f:
                     f.write(f"Find for URL {url}\nDefault req: sc={tracker['sc']},hsize={tracker['hsize']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  VS sc={current['sc']},hsize={current['hsize']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4},\n\n")
+                #if current['sc']==200:
+                #    with open('nowayy.html', 'w', encoding="utf-8", errors="replace") as g:
+                #        g.write(f"<!-- Find for URL {url}\nDefault req: sc={tracker['sc']},hsize={tracker['hsize']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  VS sc={current['sc']},hsize={current['hsize']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4}, -->\n\n")
+                #        g.write(text)
                 return ""
 
 
@@ -128,20 +132,22 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
     # --- add tracker obj ---
     tracker = {}
 
-    for i in range(3):
+    for i in range(1,4):
+#        await asyncio.sleep(3)
         # keep sync staticism detection as-is
         try:
             if method == "GET":
                 r = requests.get(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                                 headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                                 verify=False, timeout=5)
+                                 headers=json.loads(json.dumps(headers).replace("FUZZ", "YWRtaW51c2VyOm5vdGFyZWFscGFzcw==").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
+                                 verify=False, timeout=10)
             if method == "POST":
                 r = requests.post(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
                                   headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                                  verify=False, timeout=5,
+                                  verify=False, timeout=10,
                                   data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
-        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as e:
-            print(f"[!] Skipped {url} during staticism check: {e}")
+        #except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as e:
+        except:
+            print(f"[!] Skipped {url} during staticism check")
             return  # <<< quit brute() immediately
 
         if i==0:
@@ -150,7 +156,9 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
             tracker["rsize"] = len(r.text)
             tracker["words"] = len(r.text.split(' '))
             tracker["lines"] = len(r.text.split("\n"))
+            print("DEBUG: ",r.status_code)
         else:
+            print("DEBUG: ",r.status_code)
             if tracker["sc"] != r.status_code: tracker["sc"] = "DYNAMIC"
             if tracker["hsize"] != len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8")): tracker["hsize"] = "DYNAMIC"
             if tracker["rsize"] != len(r.text): tracker["rsize"] = "DYNAMIC"
