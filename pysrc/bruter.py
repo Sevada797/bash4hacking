@@ -91,7 +91,11 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                     ssl=False,
                     timeout=aiohttp.ClientTimeout(total=15) #, proxy=proxy_url
                 ) as r:
-                    text = await r.text()
+                    try:
+                        text = await r.text()
+                    except UnicodeDecodeError:
+                        print(f"[!] Skipped {url} due to non-UTF8 response")
+                        return ""
                     status = r.status
                     resp_headers = r.headers
             elif method=="GET":
@@ -101,7 +105,11 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                     ssl=False,
                     timeout=aiohttp.ClientTimeout(total=15) #, proxy=proxy_url
                 ) as r:
-                    text = await r.text()
+                    try:
+                        text = await r.text()
+                    except UnicodeDecodeError:
+                        print(f"[!] Skipped {url} due to non-UTF8 response")
+                        return ""
                     status = r.status
                     resp_headers = r.headers
         except (aiohttp.ClientError, asyncio.TimeoutError):
