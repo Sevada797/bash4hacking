@@ -150,7 +150,7 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
             print(f"[!] Skipped {url} during staticism check")
             return  # <<< quit brute() immediately
 
-        if i==0:
+        if i==1:
             tracker["sc"] = r.status_code
             tracker["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8"))
             tracker["rsize"] = len(r.text)
