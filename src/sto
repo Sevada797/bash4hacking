@@ -17,5 +17,6 @@ sto() {
     echo
     echo "[*] Saved all CNAMEs into $outputfile"
     echo "[*] Grepping out subdomain takeover matches for you ~"
-    grep -f "$outputfile" "$BFH_PATH/TXT/sto_matches"
+    grep -f "$BFH_PATH/TXT/sto_matches" sto_results.txt
+    
 }
