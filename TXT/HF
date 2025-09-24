@@ -21,7 +21,7 @@ hf @WORDLIST@ -E "storage.|innerHTML|document.cookie|cookie|window.location|loca
 #JQuery included, getting params from url, set and get storage, and set/get cookie included
 
 📡 SOCIAL LINK JACKING CHECK
-hf @WORDLIST@ -E "t.me|fb.com|facebook.com|instagram.com|//x.com|twitter.com|linkedin.com|youtube.com|github.com|medium.com|reddit.com|pinterest.com|tiktok.com" --ua-chrome -A 400 -B 400 \
+hf @WORDLIST@ -E "//t.me|fb.com|facebook.com|instagram.com|//x.com|twitter.com|linkedin.com|youtube.com|github.com|medium.com|reddit.com|pinterest.com|tiktok.com" --ua-chrome -A 400 -B 400 \
 && hf log | grep -oE '(t\.me/[a-zA-Z0-9_-]+|facebook\.com/[a-zA-Z0-9._-]+|fb\.com/[a-zA-Z0-9._-]+|instagram\.com/[a-zA-Z0-9._-]+|//x\.com/[a-zA-Z0-9._-]+|twitter\.com/[a-zA-Z0-9._-]+|linkedin\.com/(in|company)/[a-zA-Z0-9._-]+|youtube\.com/(user|channel|@)[a-zA-Z0-9._-]+|github\.com/[a-zA-Z0-9._-]+|medium\.com/@[a-zA-Z0-9._-]+|reddit\.com/u/[a-zA-Z0-9._-]+|pinterest\.com/[a-zA-Z0-9._-]+|tiktok\.com/@[a-zA-Z0-9._-]+)' | sort -u | tee possible_claims.txt 
 
 📡 SOCIAL LINK JACKING CHECK after SHORTENED URLS

@@ -1,0 +1,14 @@
+digger() {
+  if [ $# -ne 1 ]; then
+    echo "Usage: digger urls_file"
+    echo "  urls_file: one URL per line, '#' starts a comment"
+    return 1
+  fi
+  FILE="$1"
+  if [ ! -f "$FILE" ]; then
+    echo "File not found: $FILE"
+    return 2
+  fi
+  # run digger.py from current dir (adjust path if needed)
+  python3 "$BFH_PATH/pysrc/digger.py" "$FILE"
+}

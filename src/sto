@@ -12,7 +12,7 @@ sto() {
     > "$outputfile"
 
     echo "[*] Running dnsx in bulk mode..."
-    dnsx -l "$subfile" -cname -silent  | tee "$outputfile"
+    dnsx -l "$subfile" -resp -cname -silent  | tee "$outputfile"
 
     echo
     echo "[*] Saved all CNAMEs into $outputfile"
