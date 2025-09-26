@@ -1,0 +1,18 @@
+gsubs() {
+
+ # usage check
+  if [ $# -lt 1 ] || [ ! -f "$1" ]; then
+    echo "Usage: gsubs <subs_file>"
+    return 1
+  fi
+
+
+
+for domain in $(cat <(grep -oE "[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}$" $1 | sort -u));do
+excludesubs=$(grep -- "\.$domain" $1 | awk '{print "-site:"$0}' | xargs)
+echo "intext:\"a\" site:$domain $excludesubs"  
+echo =============================================
+done
+
+
+}

@@ -2,12 +2,20 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+digger_desc() {
+echo "NEW! Header dumping for given URLs, if providing subs provide in URL format"
+}
+
+gsubs_desc() {
+echo "NEW! COOL! Provide a list of subs, it detects domains, and for each domain provides dork, not including subs for that current domain."
+}
+
 br_desc() {
-echo "ULTIMATE BRUTER"
+echo "ULTIMATE BRUTER, craft HTTP req from 0 inject where needed FUZZ/BUZZ/CUZZ/DUZZ ~ auto detection of any kind of anomaly using headers size(hsize),words,lines,rsize after performing What to Rely on"
 }
 
 fsubs_desc() {
-echo "Fuzz subs - double fuzzing for directory discovery"
+echo "COOL! Fuzz subs - double fuzzing for directory discovery, discover what's in these subs!"
 }
 
 deadsubs_desc() {
@@ -23,7 +31,7 @@ echo "Brute subdomains - Takes a day, smart filter for 5 letter combos, removed 
 }
 
 longsubr_desc() {
-echo "Brute subdomains - Takes some 1-2 hours if you scan one domain, tests alfa3-4 + list from danielmiessler/SecLists"
+echo "COOL! SLOW! Brute subdomains - Takes some 1-2 hours if you scan one domain, tests alfa3-4 + list from danielmiessler/SecLists"
 }
 
 phones_desc() {
@@ -51,7 +59,7 @@ echo "Test for times based SQL injections"
 }
 
 pcut_desc() {
-echo "Cut all urls, after looping for each param from given params list, and grepping out them and after each using '| head -n<amount_you_choose>'"
+echo "EAGLE VISION! Cut all urls, after looping for each param from given params list, and grepping out them and after each using '| head -n<amount_you_choose>'"
 }
 
 lsubs_desc() {
@@ -59,7 +67,7 @@ echo "Give subs list and get 4 files, live subs and status code 200 subs, with a
 }
 
 reptile_desc() {
-echo "Same as HF just uses headless browser from playwright"
+echo "COOL! Same as HF just uses headless browser from playwright"
 }
 
 fcheck_desc() {
@@ -79,7 +87,7 @@ echo "Replaces all occurencies of possible path/link param values with your hook
 }
 
 rocket_desc() {
-echo "Drops maximum amount of same lengthed data (URLs)"
+echo "COOL! Drops maximum amount of same lengthed data (URLs)"
 }
 
 depo_desc() {
@@ -87,11 +95,11 @@ echo "Checks for possible dependency confusion RCE in node"
 }
 
 subsubs2_desc() {
-echo "Again for pulling unique new subs from existing subs, but this time from headers, since CSP can point to smth interesting (e.g. allow-origin)"
+echo "NOT BAD! Again for pulling unique new subs from existing subs, but this time from headers, since CSP can point to smth interesting (e.g. allow-origin)"
 }
 
 filter_desc() {
-echo "This function is super helpfull (and slow haha), but you can defo run it on like 100K urls to get filtered unique ones based on static_percent"
+echo "SLOW! This function is super helpfull (and slow haha), but you can defo run it on like 100K urls to get filtered unique ones based on static_percent"
 }
 
 gapi_desc() {
@@ -107,11 +115,11 @@ asubs_desc() {
 }
 
 axss_desc() {
-  echo "Automated XSS prep: gathers subs, collects URLs with wayback/katana, extracts params, prepares for gbr scan."
+  echo "COOL! Automated XSS prep: gathers subs, collects URLs with wayback/katana, extracts params, prepares for gbr scan."
 }
 
 bxss_desc() {
-  echo "Generate pre-made Blind XSS payloads for a given program name + webhook.site endpoint."
+  echo "COOL! Generate pre-made Blind XSS payloads for a given program name + webhook.site endpoint."
 }
 
 collect_desc() {
@@ -127,19 +135,19 @@ dork_desc() {
 }
 
 f1_desc() {
-  echo "Automated ffuf scan for sensitive file leaks using a domain list and SENSITIVE dir."
+  echo "COOL! BUT for non BB programs mostly! Automated ffuf scan for sensitive file leaks using a domain list and SENSITIVE dir."
 }
 
 f2_desc() {
-  echo "Fast subdomain port scanner with naabu + httpx. Supports full port mode."
+  echo "DIG MORE, MAYBE SMTH! Fast subdomain port scanner with naabu + httpx. Supports full port mode."
 }
 
 filip_desc() {
-  echo "Detect technologies and possibly leaked files by matching known patterns in URL lists."
+  echo "COOL! grep leak or Found after, Detect technologies and possibly leaked files by matching known patterns in URL lists."
 }
 
 frames_desc() {
-  echo "Generates a paginated HTML file with iframes to preview subdomains visually."
+  echo "KINDA COOL! Generates a paginated HTML file with iframes to preview subdomains visually."
 }
 
 gqli_desc() {
@@ -147,11 +155,11 @@ gqli_desc() {
 }
 
 gr_desc() {
-  echo "Wrapper for gecko.py , follows redirs and logs em, also has filter, easy use also for open-redir finding after rr()."
+  echo "COOL! Wrapper for gecko.py , follows redirs and logs em, also has filter, easy use also for open-redir finding after rr()."
 }
 
 hf_desc() {
-  echo "Powerful reflection finder using Python. Accepts filters, headers, and user agents."
+  echo "COOL! Powerful reflection finder using Python. Accepts filters, headers, and user agents."
 }
 
 kage_desc() {

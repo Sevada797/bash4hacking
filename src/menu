@@ -1,10 +1,10 @@
 menu() {
-  local CYAN="\e[96m"
-  local GREEN="\e[92m"
-  local YELLOW="\e[93m"
-  local RED="\e[91m"
-  local RESET="\e[0m"
-  
+  local CYAN=$'\e[96m'
+  local GREEN=$'\e[92m'
+  local YELLOW=$'\e[93m'
+  local RED=$'\e[91m'
+  local RESET=$'\e[0m'
+
   source "$BFH_PATH/DESCRIPTIONS.sh"
 
   echo -e "${CYAN}🔥 Available Functions in BFH 🔥${RESET}"
@@ -13,11 +13,31 @@ menu() {
     name=$(basename "$f" | tr '[:upper:]' '[:lower:]')
     desc_func="${name}_desc"
 
-    echo -en "  ${GREEN}${name}()${RESET}"
+    printf "  ${GREEN}%s()${RESET}" "$name"
 
     if declare -f "$desc_func" >/dev/null 2>&1; then
-      echo -en " - "
-      $desc_func
+      # capture description once and trim trailing newlines
+      desc_text="$($desc_func 2>/dev/null || true)"
+      desc_text="$(printf '%s' "$desc_text" | sed -e $'s/\r$//' -e ':a;N;$!ba;s/\n*$//')"
+
+      if [ -z "$desc_text" ]; then
+        echo ""
+        continue
+      fi
+
+      # Replace ALL occurrences of "COOL!" with colored version using bash expansion
+      desc_colored="${desc_text//COOL!/${YELLOW}COOL!${RESET}}"
+
+      # print first line (may contain colored COOL!), interpret escapes with %b
+      IFS=$'\n' read -r first_line rest <<<"$desc_colored"
+      printf " - %b\n" "$first_line"
+
+      # print remaining lines indented; use %b so escapes are interpreted
+      if [ -n "$rest" ]; then
+        printf '%s\n' "$rest" | while IFS= read -r line; do
+          printf "     %b\n" "$line"
+        done
+      fi
     else
       echo ""
     fi
@@ -27,11 +47,11 @@ menu() {
   cd "$BFH_PATH" || return
 
   git remote update > /dev/null 2>&1
-  LOCAL=$(git rev-parse HEAD)
-  REMOTE=$(git rev-parse origin/main)
+  LOCAL=$(git rev-parse HEAD 2>/dev/null || echo "")
+  REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "")
 
-  if [[ "$LOCAL" != "$REMOTE" ]]; then
-    echo -e "${RED}🚨 You are NOT using the latest version!"
+  if [[ -z "$LOCAL" || -z "$REMOTE" || "$LOCAL" != "$REMOTE" ]]; then
+    echo -e "${RED}🚨 You are NOT using the latest version!${RESET}"
     echo -e "👉 Run ${CYAN}updatebfh${RESET} to update."
   else
     echo -e "${GREEN}✅ You are using the latest version.${RESET}"

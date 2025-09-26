@@ -34,7 +34,7 @@ hf @WORDLIST@ -E "'apikey':|\"apikey\":|'api-key':|\"api-key\":|'api_key':|\"api
 hf @WORDLIST@ -E "Warning:|Notice:|Fatal error:|Traceback|Stack trace|ORA-00933|Microsoft OLE DB Provider|error on line:" --ua-chrome && hf log
 
 🏚️ SUBDOMAIN TAKEOVER DETECT  
-hf @WORDLIST@ -E "There isn't a GitHub Pages|NoSuchBucket|Repository not found|Fastly error|shop is currently unavailable" --ua-chrome && hf log
+hf @WORDLIST@ -E "404 Blog is not found|404 error unknown site\!|404: This page could not be found.|Account not found.|DEPLOYMENT_NOT_FOUND.|Do you want to register .*.wordpress.com?|Hello\! Sorry, but the website you\&rsquo;re looking for doesn\&rsquo;t exist.|HTTP_STATUS=301|No settings were found for this company:|NXDOMAIN|PAGE NOT FOUND.|Repository not found|Sorry, this page is no longer available.|Sorry, this shop is currently unavailable.|The page you were looking for does not exist.|The specified bucket does not exist|The URL you've accessed does not provide a hub.|ViewerCertificateException|We could not find what you're looking for.|There isn't a GitHub Pages" --ua-chrome && hf log
 
 📂 OPEN DIRECTORIES  
 hf @WORDLIST@ -E "Index of /|Parent Directory|Directory Listing For|Welcome to nginx" --ua-chrome && hf log
