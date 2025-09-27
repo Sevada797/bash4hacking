@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+inj_desc() {
+echo "USEFUL! (I binded this with Alt+I but not applied here that yet), echoes injections I use in register inputs"
+}
+
 digger_desc() {
 echo "NEW! Header dumping for given URLs, if providing subs provide in URL format"
 }
@@ -163,13 +167,13 @@ hf_desc() {
 }
 
 kage_desc() {
-  echo "Check Wayback Machine for archived versions of single or multiple URLs."
+  echo "COOL! Check Wayback Machine for archived versions of single or multiple URLs with 200 Status Code."
 }
 
 links_desc() {
-  echo "Extracts full links (http/https) that match a domain from files or stdin."
+  echo "USEFUL! Extracts full links (http/https) that match a domain from files or stdin."
 }
-m64_desc() { echo "Generate minimal base64 variants of a string and optionally grep them from file."; }
+m64_desc() { echo " USEFUL! Generate minimal base64 variants of a string and optionally grep them from file."; }
 
 mdd_desc() { echo "Grep for MD5 hashes (32-char hex) from a file."; }
 
@@ -187,7 +191,7 @@ ports_desc() { echo "Extract unique open ports from a file, excluding 80 and 443
 
 robots_desc() { echo "Fetch robots.txt from subdomains and extract disallowed paths and clean-param directives."; }
 
-rr_desc() { echo "Filter possible open redirect URLs and prepare them for quick testing."; }
+rr_desc() { echo "USEFUL! Filter possible open redirect URLs and prepare them for quick testing."; }
 
 scream_desc() { echo "Scan file for sensitive keywords like admin, login, token, etc."; }
 
