@@ -31,16 +31,16 @@ subs() {
     fi
     while read -r domain; do
       if [[ -n "$filetocheck" && -f "$filetocheck" ]]; then
-        grep -Eo "[a-zA-Z0-9]{1,}\.$domain" "$filetocheck" | sort -u
+        grep -Eo "[a-zA-Z0-9_-]{1,}\.$domain|[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}\.$domain" "$filetocheck" | sort -u
       else
-        echo "$input" | grep -Eo "[a-zA-Z0-9]{1,}\.$domain" | sort -u
+        echo "$input" | grep -Eo "[a-zA-Z0-9_-]{1,}\.$domain|[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}\.$domain" | sort -u
       fi
     done < "$domainsfile"
   elif [[ -n "$domain" ]]; then
     if [[ -n "$filetocheck" && -f "$filetocheck" ]]; then
-      grep -Eo "[a-zA-Z0-9]{1,}\.$domain" "$filetocheck" | sort -u
+      grep -Eo "[a-zA-Z0-9_-]{1,}\.$domain|[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}\.$domain" "$filetocheck" | sort -u
     else
-      grep -Eo "[a-zA-Z0-9]{1,}\.$domain" | sort -u
+      grep -Eo "[a-zA-Z0-9_-]{1,}\.$domain|[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}\.$domain" | sort -u
     fi
   else
     echo "Usage:"

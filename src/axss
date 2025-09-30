@@ -60,7 +60,10 @@ axss() {
   subs443 "$tmp_dead" | ~/go/bin/httpx -silent | sort -u>>"$tmp"
 
   echo "[*] Filtering in-scope subdomains..."
-  grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
+  #grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
+  #  Modifying above line for even better filter :D
+  pattern=$( (cat "$targets" | awk '{print "(\.|/)"$0"$"}' ; cat "$targets" | awk '{print "(\.|/)"$0"/"}') | paste -sd '|' | sed 's/\./\\./g; s/-/\\-/g' )
+  grep "$pattern" "$subsgathered" > "$tmp"
   mv "$tmp" "$subsgathered"
   sed -i 's|^https://||' "$subsgathered" && sed -i 's|^http://||' "$subsgathered"
   rm -rf "$tmp_dead"
