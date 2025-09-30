@@ -50,4 +50,5 @@ subs() {
     echo "  cat filetocheck.txt | subs -f domains.txt"
     return 1
   fi
+
 }
