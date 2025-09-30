@@ -16,7 +16,7 @@ pattern3=$((echo "$2" | awk '{print "(.|/)"$0"$"}' ; echo "$2" | awk '{print "(.
 # filter in scope assets and out to more200
 if [ $# -eq 1 ]; then
 echo -e "Current scope filtering grep pattern: $pattern\n"
-grep -E "$pattern" redirects.txt | ~/go/bin/httpx -mc 200 -o more200 && rm redirects.txt && echo "Check more200 file ;)"
+grep -E "$pattern" redirects.txt | ~/go/bin/httpx -mc 200 -o more200 && echo "Check more200 file ;)"
 
 else
 
@@ -24,10 +24,10 @@ else
   if [ -f "$2" ]; then
   # $2 is a file
   echo -e "Current scope filtering grep pattern: $pattern2\n"
-  grep -E "$pattern2" redirects.txt | ~/go/bin/httpx -mc 200 -o more200 && rm redirects.txt && echo "Check more200 file ;)"  
+  grep -E "$pattern2" redirects.txt | ~/go/bin/httpx -mc 200 -o more200 && echo "Check more200 file ;)"  
   else
   echo -e "Current scope filtering grep pattern: $pattern3\n"
-  grep -E "$pattern3" redirects.txt | ~/go/bin/httpx -mc 200 -o more200 && rm redirects.txt && echo "Check more200 file ;)"
+  grep -E "$pattern3" redirects.txt | ~/go/bin/httpx -mc 200 -o more200 && echo "Check more200 file ;)"
   fi
 
 fi
