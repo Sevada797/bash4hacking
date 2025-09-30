@@ -11,7 +11,7 @@ httpx -silent -l "$1" -mc 301,302,303,304,307,308,309 -o 3xxsubs
 gr 3xxsubs
 
 pattern=$((grep -oE "[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}$" "$1" | sort -u | awk '{print "(.|/)"$0"$"}' ; grep -oE "[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}$" "$1" | sort -u | awk '{print "(.|/)"$0"/"}' ; grep -oE "[a-zA-Z0-9_-]{1,}\.[a-zA-Z0-9_-]{1,}$" "$1" | sort -u | awk '{print "(.|/)"$0":"}') | paste -sd '|' | sed 's/\./\\./g; s/-/\\-/g')
-pattern2=$((cat "$2" | awk '{print "(.|/)"$0"$"}' ; cat "$2" | awk '{print "(.|/)"$0":"}' ; cat "$2" | awk '{print "(.|/)"$0"/"}') | paste -sd '|' | sed 's/\./\\./g; s/-/\\-/g')
+pattern2=$((cat "$2" 2>/dev/null | awk '{print "(.|/)"$0"$"}' ; cat "$2" | awk '{print "(.|/)"$0":"}' ; cat "$2" | awk '{print "(.|/)"$0"/"}') | paste -sd '|' | sed 's/\./\\./g; s/-/\\-/g')
 pattern3=$((echo "$2" | awk '{print "(.|/)"$0"$"}' ; echo "$2" | awk '{print "(.|/)"$0":"}' ; echo "$2" | awk '{print "(.|/)"$0"/"}') | paste -sd '|' | sed 's/\./\\./g; s/-/\\-/g')
 # filter in scope assets and out to more200
 if [ $# -eq 1 ]; then

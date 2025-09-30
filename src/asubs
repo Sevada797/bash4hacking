@@ -30,7 +30,10 @@ asubs() {
   subs443 "$tmp_dead" | ~/go/bin/httpx -silent | sort -u>>"$tmp"
 
   echo "[*] Filtering in-scope subdomains..."
-  grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
+  #grep -F -f "$targets" "$subsgathered" | sort -u > "$tmp"
+  # Modifying above line for even better filter :D
+  subs -f "$targets" "$subsgathered" | sort -u > "$tmp"
+
   mv "$tmp" "$subsgathered"
   sed -i 's|^https://||' "$subsgathered" && sed -i 's|^http://||' "$subsgathered"
   rm "$tmp_dead"
