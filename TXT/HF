@@ -85,10 +85,10 @@ hf @WORDLIST@ "cookieORrefererReflection" -H "Cookie: cookie=cookieORrefererRefl
 cat @WORDLIST@ | qsreplace "NoWayThisCouldBeInHTML'" > injected.txt  
 hf injected.txt "NoWayThisCouldBeInHTML'" --ua-chrome -A 200 -B 200 && hf log
 
-# ✨ XSS in href/form action=  
+# ✨ XSS in href/form action=   or  Deceptive open redirect
 
-cat @WORDLIST@ | qsreplace findm3 >4hf_action_href_XSS  
-hf 4hf_action_href_XSS -E "findm3" --ua-chrome  -A 300 -B 300 && hf log | grep -E "href=\"findm3|action=\"findm3|href='findm3|action='findm3"
+cat @WORDLIST@ | qsreplace findm3 >4hf_action_href_XSS
+hf 4hf_action_href_XSS -E "findm3" --ua-chrome  -A 300 -B 300 && hf log | grep -E "href=\"findm3|action=\"findm3|href='findm3|action='findm3|/findm3"
 
 
 # 🧠 For more custom payload combos, check out:  

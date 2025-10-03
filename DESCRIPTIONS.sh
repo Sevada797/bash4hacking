@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+bp_desc() {
+echo "Prints header based bypass for curling"
+}
+
 more200_desc() {
 echo "COOL! USEFUL+NEW! It gets 200 codes after following 3xx sc subs, auto in scope filter exists! STORY_BEHIND: I thought what are we missing, maybe during httpx -mc 200.. and thought this idea :) "
 }

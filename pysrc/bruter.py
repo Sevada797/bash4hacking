@@ -29,7 +29,7 @@ else:
 payload = input("Payload: ").strip()
 
 # Time to reset results !!
-open("finds.txt", "w").close()
+open("br_finds.txt", "w").close()
 
 
 
@@ -126,7 +126,7 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
     for i in tracker:
         if (tracker[i]!="DYNAMIC"):
             if (tracker[i]!=current[i]):
-                with open('finds.txt', 'a') as f:
+                with open('br_finds.txt', 'a') as f:
                     f.write(f"Find for URL {url}\nDefault req: sc={tracker['sc']},hsize={tracker['hsize']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  VS sc={current['sc']},hsize={current['hsize']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4},\n\n")
                 #if current['sc']==200:
                 #    with open('nowayy.html', 'w', encoding="utf-8", errors="replace") as g:
@@ -258,7 +258,7 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
                 await run_batch(batch)
     await run_batch(batch)
 
-    print("Please check finds.txt for results")
+    print("Please check br_finds.txt for results")
 
 
 

@@ -1,8 +1,8 @@
 br() {
-    # If called with "log", just show finds.txt and exit
+    # If called with "log", just show br_finds.txt and exit
     if [[ "$1" == "log" ]]; then
-        if [[ -f finds.txt ]]; then
-            cat finds.txt
+        if [[ -f br_finds.txt ]]; then
+            cat br_finds.txt
         else
             echo "No results found 🤷 "
         fi
