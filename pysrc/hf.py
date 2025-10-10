@@ -19,9 +19,10 @@ from aiohttp.client_exceptions import (
     ClientSSLError
 )
 
-async def fetch(session, url, values, f_log, log_lock, counter, total, a_chars=0, b_chars=0):
+async def fetch(session, url, values, f_log, log_lock, counter, total, allow_redirects, a_chars=0, b_chars=0):
     try:
-        async with session.get(url, timeout=5, ssl=False) as resp:
+        # pass allow_redirects here
+        async with session.get(url, timeout=5, ssl=False, allow_redirects=allow_redirects) as resp:
             content_type = resp.headers.get("Content-Type", "").lower()
             allowed_types = ["text/html", "application/json", "application/javascript", "text/plain"]
             if not any(ct in content_type for ct in allowed_types):
@@ -56,7 +57,7 @@ async def fetch(session, url, values, f_log, log_lock, counter, total, a_chars=0
         print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
 
 
-async def main(file, values, use_ua, use_burp, custom_headers, a_chars, b_chars):
+async def main(file, values, use_ua, use_burp, custom_headers, no_follow, a_chars, b_chars):
     if not os.path.exists(file):
         print(f"[ERROR] File {file} not found.")
         return
@@ -92,6 +93,9 @@ async def main(file, values, use_ua, use_burp, custom_headers, a_chars, b_chars)
     total = len(urls)
     sem = asyncio.Semaphore(safe_limit)
 
+    # determine allow_redirects flag for session.get calls
+    allow_redirects = not no_follow
+
     async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
         session._default_proxy = proxy
 
@@ -100,7 +104,8 @@ async def main(file, values, use_ua, use_burp, custom_headers, a_chars, b_chars)
 
             async def sem_fetch(url):
                 async with sem:
-                    await fetch(session, url, values, f_log, log_lock, counter, total, a_chars, b_chars)
+                    # pass allow_redirects down to fetch
+                    await fetch(session, url, values, f_log, log_lock, counter, total, allow_redirects, a_chars, b_chars)
 
             tasks = [asyncio.create_task(sem_fetch(url)) for url in urls]
             await asyncio.gather(*tasks)
@@ -118,6 +123,7 @@ if __name__ == "__main__":
     parser.add_argument("-H", action="append", help="Custom headers (e.g., -H 'X-Test: 1'). Use multiple times.")
     parser.add_argument("-A", type=int, default=0, help="Additional characters AFTER match")
     parser.add_argument("-B", type=int, default=0, help="Additional characters BEFORE match")
+    parser.add_argument("-nf", "--no-follow", action="store_true", help="Do NOT follow redirects (don't follow open redirects)")
 
     args = parser.parse_args()
 
@@ -128,6 +134,7 @@ if __name__ == "__main__":
 
     try:
         print("Looking for 🔎️ [" + ", ".join(value_list)+"] values")
-        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H, args.A, args.B))
+        # pass args.no_follow into main
+        asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H, args.no_follow, args.A, args.B))
     except KeyboardInterrupt:
         print("\n[INFO] Interrupted by user.")

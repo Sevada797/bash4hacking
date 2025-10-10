@@ -12,7 +12,7 @@ function m64 {
         echo -e "\nDescription:"
         echo "  This function generates modified base64-encoded strings and extracts their minimal representations."
         echo "  If a file is provided, it searches for these patterns within the file."
-        return 1
+        return
     fi
 
 

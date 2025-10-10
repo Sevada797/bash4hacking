@@ -3,7 +3,7 @@ phones() {
     if [ $# -eq 0 ] && [ -t 0 ]; then
         echo "Usage: phones <file>"
         echo "       cat file | phones"
-        return 1
+        return
     fi
 
     # Stdin mode

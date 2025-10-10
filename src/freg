@@ -5,6 +5,7 @@ freg() {
 if [ $# -lt 1 ]
 then
 echo "Usage: freg <subs_list>"
+return
 fi
 
 ffuf -u https://FUZZ/BUZZ -c -H "User-Agent: chrome" -w "$1:FUZZ" -w "$BFH_PATH/TXT/freg:BUZZ" -mc 200

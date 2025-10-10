@@ -1,7 +1,7 @@
 p2() {
 if [ $# -eq 0 ]; then
 echo "Usage: p2 <urls_file>"
-return 1
+return
 fi
 
 file="$1_p2"

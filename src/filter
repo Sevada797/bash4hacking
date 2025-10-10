@@ -1,7 +1,7 @@
 filter() {
   if [ $# -lt 2 ]; then
     echo "Usage: filter <static_percent> <filename>"
-    return 1
+    return 0
   fi
 
   local threshold=$1

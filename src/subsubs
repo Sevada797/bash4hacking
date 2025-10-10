@@ -7,7 +7,7 @@ subsubs() {
     if [[ ! -f "$subs" ]]; then
         echo "[!] File '$subs' not found"
         echo "Usage: subsubs <subs.txt>"
-        return 1
+        return
     fi
 
     echo "[*] Creating https:// URLs from '$subs'..."

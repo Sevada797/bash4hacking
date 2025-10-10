@@ -3,7 +3,7 @@ more200() {
   if [ $# -lt 1 ]; then
     echo "Usage: more200 <subs_list> <inscope_domain_or_domainslist>"
     echo "Auto in scope detection & filter exists. Althought you can provide scope additionally (let's check these 3xx subs :3)"
-    return 1
+    return
   fi
 
 

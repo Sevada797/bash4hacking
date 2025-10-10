@@ -2,7 +2,7 @@ digger() {
   if [ $# -ne 1 ]; then
     echo "Usage: digger urls_file"
     echo "  urls_file: one URL per line, '#' starts a comment"
-    return 1
+    return 0
   fi
   FILE="$1"
   if [ ! -f "$FILE" ]; then

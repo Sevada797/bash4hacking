@@ -43,5 +43,5 @@ kage() {
 
     # No valid input
     echo "Usage: kage <file_with_urls> | kage <single_url> | cat file.txt | kage"
-    return 1
+    return 0
 }

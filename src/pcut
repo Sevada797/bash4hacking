@@ -1,7 +1,7 @@
 pcut() {
     if [ $# -ne 3 ]; then
         echo "Usage: pcut <urls_file> <params_file> <amount_of_grep>"
-        return 1
+        return
     fi
 
     local urls_file="$1"

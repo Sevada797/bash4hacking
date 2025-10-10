@@ -2,7 +2,7 @@
 lql() {
 if [ $# -lt 1 ]; then
     echo "Usage: lql <urls_file> | lql log"
-    return 1
+    return
 fi
 
 if [ "$1" == "log" ]; then

@@ -3,7 +3,7 @@ lsubs() {
   if [ -z "$1" ]; then
     echo "Usage: lsubs <filename>"
     echo "Example: lsubs domains.txt"
-    return 1
+    return
   fi
 
   ~/go/bin/httpx -l "$1" -o "l${1}urls"

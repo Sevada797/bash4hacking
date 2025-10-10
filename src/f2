@@ -16,7 +16,7 @@ f2() {
     echo "  f2 subs.txt -f           # scan subdomains (full ports)"
     echo "  f2 -d domain.com         # scan single domain (common ports)"
     echo "  f2 -d domain.com -f      # scan single domain (full ports)"
-    return 1
+    return 0
   fi
 
   FULL=false

@@ -6,7 +6,7 @@ longsubr2() {
 
     if [ ! -f "$domains_file" ]; then
         echo "Usage: longsubr2 <file_with_domains>"
-        return 1
+        return 0
     fi
 
     if [ ! -f "$prefixlist" ]; then

@@ -4,7 +4,7 @@ deadsubs() {
   local targets=$1
   if [[ -z "$targets" ]]; then
     echo "Usage: deadsubs <target_domains_file>"
-    return 1
+    return 0
   fi
 
   local subsgathered="${targets}_dsubs"

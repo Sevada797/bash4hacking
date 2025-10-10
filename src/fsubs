@@ -4,7 +4,7 @@
 fsubs() {
     if [ $# -lt 1 ]; then
         echo "Usage: fsubs <subs/domains_list>"
-        return 1
+        return
     fi
 
     ffuf -u https://FUZZ/BUZZ -c -fs 0 \

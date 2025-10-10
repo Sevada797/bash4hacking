@@ -5,7 +5,7 @@
 paths() {
 if [[ -z "$1" ]];then
     echo "Usage: paths <file> <int> [-f]"
-    return 1
+    return
 fi
 local inj
 

@@ -4,7 +4,7 @@ ports() {
         echo -e "Usage: ports <filename>"
         echo -e "Example: ports results.txt"
         echo -e "Note: Extracts unique open ports, excluding 80 and 443."
-        return 1
+        return
     fi
 
     grep -E "\.[a-z]{1,}:[0-9]{1,}" "$1" | \

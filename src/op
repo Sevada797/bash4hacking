@@ -1,0 +1,44 @@
+op() {
+  if [ $# -lt 1 ]; then
+    echo "Usage: op <normurls>"
+    return
+  fi
+
+  # run hf and extract oparams (you already corrected to sort -u)
+  hf "$1" -E "': |\": " --ua-chrome -B 50 && \
+  hf log | grep Context: | awk -F "Context: " '{print $2}' \
+    | grep -Eo "'[a-zA-Z0-9_-]+'|\"[a-zA-Z0-9_-]+\"" \
+    | grep -Eo "[a-zA-Z0-9_-]+" \
+    | grep -E "^[a-zA-Z]" | sort -u > oparams
+
+  # load params into array once
+  mapfile -t params < oparams
+  total=${#params[@]}
+  # number of groups (ceil(total/3))
+  k=$(( (total + 2) / 3 ))
+
+  # cache URLs once (handles spaces)
+  mapfile -t urls < <(hf log | grep ^http | links http | cut -d'?' -f1 | sort -u | uro)
+
+  # generate combos: 2 top-level loops (url, group). small inner micro-loop only for joining up to 3 params.
+  tmpout=$(mktemp /tmp/op.XXXXXX)
+  for url in "${urls[@]}"; do
+    for b in $(seq 1 "$k"); do
+      start=$(( (b - 1) * 3 ))   # 0-based index for array slice
+      combo=""
+      # micro loop to build up to 3 params (no external processes)
+      for ((i=0; i<3 && start+i<total; i++)); do
+        [[ $i -gt 0 ]] && combo+="&"
+        combo+="${params[start+i]}=test"
+      done
+      # if combo empty (shouldn't happen), skip
+      [[ -n "$combo" ]] && printf '%s?%s\n' "$url" "$combo" >> "$tmpout"
+    done
+  done
+
+  # atomic move
+  mv "$tmpout" op
+
+  echo "Wrote op (url?param=... lines) — run gbr di on 'op'"
+}
+

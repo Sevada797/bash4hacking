@@ -48,7 +48,7 @@ subs() {
     echo "  subs -f domains.txt [filetocheck]"
     echo "  cat filetocheck.txt | subs domain.com"
     echo "  cat filetocheck.txt | subs -f domains.txt"
-    return 1
+    return 0
   fi
 
 }

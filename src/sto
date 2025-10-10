@@ -5,7 +5,7 @@ sto() {
 
     if [ ! -f "$subfile" ]; then
         echo "Usage: sto <file_of_subdomains>"
-        return 1
+        return
     fi
 
     # reset results file

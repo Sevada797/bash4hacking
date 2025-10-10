@@ -1,0 +1,72 @@
+vh() {
+  # Usage: vh <wildcard_targets_file> <subs_file>
+  # Example: vh targets.txt subs.txt
+  #
+  # - Reads domains from the first arg (was hardcoded 't' before)
+  # - Runs assetfinder on them, filters, removes dupes against subs_file
+  # - Writes filtered "dead" list to a temp file, automatically cleaned up
+  # - Runs ffuf with two wordlists:
+  #     - first wordlist ($subs_file) => FUZZ (used in URL)
+  #     - second wordlist (dead list) => BUZZ (used in Host header)
+  #
+  # NOTE: Make sure assetfinder and ffuf are installed and in $PATH.
+
+  if [ $# -lt 2 ]; then
+    echo "Usage: vh <wildcard_targets_file> <subs_file>"
+    echo "E.g. vh targets.txt subs.txt"
+    echo "NOTE: sudo apt install moreutils for this, just used sponge from there sorry 😂️"
+    return 0
+  fi
+
+  local targets_file="$1"
+  local subs_file="$2"
+
+  # sanity checks
+  if [ ! -f "$targets_file" ]; then
+    echo "targets file not found: $targets_file" >&2
+    return 1
+  fi
+  if [ ! -f "$subs_file" ]; then
+    echo "subs file not found: $subs_file" >&2
+    return 1
+  fi
+  for cmd in assetfinder ffuf grep awk mktemp; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      echo "required command missing: $cmd" >&2
+      return 1
+    fi
+  done
+
+    
+
+  # build deadsubs: run assetfinder on the targets, filter chars, remove entries present in subs_file
+  # NOTE: keep same transformations you used (remove patterns, strip leading 2F)
+  grep -vxf "$subs_file" <(
+    cat "$targets_file" \
+      | assetfinder \
+      | grep -v '\*' \
+      | grep -v '@' \
+      | sort -u \
+      | awk '{ sub(/^2F/, ""); print }'
+  ) > "deadsubs" || {
+    echo "failed to build dead list" >&2
+    return 1
+  }
+
+  # filter in scope dead hostnames
+    local pattern
+  pattern=$(
+    sed 's/^\*\.//' "$targets_file" \
+      | awk '{ gsub(/\./,"\\."); gsub(/-/,"\\-"); print "\\." $0 "$" }' \
+      | paste -sd '|' -
+  )
+
+  grep -E "$pattern" deadsubs | sponge deadsubs
+  # optional: show how many deadsubs we found
+  echo "[vh] dead subs: $(wc -l < "deadsubs")"
+
+  # run ffuf
+  # -w "$targets_file:FUZZ" will replace FUZZ in the URL  (subs would like , not per IP to bypass WAF restrictions if any, but lots of default responses annoyed, rn couldn't think of good way handling these. Also anyways can manual rescan for another sub if needed, deadsubs stay)
+  # -w "deadsubs:BUZZ" will replace BUZZ in headers (Host)
+  ffuf -u "https://FUZZ" -H "User-Agent: chrome" -H "Host: BUZZ" -c -w "$targets_file:FUZZ" -w "deadsubs:BUZZ" -mc 200 -fs 0
+}

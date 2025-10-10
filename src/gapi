@@ -2,7 +2,7 @@ gapi() {
   key="$1"
   if [[ -z "$key" ]]; then
     echo "Usage: gapi <API_KEY>"
-    return 1
+    return 0
   fi
 
   apis=(

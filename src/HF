@@ -1,120 +1,29 @@
-#!/bin/bash
-
 hf() {
+  if [[ "$1" == "menu" ]]; then
+    cat "$BFH_PATH/TXT/HF" | sed "s|@WORDLIST@|$2|g"
+    return 1
+  fi
 
-if [[ "$1" == "menu" ]]; then
-  cat "$BFH_PATH/TXT/HF" | sed "s|@WORDLIST@|$2|g"
-  return 1
-fi
+  if [[ "$1" == "log" ]]; then
+      cat hf/log.txt 2>/dev/null || echo "[!] No hf/log.txt found"
+      return 0
+  fi
 
-if [[ "$1" == "log" ]]; then
-    cat hf/log.txt 2>/dev/null || echo "[!] No hf/log.txt found"
-    return 0
-fi
+  if [[ "$1" == "finds" ]]; then
+      hf log | grep -E "^http" | cut -d" " -f3- | sort -u
+      return 0
+  fi
 
-if [[ "$1" == "finds" ]]; then
-    hf log | grep -E "^http" | cut -d" " -f3- | sort -u
-    return 0
-fi
+  ulimit -n 100000
+  # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"] [-nf]
+  
+  PY_TOOL="$BFH_PATH/pysrc/hf.py"
 
-ulimit -n 100000
-    # Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"]
-    
-    PY_TOOL="$BFH_PATH/pysrc/hf.py"
+  if [ $# -lt 2 ]; then
+      echo -e "Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-A num] [-B num] [-H \"Header: value\"] [-nf]\n hf finds -> shows which strings were found\n hf log -> shows all findings\n hf menu <url_list> -> shows my used common combo commands with that file"
+      return 1
+  fi
 
-    if [ $# -lt 2 ]; then
-        echo -e "Usage: hf <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-A num] [-B num] [-H \"Header: value\"]\nhf finds -> shows which strings were found\nhf log -> shows all findings\nhf menu <url_list> -> shows my used common combo commands with that file"
-        return 1
-    fi
-
-    python3 "$PY_TOOL" "$@"
+  # pass all args through to python script (including -nf if provided)
+  python3 "$PY_TOOL" "$@"
 }
-
-
-## hf() {
-## 
-## #####################################################
-## #########  Print usage when args are less than 2
-## #####################################################
-##     if [ "$#" -lt 2 ]; then
-##         echo "Usage: hf <file_with_urls> <value> (--ua-chrome) (--burp)"
-##         return 1
-##     fi
-## #####################################################
-## #####################################################
-## #####################################################
-## 
-##     file="$1"
-##     value="$2"
-## 
-##     # Optional arguments
-##     HF_USER_AGENT_HEADERS=()
-##     HF_BURP_PROXY=()
-## 
-## 
-##     #####################################################
-##     # Check if --ua-chrome is in the arguments using grep
-##     #####################################################
-##     if [ "$3" == "--ua-chrome" ] || [ "$4" == "--ua-chrome" ]; then
-##         HF_USER_AGENT_HEADERS=(-H "User-Agent: chrome")
-##     fi
-## 
-## 
-##     #####################################################
-##     # Check if --burp is in the arguments using grep
-##     #####################################################
-##     if [ "$3" == "--burp" ] || [ "$4" == "--burp" ]; then
-##         HF_BURP_PROXY=(-x http://127.0.0.1:8080)
-##     fi
-## 
-## 
-##     # Set counter for requests
-##     hf_i=0
-## 
-##     # Create the hf directory if it doesn't exist
-##     mkdir -p hf
-## 
-##     # Check if the file exists
-##     if [ ! -e "$file" ]; then
-##         echo "File $file not found."
-##         return 1
-##     fi
-##     #####################################################
-##     # Read each line from the file
-##     #####################################################
-## 
-##     if [[ ! $(cat $1 | head -n 1) =~ ^https?:// ]]; then
-##         echo -e "Please make your subdomain list urls using command\n sed -i 's|^|https://|' $1"
-##         echo -e "For reverting back changes use\n sed -i 's|^https://||' $1"
-##         return 0 
-##     fi
-## 
-##     while IFS= read -r url; do
-## 
-## 
-## 
-##         #####################################################
-##         # Use curl to fetch the URL and check if the value is reflected
-##         #####################################################
-##         response=$(curl -s "$url" "${HF_USER_AGENT_HEADERS[@]}" "${HF_BURP_PROXY[@]}" --max-time 5 -k) # $HF_USER_AGENT_HEADERS
-##         # Check if the value is reflected in the response using grep and log
-##         if echo "$response" | grep -q -i "$value"; then
-##             echo "$url" >> hf/log.txt
-##         fi
-##         hf_i=$((hf_i+1))
-##         
-##         #####################################################
-##         # Print progress
-##         #####################################################
-##         # Clear both lines
-##         echo -ne "\033[2K\r\033[1A"   # Clear the current line and move up one line
-##         echo -ne "\033[2K\r"           # Clear the previous line
-##         # Print updated progress string on the same line
-##         echo -ne "$hf_i requests done out of $(wc -l < "$1")"
-##         # Print the second line below the first
-##         echo -ne "\n[INFO]: Check hf/log.txt for successful finds"
-## 
-## 
-##     done < "$file"
-## }
-## 

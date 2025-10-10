@@ -4,7 +4,7 @@ collect() {
   # Read from stdin (pipeline or redirection)
   if [ -t 0 ] && [ -z "$1" ]; then
     echo "Usage: collect <file> OR echo 'sub' | collect"
-    return 1
+    return 0
   fi
 
   # If a file is passed as an argument

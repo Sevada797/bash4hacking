@@ -7,7 +7,7 @@ longsubr() {
 
     if [ ! -f "$domains_file" ]; then
         echo "Usage: longsubr <file_with_domains>"
-        return 1
+        return 0
     fi
 
     if [ ! -f "$longlist" ]; then

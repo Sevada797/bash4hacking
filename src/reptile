@@ -16,7 +16,7 @@ reptile() {
 
     if [ $# -lt 2 ]; then
         echo "Usage: reptile <file_with_urls> <value> [--ua-chrome] [--burp] [-E \"v1|v2\"] [-A num] [-B num] [-H \"Header: value\"]"
-        return 1
+        return
     fi
 
     python3 "$PY_TOOL" "$@"

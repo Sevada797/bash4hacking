@@ -2,7 +2,7 @@ moreparams() {
   if [[ -z "$1" || -z "$2" ]]; then
     echo "Usage: moreparams <urls_or_subs_file> <number_to_fetch>"
     echo "Example: moreparams targets.txt 50"
-    return 1
+    return
   fi
 
   local file="$1"

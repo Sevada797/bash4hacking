@@ -1,7 +1,7 @@
 fcheck() {
   if [ -z "$1" ]; then
     echo "Usage: fcheck url"
-    return 1
+    return 0
   fi
 
   url="$1"

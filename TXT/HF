@@ -90,6 +90,9 @@ hf injected.txt "NoWayThisCouldBeInHTML'" --ua-chrome -A 200 -B 200 && hf log
 cat @WORDLIST@ | qsreplace findm3 >4hf_action_href_XSS
 hf 4hf_action_href_XSS -E "findm3" --ua-chrome  -A 300 -B 300 && hf log | grep -E "href=\"findm3|action=\"findm3|href='findm3|action='findm3|/findm3"
 
+# POSSIBLE XSSI + JS file recon
+hf @WORDLIST@ -E ".js\"|.js'" --ua-chrome -B 900 -A 100 && hf finds
+
 
 # 🧠 For more custom payload combos, check out:  
 # - qsreplace  

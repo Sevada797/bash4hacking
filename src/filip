@@ -3,7 +3,7 @@ filip() {
 
     if [ -z "$input" ]; then
         echo "[!] Usage: filip <urls.txt>"
-        return 1
+        return 0
     fi
 
     echo -e "\n🔍 TECHNOLOGY & FRAMEWORK DETECTION 🔍"

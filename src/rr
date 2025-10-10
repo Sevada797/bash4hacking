@@ -3,7 +3,7 @@
 rr() {
 if [[ -z "$1" ]]; then
     echo "Usage: rr <urls_file>"
-    return 1
+    return
   fi
   local urls=$1
   local redirect_params="url\=|uri\=|return\=|next\=|redir\=|redirect\=|dest\=|destination\=|continue\=|data\=|reference\=|site\=|view\=|to\=|out\=|link\=|go\=|path\=|target\=|image_url\=|callback\="

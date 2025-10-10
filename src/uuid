@@ -11,6 +11,6 @@ uuid() {
         echo "Usage:"
         echo "  cat file.txt | uuid"
         echo "  uuid file.txt"
-        return 1
+        return
     fi
 }

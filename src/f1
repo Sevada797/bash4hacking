@@ -5,7 +5,7 @@
 f1() {
 if [ $# -lt 1 ]; then
 echo "Usage: f1 <subs/domains_list> <sensitive_files_dir>"
-return 1
+return 0
 fi
 
 ffuf -u https://FUZZ/BUZZ -c -fs 0 -w "$1:FUZZ" -w ${2:-$BFH_PATH/TXT/SENSITIVE}:BUZZ -H "User-Agent: chrome"

@@ -3,7 +3,7 @@ gsubs() {
  # usage check
   if [ $# -lt 1 ] || [ ! -f "$1" ]; then
     echo "Usage: gsubs <subs_file>"
-    return 1
+    return
   fi
 
 

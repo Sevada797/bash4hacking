@@ -9,8 +9,8 @@ orgen() {
         echo "Usage: orgen <url | file_with_urls>"
         echo "Example:"
         echo "  orgen https://target.com"
-        echo "  orgen urls.txt"
-        return 1
+        echo "  orgen urls.txt (subs actually)"
+        return
     fi
 
 

@@ -1,8 +1,8 @@
 fuzz() {
   if [ -z "$1" ]; then
     echo "Usage: fuzz wordlist.txt"
-    return 1
+    return
   fi
 
-  ffuf -u FUZZ -c -w "$1" -H "User-Agent: chrome"
+  ffuf -u FUZZ -c -w "$1" -H "User-Agent: chrome" -mc all
 }

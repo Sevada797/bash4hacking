@@ -1,7 +1,7 @@
 gr() {
     if [ -z "$1" ]; then
         echo -e "📂 Usage: gr <url-file> [filter-substring]"
-        return 1
+        return
     fi
 
     local urlfile="$1"

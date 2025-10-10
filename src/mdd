@@ -3,7 +3,7 @@ mdd() {
     # Check if the file exists
     if [[ ! -f "$1" ]]; then
         echo "Error: File $1 not found!"
-        return 1
+        return
     fi
 
     # Grep for MD5 hashes (32 hexadecimal characters)
