@@ -25,6 +25,9 @@ if not ct_input:
 else:
     headers['Content-Type'] = ct_input
 
+# ensure consistent compression + connection
+headers.setdefault("Accept-Encoding", "gzip, deflate")
+headers.setdefault("Connection", "close")
 
 payload = input("Payload: ").strip()
 
@@ -32,26 +35,45 @@ payload = input("Payload: ").strip()
 open("br_finds.txt", "w").close()
 
 
+# --- helper functions for stable header compare ---
+DYN_HEADERS = {
+    "date","set-cookie","etag","server","x-request-id",
+    "content-length","vary","transfer-encoding",
+    "connection","keep-alive","via","x-powered-by"
+}
+
+def filtered_header_keys(headers):
+    """Return non-dynamic header keys"""
+    try:
+        keys = [k.lower() for k in headers.keys()]
+    except:
+        keys = [k.lower() for k, _ in headers.items()]
+    return set(k for k in keys if k not in DYN_HEADERS)
+
+def header_lines_count(headers):
+    """Stable header count (non-dynamic only)."""
+    return len(filtered_header_keys(headers))
+
+def header_keys_diff(base, cur):
+    b = filtered_header_keys(base)
+    c = filtered_header_keys(cur)
+    return sorted(list(c - b)), sorted(list(b - c))
+
 
 # --- add wlist array ---
 wlist = []
 
-# Collect scan target (file or single URL)
 if os.path.isfile(url):
     with open(url) as uf:
         scan_target = uf.read()
 else:
     scan_target = url
 
-# Collect all placeholders from URL(s), payload, and headers
 all_placeholders = re.findall(r"[FBCD]UZZ", scan_target)
 all_placeholders += re.findall(r"[FBCD]UZZ", payload)
 all_placeholders += re.findall(r"[FBCD]UZZ", json.dumps(headers))
-
-# Deduplicate (preserve order)
 placeholders = list(dict.fromkeys(all_placeholders))
 
-# Prompt once per unique placeholder
 for ph in placeholders:
     wlist.append(
         input(f"Please enter wordlist for {ph}: ")
@@ -59,11 +81,10 @@ for ph in placeholders:
     )
 
 
-
-# --- ASYNC brutemain (replaces requests.*) ---
+# --- ASYNC brutemain ---
 async def brutemain(url, headers, payload, wlist, method, tracker,
             f1=None,f2=None,f3=None,f4=None, sem=None, session=None):
-    current = {} # current req details
+    current = {}
     if (f1 and f2 and f3 and f4):
         payload=payload.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3).replace("DUZZ", f4)
         url=url.replace("FUZZ", f1).replace("BUZZ", f2).replace("CUZZ", f3).replace("DUZZ", f4)
@@ -80,7 +101,7 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
         payload=payload.replace("FUZZ", f1)
         url=url.replace("FUZZ", f1)
         headers=json.loads(json.dumps(headers).replace("FUZZ", f1))
-    #proxy_url = "http://127.0.0.1:8080"
+
     async with sem:
         try:
             if method=="POST":
@@ -89,13 +110,11 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                     headers=headers,
                     data=payload,
                     ssl=False,
-                    timeout=aiohttp.ClientTimeout(total=15) #, proxy=proxy_url
+                    timeout=aiohttp.ClientTimeout(total=15),
+                    allow_redirects=False,
+                    compress=False
                 ) as r:
-                    try:
-                        text = await r.text()
-                    except UnicodeDecodeError:
-                        print(f"[!] Skipped {url} due to non-UTF8 response")
-                        return ""
+                    text = await r.text(errors="ignore")
                     status = r.status
                     resp_headers = r.headers
             elif method=="GET":
@@ -103,92 +122,102 @@ async def brutemain(url, headers, payload, wlist, method, tracker,
                     url,
                     headers=headers,
                     ssl=False,
-                    timeout=aiohttp.ClientTimeout(total=15) #, proxy=proxy_url
+                    timeout=aiohttp.ClientTimeout(total=15),
+                    allow_redirects=False,
+                    compress=False
                 ) as r:
-                    try:
-                        text = await r.text()
-                    except UnicodeDecodeError:
-                        print(f"[!] Skipped {url} due to non-UTF8 response")
-                        return ""
+                    text = await r.text(errors="ignore")
                     status = r.status
                     resp_headers = r.headers
         except (aiohttp.ClientError, asyncio.TimeoutError):
-            # skip this request if server disconnects or times out
             print(f"[!] Skipped {url} due to disconnect/timeout")
             return ""
 
     print(f"[I]: Bruting, req sent ~ [{method}] {url} with payload {payload}\nHeaders: {str(headers)}")
     current["sc"] = status
-    current["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in resp_headers.items()).encode("utf-8"))
+    current["hlines"] = header_lines_count(resp_headers)
+    current["_hkeys"] = sorted(list(filtered_header_keys(resp_headers)))
     current["rsize"] = len(text)
     current["words"] = len(text.split(' '))
     current["lines"] = len(text.split("\n"))
+
     for i in tracker:
         if (tracker[i]!="DYNAMIC"):
             if (tracker[i]!=current[i]):
+                diffinfo = ""
+                if i == "hlines":
+                    added, removed = header_keys_diff(
+                        dict.fromkeys(tracker.get("_hkeys", [])),
+                        dict.fromkeys(current.get("_hkeys", []))
+                    )
+                    if added or removed:
+                        diffinfo = f"Header keys added: {added}  removed: {removed}\n"
                 with open('br_finds.txt', 'a') as f:
-                    f.write(f"Find for URL {url}\nDefault req: sc={tracker['sc']},hsize={tracker['hsize']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  VS sc={current['sc']},hsize={current['hsize']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4},\n\n")
-                #if current['sc']==200:
-                #    with open('nowayy.html', 'w', encoding="utf-8", errors="replace") as g:
-                #        g.write(f"<!-- Find for URL {url}\nDefault req: sc={tracker['sc']},hsize={tracker['hsize']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  VS sc={current['sc']},hsize={current['hsize']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4}, -->\n\n")
-                #        g.write(text)
+                    f.write(
+                        f"Find for URL {url}\n"
+                        f"Default req: sc={tracker['sc']},hlines={tracker['hlines']},rsize={tracker['rsize']},words={tracker['words']},lines={tracker['lines']}  "
+                        f"VS sc={current['sc']},hlines={current['hlines']},rsize={current['rsize']},words={current['words']},lines={current['lines']}\n"
+                        f"{diffinfo}"
+                        f" ON STRING(s) f1={f1},f2={f2},f3={f3},f4={f4},\n\n"
+                    )
                 return ""
 
 
-# --- ASYNC brute wrapper with batching ---
+# --- ASYNC brute wrapper ---
 async def brute(url, headers, payload, wlist, method, sem, session, batch_size=50000):
-    # --- add tracker obj ---
     tracker = {}
 
+    # use a requests.Session for identical behaviour
+    req_session = requests.Session()
+    req_session.headers.update(headers)
+    req_session.verify = False
+    req_session.trust_env = False
+
     for i in range(1,4):
-#        await asyncio.sleep(3)
-        # keep sync staticism detection as-is
         try:
             if method == "GET":
-                r = requests.get(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                                 headers=json.loads(json.dumps(headers).replace("FUZZ", "YWRtaW51c2VyOm5vdGFyZWFscGFzcw==").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                                 verify=False, timeout=10)
+                r = req_session.get(
+                    url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
+                    timeout=10, allow_redirects=False
+                )
             if method == "POST":
-                r = requests.post(url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
-                                  headers=json.loads(json.dumps(headers).replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")),
-                                  verify=False, timeout=10,
-                                  data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "))
-        #except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as e:
+                r = req_session.post(
+                    url.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A "),
+                    timeout=10, allow_redirects=False,
+                    data=payload.replace("FUZZ", i*" A ").replace("BUZZ", i*" A ").replace("CUZZ", i*" A ").replace("DUZZ", i*" A ")
+                )
         except:
             print(f"[!] Skipped {url} during staticism check")
-            return  # <<< quit brute() immediately
+            return
 
         if i==1:
             tracker["sc"] = r.status_code
-            tracker["hsize"] = len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8"))
+            tracker["hlines"] = header_lines_count(r.headers)
+            tracker["_hkeys"] = sorted(list(filtered_header_keys(r.headers)))
             tracker["rsize"] = len(r.text)
             tracker["words"] = len(r.text.split(' '))
             tracker["lines"] = len(r.text.split("\n"))
-            print("DEBUG: ",r.status_code)
         else:
-            print("DEBUG: ",r.status_code)
             if tracker["sc"] != r.status_code: tracker["sc"] = "DYNAMIC"
-            if tracker["hsize"] != len("".join(f"{k}: {v}\r\n" for k, v in r.headers.items()).encode("utf-8")): tracker["hsize"] = "DYNAMIC"
+            if tracker["hlines"] != header_lines_count(r.headers): tracker["hlines"] = "DYNAMIC"
             if tracker["rsize"] != len(r.text): tracker["rsize"] = "DYNAMIC"
             if tracker["words"] != len(r.text.split(' ')): tracker["words"] = "DYNAMIC"
             if tracker["lines"] != len(r.text.split("\n")): tracker["lines"] = "DYNAMIC"
     
     print("Okay fam static settings detected so far:")
-    print("Status code staticism: "+str(tracker["sc"]))
-    print("Headers size staticism: "+str(tracker["hsize"]))
-    print("Response size staticism: "+str(tracker["rsize"]))
-    print("Words staticism: "+str(tracker["words"]))
-    print("Lines staticism: "+str(tracker["lines"]))
-    
+    print("Status code staticism:", tracker["sc"])
+    print("Header lines staticism:", tracker["hlines"])
+    print("Response size staticism:", tracker["rsize"])
+    print("Words staticism:", tracker["words"])
+    print("Lines staticism:", tracker["lines"])
 
     batch = []
-
     async def run_batch(batch):
         if batch:
             await asyncio.gather(*batch)
             batch.clear()
 
-    # try 4-wordlists
+    # 4-wordlists
     try:
         with open(wlist[0]) as f1:
             for line1 in f1:
@@ -211,7 +240,7 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
     except IndexError:
         pass
 
-    # fallback to 3 wordlists
+    # 3-wordlists
     try:
         with open(wlist[0]) as f1:
             for line1 in f1:
@@ -231,7 +260,7 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
     except IndexError:
         pass
 
-    # fallback to 2 wordlists
+    # 2-wordlists
     try:
         with open(wlist[0]) as f1:
             for line1 in f1:
@@ -261,9 +290,7 @@ async def brute(url, headers, payload, wlist, method, sem, session, batch_size=5
     print("Please check br_finds.txt for results")
 
 
-
-## MAIN()
-
+# --- MAIN ---
 async def main():
     sem = asyncio.Semaphore(100)
     async with aiohttp.ClientSession() as session:

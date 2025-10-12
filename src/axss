@@ -66,8 +66,12 @@ axss() {
  # grep -E "$pattern" "$subsgathered" | sort -u > "$tmp"
   subs -f "$targets" "$subsgathered" | sort -u > "$tmp"
   mv "$tmp" "$subsgathered"
+  
   sed -i 's|^https://||' "$subsgathered" && sed -i 's|^http://||' "$subsgathered"
   rm -rf "$tmp_dead"
+
+  echo "[*] Adding main domains (critical patch No.2, since subs -f for scoping misses main domains...)"
+  cat "$targets" >> "$subsgathered"
 
   echo "[*] Collecting URLs with waybackurls and katana..."
   cat "$subsgathered" | waybackurls > "$urls"
