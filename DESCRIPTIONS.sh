@@ -2,6 +2,18 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+crawl_desc() {
+echo "NEW! my cool crawler, it has per-depth timeout, bad patterns filtering a bit, and other smart filtering features"
+}
+
+pxss_desc() {
+echo "NEW! checks for directly params reflection with '\"> after paths() 1,2,3"
+}
+
+pxss2_desc() {
+echo "less chance to hit, checks for directly paths reflection after paths() 1 & 2 with '\"> "
+}
+
 bp_desc() {
 echo "Prints header based bypass for curling"
 }

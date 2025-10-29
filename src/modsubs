@@ -1,0 +1,9 @@
+modsubs() {
+# mod->modified , I've thougt of 2 minimalistic shuffles withing gathered subs, to after try finding valid hits
+echo "NOTE: I will apply grep -vxf ... to eliminate combinations that already exists"
+echo "Gathering >3 subdomains, cutting them till 3 level, for bruting them , as there is higher chance to find there"
+cutsubsgt3=$(grep -E ".*\..*\..*\." "$1" | grep -Eo "[^\.]+\.[^\.]+\.[^\.]+\$" | sort -u)
+
+echo "Gathering all >3 subs >3 prefixes to then apply on <3 subs"
+
+}

@@ -1,0 +1,19 @@
+j4() {
+  base=J4_logger
+  dir="$PWD/$base"
+  tpl="${BFH_PATH:-$HOME}/TXT/J4_logger.php"
+  log="$dir/J4_log"
+  case "$1" in
+    run)
+      mkdir -p "$dir"
+      cp -f "$tpl" "$dir/index.php"
+      (cd "$dir" && nohup php -S 127.0.0.1:7777 -t ./ > /dev/null 2>&1 &)
+      echo "Started http://127.0.0.1:7777/ in $dir"
+      ;;
+    log)
+      [ -f "$log" ] && cat "$log" || echo "No log at $log"
+      ;;
+    ""|help|-h) echo "Usage: j4 run|log";;
+    *) echo "Usage: j4 run|log";;
+  esac
+}

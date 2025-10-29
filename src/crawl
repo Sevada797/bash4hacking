@@ -1,0 +1,28 @@
+crawl() {
+    # Unified usage message
+    usage="Usage:
+    crawl <url> <depth> <pdt>
+    crawl -l <file> <depth> <pdt>"
+
+    if [[ "$1" == "-l" ]]; then
+        # Bulk URLs
+        if [[ -z "$2" || -z "$3" || -z "$4" ]]; then
+            echo "$usage"
+            return 1
+        fi
+        list_file="$2"
+        depth="$3"
+        pdt="$4"
+        python3 "$BFH_PATH/pysrc/crawl.py" -l "$list_file" "$depth" "$pdt"
+    else
+        # Single URL
+        if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
+            echo "$usage"
+            return 1
+        fi
+        url="$1"
+        depth="$2"
+        pdt="$3"
+        python3 "$BFH_PATH/pysrc/crawl.py" "$url" "$depth" "$pdt"
+    fi
+}

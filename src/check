@@ -1,0 +1,51 @@
+# check mode fileA fileB
+# mode: 1 -> print lines from fileA that EXIST in fileB (matches)
+#       0 -> print lines from fileA that DO NOT EXIST in fileB (non-matches)
+# If no args -> print brief usage and return 0
+check() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: check <1|0> <file_with_items_to_check> <file_reference>"
+    echo "  1 -> print items from file1 that are found in file2 (intersection)"
+    echo "  0 -> print items from file1 that are NOT found in file2 (difference)"
+    return 0
+  fi
+
+  local mode="$1"
+  local a="$2"
+  local b="$3"
+
+  # validate args
+  if [[ -z "$mode" || -z "$a" || -z "$b" ]]; then
+    echo "Error: missing args" >&2
+    echo "Usage: check <1|0> <fileA> <fileB>" >&2
+    return 2
+  fi
+
+  if [[ ! -f "$a" ]]; then
+    echo "Error: fileA not found: $a" >&2
+    return 3
+  fi
+  if [[ ! -f "$b" ]]; then
+    echo "Error: fileB not found: $b" >&2
+    return 4
+  fi
+
+  if [[ "$mode" != "0" && "$mode" != "1" ]]; then
+    echo "Error: mode must be 1 or 0" >&2
+    return 5
+  fi
+
+  # Fast and memory-efficient-ish approach using awk:
+  # - Reads fileB into an associative map (in-memory)
+  # - Streams fileA and prints depending on mode
+  # This is much faster than grepping per-line and handles spaces properly.
+  awk -v mode="$mode" 'BEGIN{ PROCINFO["sorted_in"] } 
+      # First file (fileB): build map
+      NR==FNR { ref[$0]=1; next }
+      # Subsequent file (fileA): check membership
+      {
+        found = ($0 in ref)
+        if (mode==1 && found) print $0
+        else if (mode==0 && !found) print $0
+      }' "$b" "$a"
+}
