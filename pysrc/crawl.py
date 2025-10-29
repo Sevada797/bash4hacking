@@ -76,19 +76,27 @@ def write_log(collection, filename="crawler_log"):
 # --- global domain holder ---
 base_domain = None
 
-def extract_domain_from_input(args):
-    """Extract base domain from user input (URL or file first line)"""
-    global base_domain
-    if args.list_file:
-        with open(args.list_file, "r") as f:
-            first_line = next((line.strip() for line in f if line.strip()), None)
-            if not first_line:
-                raise ValueError("List file is empty")
-            base = urlparse(first_line).netloc
+
+def extract_domain_from_input(url_or_path):
+    global base_domain   # <---- make sure we modify the global one
+    # try to read the url from path or direct input
+    if isinstance(url_or_path, str) and url_or_path.startswith("http"):
+        parsed = urlparse(url_or_path)
+        host = parsed.netloc
     else:
-        base = urlparse(args.url).netloc
-    base_domain = base.split(":")[0]
-    print(f"[+] Base domain set to: {base_domain}")
+        with open(url_or_path, "r") as f:
+            first_url = f.readline().strip()
+            host = urlparse(first_url).netloc
+
+    # extract main domain (handles subdomains)
+    parts = host.split(".")
+    if len(parts) >= 2:
+        base_domain = ".".join(parts[-2:])
+    else:
+        base_domain = host
+
+    print(f"[+] Base domain set to: {base_domain}");time.sleep(2)
+
 
 
 # --- Async gathering ---
@@ -168,14 +176,16 @@ async def run_crawler(urls, depth, pdt):
 
 def crawl(args):
     urls = []
+    global base_domain
+
     if args.list_file:
         # Read bulk URLs from file
         with open(args.list_file, "r") as f:
             urls = [line.strip() for line in f if line.strip()]
+        extract_domain_from_input(args.list_file)
     else:
         urls = [args.url.strip("/")]
-
-    extract_domain_from_input(args)
+        extract_domain_from_input(args.url)
 
     asyncio.run(run_crawler(urls, args.depth, args.pdt))
 
