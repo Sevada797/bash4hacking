@@ -9,6 +9,7 @@ collection, visited = [], set()
 scanme = {}
 bad_patterns = [
     re.compile(r"/[a-zA-Z0-9]+\-[a-zA-Z0-9]+\-"),
+    re.compile(r"/[a-zA-Z0-9]+_[a-zA-Z0-9]+_"),
     re.compile(r"/[0-9]+\-")
 ]
 
@@ -72,6 +73,24 @@ def write_log(collection, filename="crawler_log"):
         f.write("\n".join(collection) + "\n")
     return collection
 
+# --- global domain holder ---
+base_domain = None
+
+def extract_domain_from_input(args):
+    """Extract base domain from user input (URL or file first line)"""
+    global base_domain
+    if args.list_file:
+        with open(args.list_file, "r") as f:
+            first_line = next((line.strip() for line in f if line.strip()), None)
+            if not first_line:
+                raise ValueError("List file is empty")
+            base = urlparse(first_line).netloc
+    else:
+        base = urlparse(args.url).netloc
+    base_domain = base.split(":")[0]
+    print(f"[+] Base domain set to: {base_domain}")
+
+
 # --- Async gathering ---
 async def gather(url, session):
     visited.add(url)
@@ -93,9 +112,9 @@ async def gather(url, session):
     unique_links = sorted(set(combined_links))
 
     # Keep only in-scope
-    domain = urlparse(url).netloc
-    domain_pattern = re.escape(domain.split(":")[0])
-    scoped_links = [l for l in unique_links if re.search(fr'//{domain_pattern}|\.[^.]*{domain_pattern}', l)]
+    # use base_domain for scoping
+    domain_pattern = re.escape(base_domain)
+    scoped_links = [l for l in unique_links if re.search(fr'//{domain_pattern}|\.{domain_pattern}', l)]
 
     for link in scoped_links:
         print(link)
@@ -155,6 +174,9 @@ def crawl(args):
             urls = [line.strip() for line in f if line.strip()]
     else:
         urls = [args.url.strip("/")]
+
+    extract_domain_from_input(args)
+
     asyncio.run(run_crawler(urls, args.depth, args.pdt))
 
 # --- CLI parsing ---
