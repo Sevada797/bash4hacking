@@ -2,7 +2,8 @@ crawl() {
     # Unified usage message
     usage="Usage:
     crawl <url> <depth> <pdt>
-    crawl -l <file> <depth> <pdt>"
+    crawl -l <file> <depth> <pdt>
+    NOTE: depth minimum depth is 0, e.g. u can check crawl https://github.com 0 5"
 
     if [[ "$1" == "-l" ]]; then
         # Bulk URLs

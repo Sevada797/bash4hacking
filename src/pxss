@@ -12,5 +12,5 @@ cat "$1" | paths 1 | grep -v //$ | grep -E "/[a-zA-Z0-9_-]+/$" | awk '{sub(/(:80
 cat "$1" | paths 2 | grep -v //$ | grep -E "/[a-zA-Z0-9_-]+/$" | awk '{sub(/(:80|:443)/,"");sub("http:","https:");print}' | sort -u | awk '{print $0"?nowaythisinhtml%27%22%3C"}' >>paramsxss
 
 echo "Done!"
-echo "check: hf paramsxss -E \"nowaythisinhtml'\\\">|nowaythisinhtml'\\\"|nowaythisinhtml'|nowaythisinhtml\" --ua-chrome -A 800 -B 800 && hf finds"
+echo "check: hf paramsxss -E \"nowaythisinhtml'\\\"<|nowaythisinhtml'\\\"|nowaythisinhtml'|nowaythisinhtml\" --ua-chrome -A 800 -B 800 && hf finds"
 }
