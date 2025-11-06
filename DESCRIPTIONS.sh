@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+usubs_desc() {
+echo "Use me after axss() or asubs() only, to get more subs ;D (I hate typing long, so no args here :3)"
+}
+
 cors_desc() {
 echo "COOL!NEW! This my tool checks for CORS misconfigs :D and logs sus/interesting headers in 'cors_finds' file"
 }
