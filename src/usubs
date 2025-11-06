@@ -1,0 +1,3 @@
+usubs() {
+( grep -vxf tsubs <(subs -f tsubs turls) ; grep -vxf tsubs <(subs -f t turls) ) | sort -u | tee usubs
+}

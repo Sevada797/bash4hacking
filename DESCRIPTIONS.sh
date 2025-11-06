@@ -2,6 +2,14 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+cors_desc() {
+echo "COOL!NEW! This my tool checks for CORS misconfigs :D and logs sus/interesting headers in 'cors_finds' file"
+}
+
+epaths_desc() {
+echo "This also can be quite useful, like if you wanna quick check main existing paths, especially 1st level, to quick check or focus on functionalities and other stuff, e.g. CORS misconfig hunt, or idk etc."
+}
+
 crawl_desc() {
 echo "NEW! my cool crawler, it has per-depth timeout, bad patterns filtering a bit, and other smart filtering features"
 }

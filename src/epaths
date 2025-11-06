@@ -1,0 +1,24 @@
+epaths() {
+  if [[ $# -lt 1 ]]; then
+    echo "Usage:"
+    echo "  epaths <n> <file>"
+    echo "  epaths <n> (then pipe URLs via stdin)"
+    return 1
+  fi
+
+  local n="$1"
+  local file="${2:-/dev/stdin}"
+
+  # Base: scheme + host
+  local pattern="^[^:]+://[^/]+"
+
+  # Add N required segments
+  for ((i=1; i<=n; i++)); do
+    pattern="$pattern/[^/]+"
+  done
+
+  # Allow optional slash at end
+  pattern="$pattern/?$"
+
+  grep -E "$pattern" "$file"
+}

@@ -1,0 +1,14 @@
+cors() {
+  if [ $# -ne 1 ]; then
+    echo "Usage: cors urls_file"
+    echo "  urls_file: one URL per line, '#' starts a comment"
+    return 0
+  fi
+  FILE="$1"
+  if [ ! -f "$FILE" ]; then
+    echo "File not found: $FILE"
+    return 2
+  fi
+  # run cors.py from pysrc (adjust BFH_PATH if your tree differs)
+  python3 "$BFH_PATH/pysrc/cors.py" "$FILE"
+}
