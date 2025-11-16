@@ -1,0 +1,3 @@
+ai() {
+python3 "$BFH_PATH/pysrc/ai.py"
+}

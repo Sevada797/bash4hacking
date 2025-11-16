@@ -14,8 +14,8 @@ links() {
     local regex='https?://[^[:space:]"'\''<>]+'
 
     if [ -n "$file" ]; then
-        grep -Eo "$regex" "$file" | sort -u | grep "$domain"
+        grep -aEo "$regex" "$file" | sort -u | grep -a "$domain"
     else
-        grep -Eo "$regex" | sort -u | grep "$domain"
+        grep -aEo "$regex" | sort -u | grep -a "$domain"
     fi
 }

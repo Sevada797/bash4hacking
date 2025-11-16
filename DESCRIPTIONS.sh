@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+ai_desc() {
+echo "Simple AI hacking assistant from CLI (export your OPENAI_API_KEY in ~/.bashrc)"
+}
+
 usubs_desc() {
 echo "Use me after axss() or asubs() only, to get more subs ;D (I hate typing long, so no args here :3)"
 }

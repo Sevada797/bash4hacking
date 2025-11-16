@@ -75,10 +75,10 @@ def write_log(collection, filename="crawler_log"):
 
 # --- global domain holder ---
 base_domain = None
-
+current_origin = None
 
 def extract_domain_from_input(url_or_path):
-    global base_domain   # <---- make sure we modify the global one
+    global base_domain, current_origin   # <-- add current_origin
     # try to read the url from path or direct input
     if isinstance(url_or_path, str) and url_or_path.startswith("http"):
         parsed = urlparse(url_or_path)
@@ -95,7 +95,12 @@ def extract_domain_from_input(url_or_path):
     else:
         base_domain = host
 
-    print(f"[+] Base domain set to: {base_domain}");time.sleep(2)
+    # store full host for strict origin matching
+    current_origin = host  
+
+    print(f"[+] Base domain set to: {base_domain}")
+    print(f"[+] Current origin set to: {current_origin}")
+    time.sleep(2)
 
 
 
@@ -137,6 +142,11 @@ async def crawl_depth(depth_level, urls, session, sem, pdt):
         if time.time() - start_time > pdt:
             print("Max per-depth time exceeded")
             break
+        # ---- filter crawl targets to current origin right before gather ----
+        parsed_u = urlparse(u)
+        if parsed_u.netloc != current_origin:
+            continue  # skip visiting URLs not matching current origin
+
         async with sem:
             new_links = await gather(u, session)
         # Apply unique 5 + bad pattern filter

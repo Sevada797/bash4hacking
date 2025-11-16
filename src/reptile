@@ -11,6 +11,12 @@ reptile() {
         return 0
     fi
 
+    if [[ "$1" == "finds" ]]; then
+      reptile log | grep -E "^http" | cut -d" " -f3- | sort -u
+      return 0
+    fi
+
+
     # Usage: reptile <file_with_urls> <value> [--ua-chrome] [--burp] [-E "token|auth|csrf"] [-A num] [-B num] [-H "Header: val"]
     PY_TOOL="$BFH_PATH/pysrc/reptile.py"
 

@@ -1,6 +1,11 @@
 inj() {
+    echo "== COMMON POLYGLOT INJECTIONS == "
     echo '{{7*7}}<%= 7*7 %>${{7*7}}#{7*7}${{<%[%'"'"'"}}%\ '
     echo 'Aa${{7*7}}_<%= 7*7 %>'"'"'"><h2>aa</h2>'
     echo 'Aa${{7*7}}_'"'"'"<h2>aa</h2\>'
     echo 'Aa${{7*7}}'
+    echo ""
+    echo "== CODEC NORMLIZATION INJECTIONS=="
+    echo "encs＜encs﹤encs’encs＇encs＂encs”encs"
+    echo ""
 }
