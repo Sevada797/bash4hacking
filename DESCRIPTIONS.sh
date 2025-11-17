@@ -2,6 +2,14 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+falfa() {
+echo "Just double fuzz subs list with ffuf with alpha1-2.txt -e .php,.html"
+}
+
+falfa2() { 
+echo "Just double fuzz subs list with ffuf with alpha3-4.txt no -e sinc wlist is long, although maybe better do falfa2 on URLs since it'll take longer"
+}
+
 ai_desc() {
 echo "Simple AI hacking assistant from CLI (export your OPENAI_API_KEY in ~/.bashrc)"
 }

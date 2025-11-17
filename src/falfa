@@ -1,0 +1,11 @@
+falfa() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: falfa <subs/domains_list>"
+        return
+    fi
+
+    ffuf -u https://FUZZ/BUZZ -c -fs 0 \
+        -w "$1:FUZZ" \
+        -w "$BFH_PATH/TXT/alpha1-2.txt:BUZZ" \
+        -H "User-Agent: chrome" -e .php,.html 
+}
