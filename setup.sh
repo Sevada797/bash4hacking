@@ -51,3 +51,4 @@ elif [ -n "$ZSH_VERSION" ]; then
 else
     echo -e "⚠️ Unknown shell — please restart your terminal or run:\n   source $RC_FILE"
 fi
+echo "NOTE: run once 'bash install-requirements.sh' after 'bash setup.sh'"

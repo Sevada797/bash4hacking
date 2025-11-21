@@ -11,8 +11,13 @@ Clone the repo and run the setup:
 ```bash
 git clone https://github.com/sevada797/bash4hacking.git
 cd bash4hacking
-bash setup.sh
+bash setup.sh  # setup for auto-sourcing functions via ~/.bashrc or ~/.zshrc (2nd not well tested on)
+bash install-requirements.sh
 ```
+
+#### Explanations short:
+1. bash setup.sh - setup for auto-sourcing functions via ~/.bashrc or ~/.zshrc (2nd not well tested on)
+2. bash install - requirements.sh - install binaries that are used and some python libraries
 
 ## 🛠️ Tools available
 Just run `menu` for this ;)
