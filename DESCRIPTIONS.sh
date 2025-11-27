@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+op_desc() {
+echo "for XSS checks again, visiting urls, getting json object keys and making params from them, then so we can test further"
+}
+
 falfa_desc() {
 echo "Just double fuzzes subs list with ffuf with alpha1-2.txt -e .php,.html"
 }
