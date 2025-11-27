@@ -2,6 +2,8 @@
 # install-requirements.sh
 # Bash4Hacking setup requirements script - run after 'bash setup.sh'
 
+echo "[*] Installing Go and Python3 pip (requires sudo)"
+sudo apt install python3-pip golang
 
 echo "[*] Installing Go tools for Bash4Hacking (subdomain/URL recon)..."
 

@@ -1,9 +1,5 @@
 params() {
-    cat "${1:-/dev/stdin}" | sed -E -n '
-        /\?/!d;        
-        s/.*\?//;        
-        s/&/\n/g;     
-        /^[^=]+/p;
-        s/=*/""/g;        
-    ' | sed -r "s/=.*//" | sort -u | grep -vE "[0-9]|%|\."
+    grep -Eo "\?[a-zA-Z_-]+(=|$)|&[a-zA-Z_-]+(=|$)" "${1:-/dev/stdin}" \
+    | grep -Eo "[a-zA-Z_-]+" \
+    | sort -u
 }
