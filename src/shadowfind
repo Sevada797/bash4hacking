@@ -1,0 +1,12 @@
+shadowfind() {
+    local pattern="$1"
+    if [[ -z "$pattern" ]]; then
+        echo "Usage: shadowfind <grep_pattern>"
+        return 1
+    fi
+
+    grep -ril "$pattern" shadowurls/* | while read f; do
+        echo -n "[+] Match in $f → "
+        grep -Eo "CURRENT_SHADOWURL=.*$" "$f" | cut -d= -f2-
+    done
+}

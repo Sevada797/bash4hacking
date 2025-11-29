@@ -1,0 +1,75 @@
+shadowdom() {
+
+    local input="$1"
+    local yr1="$2"
+    local yr2="$3"
+
+    if [[ -z "$input" || -z "$yr1" || -z "$yr2" ]]; then
+        echo "Usage: shadowdom <urls_file|single_url> <year_from> <year_to>"
+        return 1
+    fi
+
+    mkdir -p shadowurls
+
+    hash_url() {
+        echo -n "$1" | md5sum | awk '{print $1}'
+    }
+
+    fetch_url() {
+        local url="$1"
+        local from="$2"
+        local to="$3"
+
+        local hashed=$(hash_url "$url")
+        local outdir="shadowurls/$hashed"
+        mkdir -p "$outdir"
+
+        echo "[*] From $from → $to → $url"
+
+        # pick ONE 200 OK snapshot within the brackets
+        local cdx="https://web.archive.org/cdx/search/cdx?url=$url&from=${from}0101&to=${to}1231&output=json&fl=timestamp,statuscode&filter=statuscode:200&limit=1"
+
+        local result=$(curl -s "$cdx" | jq -r '.[1] | @tsv' 2>/dev/null)
+
+        if [[ -z "$result" ]]; then
+            echo "[-] No 200 OK archive"
+            return
+        fi
+
+        local ts=$(echo "$result" | cut -f1)
+        local archive_url="https://web.archive.org/web/${ts}/${url}"
+        local outfile="${outdir}/${ts}.html"
+
+        echo "[+] Downloading $archive_url"
+        curl -s "$archive_url" -o "$outfile"
+
+        # inject original URL for later grep mapping
+        echo -e "\nCURRENT_SHADOWURL=${url}" >> "$outfile"
+
+        echo "[OK] Saved at $outfile"
+    }
+
+    # case: file
+    if [[ -f "$input" ]]; then
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && fetch_url "$line" "$yr1" "$yr2"
+        done < "$input"
+        return
+    fi
+
+    # case: single URL
+    if [[ "$input" =~ ^https?:// ]]; then
+        fetch_url "$input" "$yr1" "$yr2"
+        return
+    fi
+
+    # case: piped STDIN
+    if [ ! -t 0 ]; then
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && fetch_url "$line" "$yr1" "$yr2"
+        done
+        return
+    fi
+
+    echo "Usage: shadowdom <urls_file|single_url> <year_from> <year_to>"
+}

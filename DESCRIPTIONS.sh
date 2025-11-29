@@ -2,6 +2,14 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+shadowdom_desc() {
+echo "Get 200 status URLs downloaded from wayback machine, then use shadowfind() to grep thing and get according URLs "
+}
+
+shadowfind_desc() {
+echo "Helper for shadowdom(), greps->gets URLs exact where there is a match "
+}
+
 op_desc() {
 echo "for XSS checks again, visiting urls, getting json object keys and making params from them, then so we can test further"
 }
