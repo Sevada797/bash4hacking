@@ -1,85 +1,64 @@
 menu() {
-  local CYAN=$'\e[96m'
-  local GREEN=$'\e[92m'
-  local YELLOW=$'\e[93m'
-  local RED=$'\e[91m'
-  local RESET=$'\e[0m'
+    local CYAN=$'\e[96m'
+    local GREEN=$'\e[92m'
+    local YELLOW=$'\e[93m'
+    local RED=$'\e[91m'
+    local RESET=$'\e[0m'
 
-  # quick combos view (early exit if requested)
-  if [ "$1" = "combos" ]; then
-    echo -e "${YELLOW}🔹 BFH — menu combos${RESET}"
-    echo -e ""
-    echo -e "${CYAN}DOM-XSS check:${RESET}"
-    echo -e "  ${GREEN}pcut 4d tparams 2 | qsreplace \"axss1'saxss2\\\"saxss3<s\" | tee 4r"
-    echo -e "  reptile 4r -E \"axss3<s|axss2\\\"s|axss1's\" --ua-chrome -A 800 -B 800"
-    echo -e "  reptile finds${RESET}"
-    echo -e ""
-    echo -e "${CYAN}CORS misconfig check:${RESET}"
-    echo -e "  ${GREEN}epaths 1 normurls > ep1 && cors ep1${RESET}"
-    echo -e ""
-    echo -e "${CYAN}PARAMS DISCOVER mini chaos:${RESET}"
-    echo -e "  ${GREEN}epaths 1 normurls | cut -d/ -f3-> ep1 && echo 'Try gbr ->ep1' ${RESET}"
-    echo -e ""
-    echo -e "${CYAN}POTENTIAL FOR XSS X_X:${RESET}"
-    echo -e "  ${GREEN}cat 4d | qsreplace 'ampchecks&ampchecks' >ampchecks && hf ampchecks 'ampchecks&ampchecks' --ua-chrome && hf finds ${RESET}"
-    echo -e ""
-    echo -e "${YELLOW}Tip:${RESET} Copy and paste each to execute combos."
-    return
-  fi
+    source "$BFH_PATH/DESCRIPTIONS.sh"
+    source "$BFH_PATH/CATEGORIES.sh"
 
+    echo -e "${CYAN}🔥 Available Functions in BFH (Grouped) 🔥${RESET}"
 
+    declare -A groups
 
-  source "$BFH_PATH/DESCRIPTIONS.sh"
+    # Build group lists
+    for f in "$BFH_PATH"/src/*; do
+        name=$(basename "$f" | tr '[:upper:]' '[:lower:]')
 
-  echo -e "${CYAN}🔥 Available Functions in BFH 🔥${RESET}"
+        # Get category
+        cat_func="${name}_category"
+        if declare -f "$cat_func" >/dev/null; then
+            category="$($cat_func)"
+        else
+            category="$(default_category)"
+        fi
 
-  for f in "$BFH_PATH"/src/*; do
-    name=$(basename "$f" | tr '[:upper:]' '[:lower:]')
-    desc_func="${name}_desc"
+        # Append tool name to group
+        groups["$category"]+="$name "
+    done
 
-    printf "  ${GREEN}%s()${RESET}" "$name"
+    # Print grouped categories
+    for category in "${!groups[@]}"; do
+        echo -e "\n${YELLOW}{============ $category ============}${RESET}"
 
-    if declare -f "$desc_func" >/dev/null 2>&1; then
-      # capture description once and trim trailing newlines
-      desc_text="$($desc_func 2>/dev/null || true)"
-      desc_text="$(printf '%s' "$desc_text" | sed -e $'s/\r$//' -e ':a;N;$!ba;s/\n*$//')"
+        for name in ${groups[$category]}; do
+            desc_func="${name}_desc"
+            printf "  ${GREEN}%s()${RESET}" "$name"
 
-      if [ -z "$desc_text" ]; then
-        echo ""
-        continue
-      fi
-
-      # Replace ALL occurrences of "COOL!" with colored version using bash expansion
-      desc_colored="${desc_text//COOL!/${YELLOW}COOL!${RESET}}"
-
-      # print first line (may contain colored COOL!), interpret escapes with %b
-      IFS=$'\n' read -r first_line rest <<<"$desc_colored"
-      printf " - %b\n" "$first_line"
-
-      # print remaining lines indented; use %b so escapes are interpreted
-      if [ -n "$rest" ]; then
-        printf '%s\n' "$rest" | while IFS= read -r line; do
-          printf "     %b\n" "$line"
+            if declare -f "$desc_func" >/dev/null 2>&1; then
+                text="$($desc_func 2>/dev/null)"
+                printf " - %s\n" "$(echo "$text" | head -n1)"
+            else
+                echo ""
+            fi
         done
-      fi
+
+    done
+
+    echo -e "\n${YELLOW}🔄 Checking for updates...${RESET}"
+    
+    cd "$BFH_PATH" || return
+    git remote update >/dev/null 2>&1
+    LOCAL=$(git rev-parse HEAD 2>/dev/null || echo "")
+    REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "")
+
+    if [[ "$LOCAL" != "$REMOTE" ]]; then
+        echo -e "${RED}🚨 You are NOT using the latest version!${RESET}"
+        echo -e "👉 Run ${CYAN}updatebfh${RESET} to update."
     else
-      echo ""
+        echo -e "${GREEN}✅ You are using the latest version.${RESET}"
     fi
-  done
 
-  echo -e "\n${YELLOW}🔄 Checking for updates...${RESET}"
-  cd "$BFH_PATH" || return
-
-  git remote update > /dev/null 2>&1
-  LOCAL=$(git rev-parse HEAD 2>/dev/null || echo "")
-  REMOTE=$(git rev-parse origin/main 2>/dev/null || echo "")
-
-  if [[ -z "$LOCAL" || -z "$REMOTE" || "$LOCAL" != "$REMOTE" ]]; then
-    echo -e "${RED}🚨 You are NOT using the latest version!${RESET}"
-    echo -e "👉 Run ${CYAN}updatebfh${RESET} to update."
-  else
-    echo -e "${GREEN}✅ You are using the latest version.${RESET}"
-  fi
-
-  cd - > /dev/null
+    cd - >/dev/null
 }
