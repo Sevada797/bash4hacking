@@ -5,6 +5,28 @@ menu() {
     local RED=$'\e[91m'
     local RESET=$'\e[0m'
 
+# quick combos view (early exit if requested)
+if [ "$1" = "combos" ]; then
+echo -e "${YELLOW}🔹 BFH — menu combos${RESET}"
+echo -e ""
+echo -e "${CYAN}DOM-XSS check:${RESET}"
+echo -e " ${GREEN}pcut 4d tparams 2 | qsreplace \"axss1'saxss2\\\"saxss3<s\" | tee 4r"
+echo -e " reptile 4r -E \"axss3<s|axss2\\\"s|axss1's\" --ua-chrome -A 800 -B 800"
+echo -e " reptile finds${RESET}"
+echo -e ""
+echo -e "${CYAN}CORS misconfig check:${RESET}"
+echo -e " ${GREEN}epaths 1 normurls > ep1 && cors ep1${RESET}"
+echo -e ""
+echo -e "${CYAN}PARAMS DISCOVER mini chaos:${RESET}"
+echo -e " ${GREEN}epaths 1 normurls | cut -d/ -f3-> ep1 && echo 'Try gbr ->ep1' ${RESET}"
+echo -e ""
+echo -e "${CYAN}POTENTIAL FOR XSS X_X:${RESET}"
+echo -e " ${GREEN}cat 4d | qsreplace 'ampchecks&ampchecks' >ampchecks && hf ampchecks 'ampchecks&ampchecks' --ua-chrome && hf finds ${RESET}"
+echo -e ""
+echo -e "${YELLOW}Tip:${RESET} Copy and paste each to execute combos."
+return
+fi
+
     source "$BFH_PATH/DESCRIPTIONS.sh"
     source "$BFH_PATH/CATEGORIES.sh"
 
