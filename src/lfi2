@@ -1,0 +1,26 @@
+lfi2() {
+    local src_file="$1"
+
+    if [[ ! -f "$src_file" ]]; then
+        echo "[!] Source file not found."
+        return 1
+    fi
+
+    # Random temp file
+    local tmp="/tmp/$(openssl rand -hex 12)"
+
+    echo "[*] Extracting potential path-based LFI endpoints..."
+    # Grep for file-serving endpoints (filetype based)
+    grep -iE '\.(jpg|jpeg|png|gif|bmp|webp|svg|ico|css|woff2|woff|ttf|eot|otf|mp4|mp3|avi|pdf|zip|rar|7z|tar|gz|bz2|tgz|json|txt|log|csv|conf|ini|yml|yaml|xml|env|git|sql|bak|backup|old|db|sqlite|pem|crt|p12|key|htpasswd|htaccess|pfx|swp|tmp|sh|xls|xlsx|doc|docx|ppt|pptx|inc|jar|war|bin|exe|apk|ipa|dat|mdb|accdb|bak1|dump|sql\.gz)($|\?|#)' "$src_file" \
+        | sed 's/^[[:space:]]*//' \
+        | sort -u \
+        > "$tmp"
+
+    echo "[+] Extracted endpoints saved to: $tmp"
+    echo "[*] Launching Python async LFI checker..."
+
+    # Call Python checker
+    python3 "$BFH_PATH/pysrc/lfi_checker2.py" "$tmp"
+
+    echo "[+] LFI scan complete."
+}

@@ -1,0 +1,8 @@
+export_b4_funcs() {
+for file in "$BFH_PATH/src/"*; do
+    func_name="$(basename "$file")"
+#    echo "[*] Exporting func ${func_name}()"
+    export -f "$func_name"
+done
+
+}

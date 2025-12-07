@@ -3,6 +3,7 @@ import asyncio, aiohttp, time, re, argparse, os
 from urllib.parse import urljoin, urlparse
 from collections import defaultdict
 import ssl
+import traceback 
 # --- Global config placeholders ---
 semaphore_limit = 10
 collection, visited = [], set()
@@ -67,26 +68,36 @@ def filter_bad_patterns(urls):
     return result
 
 def write_log(collection, filename="crawler_log"):
-    """Deduplicate, sort, and rewrite log"""
-    collection = sorted(set(collection))
+    """Append collection to file, dedupe + keep sorted"""
+    
+    existing = set()
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            existing = {line.strip() for line in f.readlines() if line.strip()}
+    
+    # Add all from collection
+    existing.update(collection)
+    
+    # Sort and write
+    merged = sorted(existing)
     with open(filename, "w") as f:
-        f.write("\n".join(collection) + "\n")
+        f.write("\n".join(merged) + "\n")
+
+    # Also update original list in-memory:
+    collection.clear()
+    collection.extend(merged)
+    
     return collection
 
 # --- global domain holder ---
 base_domain = None
 current_origin = None
 
-def extract_domain_from_input(url_or_path):
+def extract_domain_and_current_origin(url):
     global base_domain, current_origin   # <-- add current_origin
     # try to read the url from path or direct input
-    if isinstance(url_or_path, str) and url_or_path.startswith("http"):
-        parsed = urlparse(url_or_path)
-        host = parsed.netloc
-    else:
-        with open(url_or_path, "r") as f:
-            first_url = f.readline().strip()
-            host = urlparse(first_url).netloc
+    parsed = urlparse(url)
+    host = parsed.netloc
 
     # extract main domain (handles subdomains)
     parts = host.split(".")
@@ -97,7 +108,7 @@ def extract_domain_from_input(url_or_path):
 
     # store full host for strict origin matching
     current_origin = host  
-
+    print("\n")
     print(f"[+] Base domain set to: {base_domain}")
     print(f"[+] Current origin set to: {current_origin}")
     time.sleep(2)
@@ -106,11 +117,11 @@ def extract_domain_from_input(url_or_path):
 
 # --- Async gathering ---
 async def gather(url, session):
-    visited.add(url)
     try:
         async with session.get(url, timeout=10) as resp:
             try:
                 html = await resp.text()
+                visited.add(url)
             except UnicodeDecodeError:
                 print(f"Skipped non-UTF8 content: {url}")
                 return []
@@ -145,6 +156,7 @@ async def crawl_depth(depth_level, urls, session, sem, pdt):
         # ---- filter crawl targets to current origin right before gather ----
         parsed_u = urlparse(u)
         if parsed_u.netloc != current_origin:
+            print(f"Skiping {u} cause not in current origin")
             continue  # skip visiting URLs not matching current origin
 
         async with sem:
@@ -158,7 +170,10 @@ async def crawl_depth(depth_level, urls, session, sem, pdt):
         write_log(collection)
     return next_urls
 
-async def run_crawler(urls, depth, pdt):
+async def run_crawler(url, depth, pdt):
+    global collection, visited , scanme # Reset scans per url in file
+    collection, visited = [], set()
+    scanme = {}
     sem = asyncio.Semaphore(semaphore_limit)
     ssl_context = ssl.create_default_context()
     ssl_context.check_hostname = False
@@ -168,13 +183,13 @@ async def run_crawler(urls, depth, pdt):
 
         # Depth 0
         first_urls = []
-        for u in urls:
-            new_links = await gather(u, session)
-            new_links = keep_unique_5_per_first_path(new_links)
-            new_links = filter_bad_patterns(new_links)
-            first_urls.extend(new_links)
+
+        new_links = await gather(url, session)
+        new_links = keep_unique_5_per_first_path(new_links)
+        new_links = filter_bad_patterns(new_links)
+        first_urls.extend(new_links)
         scanme[1] = first_urls
-        collection.extend(first_urls + urls)
+        collection.extend(first_urls + [url])
         write_log(collection)
 
         # Further depths
@@ -186,18 +201,22 @@ async def run_crawler(urls, depth, pdt):
 
 def crawl(args):
     urls = []
-    global base_domain
 
     if args.list_file:
         # Read bulk URLs from file
         with open(args.list_file, "r") as f:
             urls = [line.strip() for line in f if line.strip()]
-        extract_domain_from_input(args.list_file)
     else:
         urls = [args.url.strip("/")]
-        extract_domain_from_input(args.url)
-
-    asyncio.run(run_crawler(urls, args.depth, args.pdt))
+    for u in urls:
+        # RESET GLOBALS for each new root
+        global collection, visited, scanme, current_origin, base_domain
+        collection, visited = [], set()
+        scanme = {}
+        extract_domain_and_current_origin(u)  # reset current_origin correctly
+    
+        print(f"\n=== Crawling {u} ===\n")
+        asyncio.run(run_crawler(u, args.depth, args.pdt))
 
 # --- CLI parsing ---
 if __name__ == "__main__":

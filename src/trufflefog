@@ -1,0 +1,29 @@
+trufflefog() {
+    local file_to_scan="$1"
+    local pattern_file="$BFH_PATH/TXT/trufflefog"
+
+    # no args = usage
+    if [[ -z "$file_to_scan" ]]; then
+        echo "[!] Usage: trufflefog <file_or_directory>"
+        echo "    Scans using patterns in: $pattern_file"
+        return 1
+    fi
+
+    # check pattern file exists
+    if [[ ! -f "$pattern_file" ]]; then
+        echo "[!] Pattern file not found: $pattern_file"
+        return 1
+    fi
+
+    echo "[*] Running trufflefog on: $file_to_scan"
+    echo "[*] Using patterns from:  $pattern_file"
+    echo "-----------------------------------------"
+
+    # Build a SAFE single line pattern using paste
+    local final_pattern
+    final_pattern="$(paste -sd"|" "$pattern_file")"
+
+    # Run grep with ONE final pattern
+    grep -RIEon "$final_pattern" "$file_to_scan"
+}
+export -f trufflefog

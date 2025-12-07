@@ -1,0 +1,26 @@
+glpat-[0-9A-Za-z_.-]{20,}
+gh[pousr]_[0-9A-Za-z]{36,}
+dop_v1_[0-9A-Za-z]{32,}
+CF-[A-Za-z0-9_-]{20,}
+AIza[0-9A-Za-z_-]{35}
+SUPABASE_[A-Z0-9_]{5,}=?[0-9A-Za-z_-]{10,}
+eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}
+NETLIFY_[A-Za-z0-9_]{5,}=[A-Za-z0-9_-]{20,}
+VERCEL_[A-Za-z0-9_]{5,}=[A-Za-z0-9_-]{20,}
+whsec_[A-Za-z0-9]{20,}
+SG\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}
+AZURE_[A-Za-z0-9_]{5,}=[A-Za-z0-9_-]{15,}
+aws_access_key_id[A-Za-z0-9_ ]{0,20}[A-Z0-9]{20}
+aws_secret_access_key[A-Za-z0-9_ ]{0,20}[A-Za-z0-9/+=]{40}
+SENTRY_DSN=[A-Za-z0-9:/@?=._-]{30,}
+POSTMAN_API_KEY[A-Za-z0-9_ ]{0,10}[A-Za-z0-9_-]{20,}
+algolia\.(admin|search)-key[=: ]?[0-9A-Fa-f]{32,}
+cloudinary://[0-9A-Za-z:_/@-]+
+slack-[0-9A-Za-z-]{20,}
+xox[baprs]-[0-9A-Za-z-]{20,}
+GOOGLE_CLIENT_SECRET=[A-Za-z0-9_-]{20,}
+GOOGLE_OAUTH_TOKEN=[A-Za-z0-9_-]{20,}
+FIREBASE_[A-Za-z0-9_]+=[A-Za-z0-9_-]{15,}
+API_KEY=[0-9A-Za-z_-]{20,}
+SECRET_KEY=[0-9A-Za-z/+=]{24,}
+BEARER [0-9A-Za-z._-]{20,}

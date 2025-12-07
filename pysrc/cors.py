@@ -17,19 +17,19 @@ from typing import List
 
 CONCURRENCY = 20
 OUTPUT_FILE = "cors_finds"
-
+OUTPUT_FILE2 = "cors_finds_fatal"
 # Chrome-like UA
 USER_AGENT = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36")
 
-async def fetch(session: aiohttp.ClientSession, url: str, sem: asyncio.Semaphore):
+async def fetch(session, url, sem):
     async with sem:
         record = {"url": url}
         try:
-            async with session.options(url, allow_redirects=True) as resp:
-                record["status"] = resp.status
-                # headers as normal dict, case preserved by aiohttp but we'll check case-insensitive
-                record["headers"] = dict(resp.headers)
+            # enforce 15s per request
+            resp = await asyncio.wait_for(session.options(url, allow_redirects=True), timeout=15)
+            record["status"] = resp.status
+            record["headers"] = dict(resp.headers)
         except Exception as e:
             record["error"] = str(e)
         return record
@@ -56,6 +56,14 @@ def headers_contain_interesting(h: dict) -> bool:
     keys = {k.lower() for k in h.keys()}
     return ("access-control-allow-origin" in keys) or ("access-control-allow-credentials" in keys)
 
+def headers_contain_fatal(h: dict) -> bool:
+    # check case-insensitively for ACAO and ACAC presence
+    if not h:
+        return False
+    keys = {k.lower() for k in h.keys()}
+    return ("access-control-allow-origin" in keys) and ("access-control-allow-credentials" in keys)
+
+
 async def run(urls: List[str]):
     timeout = ClientTimeout(total=30)
     sem = asyncio.Semaphore(CONCURRENCY)
@@ -64,9 +72,10 @@ async def run(urls: List[str]):
     connector = aiohttp.TCPConnector(limit_per_host=CONCURRENCY, ssl=False)
     async with aiohttp.ClientSession(timeout=timeout, headers=headers, connector=connector) as session:
         tasks = [fetch(session, u, sem) for u in urls]
-        results = await asyncio.gather(*tasks, return_exceptions=False)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    # write only interesting records (those with ACAO/ACAC)
+
+    # write interesting records (those with ACAO||ACAC)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as fh:
         matched = 0
         for r in results:
@@ -80,8 +89,19 @@ async def run(urls: List[str]):
             if headers_contain_interesting(headers):
                 fh.write(format_record(r))
                 matched += 1
+    # write fatal records (those with ACAO+ACAC)
+    with open(OUTPUT_FILE2, "w", encoding="utf-8") as fh:
+        matched2 = 0
+        for r in results:
+            headers = r.get("headers", {}) if isinstance(r, dict) else {}
+            if "error" in r:
+                continue
+            if headers_contain_fatal(headers):
+                fh.write(format_record(r))
+                matched2 += 1
 
     print(f"done — wrote {matched} matching entries to {OUTPUT_FILE}")
+    print(f"done — wrote {matched2} matching entries to {OUTPUT_FILE2}")
 
 def normalize_url(u: str) -> str:
     u = u.strip()
