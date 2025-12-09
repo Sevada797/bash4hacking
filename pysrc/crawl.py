@@ -4,6 +4,7 @@ from urllib.parse import urljoin, urlparse
 from collections import defaultdict
 import ssl
 import traceback 
+
 # --- Global config placeholders ---
 semaphore_limit = 10
 collection, visited = [], set()
@@ -13,6 +14,11 @@ bad_patterns = [
     re.compile(r"/[a-zA-Z0-9]+_[a-zA-Z0-9]+_"),
     re.compile(r"/[0-9]+\-")
 ]
+
+# Default Chrome User-Agent
+DEFAULT_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+}
 
 print('''
 ⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣶⣶⣾⣿⣿⣿⣿⣷⣶⣶⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -89,12 +95,24 @@ def write_log(collection, filename="crawler_log"):
     
     return collection
 
+def parse_custom_headers(header_list):
+    """Parse -H headers in format 'Key: Value'"""
+    custom = {}
+    if not header_list:
+        return custom
+    
+    for h in header_list:
+        if ':' in h:
+            key, value = h.split(':', 1)
+            custom[key.strip()] = value.strip()
+    return custom
+
 # --- global domain holder ---
 base_domain = None
 current_origin = None
 
 def extract_domain_and_current_origin(url):
-    global base_domain, current_origin   # <-- add current_origin
+    global base_domain, current_origin
     # try to read the url from path or direct input
     parsed = urlparse(url)
     host = parsed.netloc
@@ -112,8 +130,6 @@ def extract_domain_and_current_origin(url):
     print(f"[+] Base domain set to: {base_domain}")
     print(f"[+] Current origin set to: {current_origin}")
     time.sleep(2)
-
-
 
 # --- Async gathering ---
 async def gather(url, session):
@@ -136,7 +152,6 @@ async def gather(url, session):
     unique_links = sorted(set(combined_links))
 
     # Keep only in-scope
-    # use base_domain for scoping
     domain_pattern = re.escape(base_domain)
     scoped_links = [l for l in unique_links if re.search(fr'//{domain_pattern}|\.{domain_pattern}', l)]
 
@@ -170,8 +185,8 @@ async def crawl_depth(depth_level, urls, session, sem, pdt):
         write_log(collection)
     return next_urls
 
-async def run_crawler(url, depth, pdt):
-    global collection, visited , scanme # Reset scans per url in file
+async def run_crawler(url, depth, pdt, headers):
+    global collection, visited, scanme
     collection, visited = [], set()
     scanme = {}
     sem = asyncio.Semaphore(semaphore_limit)
@@ -179,7 +194,18 @@ async def run_crawler(url, depth, pdt):
     ssl_context.check_hostname = False
     ssl_context.verify_mode = ssl.CERT_NONE
 
-    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
+    # Merge default headers with custom headers (custom overwrites default)
+    final_headers = {**DEFAULT_HEADERS, **headers}
+    
+    print(f"\n[+] Using headers:")
+    for k, v in final_headers.items():
+        print(f"    {k}: {v}")
+    print()
+
+    async with aiohttp.ClientSession(
+        connector=aiohttp.TCPConnector(ssl=ssl_context),
+        headers=final_headers
+    ) as session:
 
         # Depth 0
         first_urls = []
@@ -201,6 +227,9 @@ async def run_crawler(url, depth, pdt):
 
 def crawl(args):
     urls = []
+    
+    # Parse custom headers
+    custom_headers = parse_custom_headers(args.headers)
 
     if args.list_file:
         # Read bulk URLs from file
@@ -208,22 +237,24 @@ def crawl(args):
             urls = [line.strip() for line in f if line.strip()]
     else:
         urls = [args.url.strip("/")]
+    
     for u in urls:
         # RESET GLOBALS for each new root
         global collection, visited, scanme, current_origin, base_domain
         collection, visited = [], set()
         scanme = {}
-        extract_domain_and_current_origin(u)  # reset current_origin correctly
+        extract_domain_and_current_origin(u)
     
         print(f"\n=== Crawling {u} ===\n")
-        asyncio.run(run_crawler(u, args.depth, args.pdt))
+        asyncio.run(run_crawler(u, args.depth, args.pdt, custom_headers))
 
 # --- CLI parsing ---
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Async Python Crawler")
+    parser = argparse.ArgumentParser(description="Async Python Crawler with Chrome UA")
     parser.add_argument("url", nargs="?", help="Single URL to crawl")
     parser.add_argument("depth", type=int, help="Crawl depth")
     parser.add_argument("pdt", type=int, help="Max seconds per depth")
     parser.add_argument("-l", "--list-file", help="File with list of URLs to crawl in bulk")
+    parser.add_argument("-H", "--headers", action="append", help="Custom headers (format: 'Key: Value'). Can be used multiple times.")
     args = parser.parse_args()
     crawl(args)
