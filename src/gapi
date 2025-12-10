@@ -16,6 +16,7 @@ gapi() {
     "https://maps.googleapis.com/maps/api/staticmap?center=40.714728,-73.998672&zoom=12&size=400x400"
     "https://maps.googleapis.com/maps/api/distancematrix/json?origins=Seattle&destinations=San+Francisco"
     "https://maps.googleapis.com/maps/api/elevation/json?locations=36.578581,-118.291994"
+    "https://www.googleapis.com/customsearch/v1?q=test"
   )
 
   for url in "${apis[@]}"; do

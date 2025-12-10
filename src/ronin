@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ronin() {
+    file="$1"
+    min="$2"
+    max="$3"
+
+    if [[ -z "$file" || -z "$min" || -z "$max" ]]; then
+        echo "Usage: ronin <file> <min_count> <max_count>"
+        echo "Example: ronin hfme 3 30"
+        return 1
+    fi
+
+    for i in $(cat "$file" \
+        | cut -d"?" -f1 \
+        | awk -F/ '{print "/"$4"/"; print "/"$5"/"; print "/"$6"/"}' \
+        | grep -E "/[a-zA-Z_-]+/" \
+        | sort -u); do
+
+        count=$(grep -F "$i" "$file" | wc -l)
+
+        if [[ $count -gt $min && $count -lt $max ]]; then
+            echo "============================"
+            grep -F "$i" "$file"
+            echo "=========================================="
+        fi
+    done
+}

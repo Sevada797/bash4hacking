@@ -32,7 +32,8 @@ fi
 
     echo -e "${CYAN}🔥 Available Functions in BFH (Grouped) 🔥${RESET}"
 
-    declare -A groups
+    typeset -A groups
+
 
     # Build group lists
     for f in "$BFH_PATH"/src/*; do
@@ -40,7 +41,7 @@ fi
 
         # Get category
         cat_func="${name}_category"
-        if declare -f "$cat_func" >/dev/null; then
+        if typeset -f "$cat_func" >/dev/null; then
             category="$($cat_func)"
         else
             category="$(default_category)"
@@ -51,7 +52,14 @@ fi
     done
 
     # Print grouped categories
-    for category in "${!groups[@]}"; do
+    
+    if [[ -n "$ZSH_VERSION" ]]; then
+      keys=(${(k)groups})
+    else
+      keys=("${!groups[@]}")
+    fi
+
+     for category in "${keys[@]}"; do
         echo -e "\n${YELLOW}{============ $category ============}${RESET}"
 
         for name in ${groups[$category]}; do
