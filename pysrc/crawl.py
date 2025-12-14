@@ -45,7 +45,12 @@ time.sleep(3)
 def keep_unique_5_per_first_path(urls):
     first_path_map = defaultdict(list)
     for u in urls:
-        path = urlparse(u).path
+        #path = urlparse(u).path
+        try:
+            path = urlparse(u).path
+        except ValueError:
+            print(f"[parser skip] bad url: {u}")
+            continue
         segments = path.split("/")
         first_path = "/" + segments[1] if len(segments) > 1 else "/"
         if len(first_path_map[first_path]) < 5:
@@ -59,9 +64,14 @@ def filter_bad_patterns(urls):
     pattern_map = defaultdict(list)
     result = []
     for u in urls:
+        try:
+            path = urlparse(u).path
+        except Exception:
+            print(f"[parser skip] bad url: {u}")
+            continue
         added = False
         for pat in bad_patterns:
-            if pat.search(urlparse(u).path):
+            if pat.search(path):
                 if len(pattern_map[pat]) < 5:
                     pattern_map[pat].append(u)
                     added = True
@@ -129,7 +139,8 @@ def extract_domain_and_current_origin(url):
     print("\n")
     print(f"[+] Base domain set to: {base_domain}")
     print(f"[+] Current origin set to: {current_origin}")
-    time.sleep(2)
+    #time.sleep(2)
+
 
 # --- Async gathering ---
 async def gather(url, session):
@@ -147,8 +158,9 @@ async def gather(url, session):
 
     # Extract links
     relative_links = re.findall(r'["\'](/[a-zA-Z0-9_\-/?.=&%]+)["\']', html)
+    relative_links2 = re.findall(r'href=["\']([a-zA-Z0-9_\-/?.=&%]+)["\']', html)
     absolute_links_raw = re.findall(r'https?://[^"\'>\\<\s]+', html)
-    combined_links = absolute_links_raw + [urljoin(url, p) for p in relative_links]
+    combined_links = absolute_links_raw + [urljoin(url, p) for p in relative_links] + [urljoin(url, q) for q in relative_links2]
     unique_links = sorted(set(combined_links))
 
     # Keep only in-scope
@@ -159,7 +171,7 @@ async def gather(url, session):
         print(link)
     return scoped_links
 
-async def crawl_depth(depth_level, urls, session, sem, pdt):
+async def crawl_depth(urls, session, sem, pdt, smart_filter):
     next_urls = []
     start_time = time.time()
     for u in urls:
@@ -169,7 +181,13 @@ async def crawl_depth(depth_level, urls, session, sem, pdt):
             print("Max per-depth time exceeded")
             break
         # ---- filter crawl targets to current origin right before gather ----
-        parsed_u = urlparse(u)
+        #parsed_u = urlparse(u)
+        try:
+            parsed_u = urlparse(u)
+        except ValueError:
+            print(f"[parser skip] bad url: {u}")
+            continue
+
         if parsed_u.netloc != current_origin:
             print(f"Skiping {u} cause not in current origin")
             continue  # skip visiting URLs not matching current origin
@@ -177,15 +195,16 @@ async def crawl_depth(depth_level, urls, session, sem, pdt):
         async with sem:
             new_links = await gather(u, session)
         # Apply unique 5 + bad pattern filter
-        new_links = keep_unique_5_per_first_path(new_links)
-        new_links = filter_bad_patterns(new_links)
+        if (smart_filter):
+            new_links = keep_unique_5_per_first_path(new_links)
+            new_links = filter_bad_patterns(new_links)
 
         next_urls += new_links
         collection.extend(new_links)
         write_log(collection)
     return next_urls
 
-async def run_crawler(url, depth, pdt, headers):
+async def run_crawler(url, depth, pdt, headers, smart_filter):
     global collection, visited, scanme
     collection, visited = [], set()
     scanme = {}
@@ -200,8 +219,11 @@ async def run_crawler(url, depth, pdt, headers):
     print(f"\n[+] Using headers:")
     for k, v in final_headers.items():
         print(f"    {k}: {v}")
+    if (smart_filter):
+        print(f"\n[+] Smart filter: On")
+    else:
+        print(f"\n[-] Smart filter: Off")
     print()
-
     async with aiohttp.ClientSession(
         connector=aiohttp.TCPConnector(ssl=ssl_context),
         headers=final_headers
@@ -211,8 +233,9 @@ async def run_crawler(url, depth, pdt, headers):
         first_urls = []
 
         new_links = await gather(url, session)
-        new_links = keep_unique_5_per_first_path(new_links)
-        new_links = filter_bad_patterns(new_links)
+        if (smart_filter):
+            new_links = keep_unique_5_per_first_path(new_links)
+            new_links = filter_bad_patterns(new_links)
         first_urls.extend(new_links)
         scanme[1] = first_urls
         collection.extend(first_urls + [url])
@@ -222,7 +245,7 @@ async def run_crawler(url, depth, pdt, headers):
         for i in range(1, depth + 1):
             if i not in scanme:
                 scanme[i] = []
-            next_urls = await crawl_depth(i, scanme[i], session, sem, pdt)
+            next_urls = await crawl_depth(scanme[i], session, sem, pdt, smart_filter)
             scanme[i + 1] = next_urls
 
 def crawl(args):
@@ -246,7 +269,7 @@ def crawl(args):
         extract_domain_and_current_origin(u)
     
         print(f"\n=== Crawling {u} ===\n")
-        asyncio.run(run_crawler(u, args.depth, args.pdt, custom_headers))
+        asyncio.run(run_crawler(u, args.depth, args.pdt, custom_headers, args.sf))
 
 # --- CLI parsing ---
 if __name__ == "__main__":
@@ -256,5 +279,12 @@ if __name__ == "__main__":
     parser.add_argument("pdt", type=int, help="Max seconds per depth")
     parser.add_argument("-l", "--list-file", help="File with list of URLs to crawl in bulk")
     parser.add_argument("-H", "--headers", action="append", help="Custom headers (format: 'Key: Value'). Can be used multiple times.")
+    parser.add_argument(
+    "--sf",
+    action="store_true",
+    default=False,
+    help="Enable smart URL filters (limit per path + bad pattern control)"
+    )
+
     args = parser.parse_args()
     crawl(args)

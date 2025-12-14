@@ -1,63 +1,17 @@
 crawl() {
-    # Unified usage message
-    usage="Usage:
-    crawl <url> <depth> <pdt> [-H 'Header: Value']...
-    crawl -l <file> <depth> <pdt> [-H 'Header: Value']...
-    
+    if [[ $# -eq 0 ]]; then
+        echo "Usage:
+    crawl <url> <depth> <pdt> [--sf] [-H 'Header: Value']...
+    crawl -l <file> <depth> <pdt> [--sf] [-H 'Header: Value']...
+
     Examples:
       crawl https://github.com 0 5
-      crawl https://example.com 2 30 -H 'Cookie: session=abc'
-      crawl -l urls.txt 1 20 -H 'Authorization: Bearer token' -H 'X-Custom: val'
-    
-    NOTE: depth minimum is 0"
-    
-    # Parse arguments
-    local list_mode=false
-    local url=""
-    local list_file=""
-    local depth=""
-    local pdt=""
-    local headers=()
-    
-    # Check for -l flag first
-    if [[ "$1" == "-l" ]]; then
-        list_mode=true
-        shift
-        list_file="$1"
-        shift
-    else
-        url="$1"
-        shift
+      crawl https://example.com 2 30 --sf
+      crawl https://example.com 2 30 -H 'Cookie: a=b' --sf
+      crawl -l urls.txt 1 20 --sf -H 'Authorization: Bearer token'"
+        return 1
     fi
-    
-    # Get depth and pdt
-    depth="$1"
-    pdt="$2"
-    shift 2
-    
-    # Collect all -H headers
-    while [[ $# -gt 0 ]]; do
-        if [[ "$1" == "-H" ]]; then
-            shift
-            headers+=("-H" "$1")
-            shift
-        else
-            shift
-        fi
-    done
-    
-    # Validate required args
-    if [[ $list_mode == true ]]; then
-        if [[ -z "$list_file" || -z "$depth" || -z "$pdt" ]]; then
-            echo "$usage"
-            return 1
-        fi
-        python3 "$BFH_PATH/pysrc/crawl.py" -l "$list_file" "$depth" "$pdt" "${headers[@]}"
-    else
-        if [[ -z "$url" || -z "$depth" || -z "$pdt" ]]; then
-            echo "$usage"
-            return 1
-        fi
-        python3 "$BFH_PATH/pysrc/crawl.py" "$url" "$depth" "$pdt" "${headers[@]}"
-    fi
+
+    python3 "$BFH_PATH/pysrc/crawl.py" "$@"
 }
+

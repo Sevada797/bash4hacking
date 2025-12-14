@@ -1,0 +1,8 @@
+formxss() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: formxss <urls_file>"
+        return 1
+    fi
+
+    python3 "$BFH_PATH/pysrc/formxss.py" "$1"
+}

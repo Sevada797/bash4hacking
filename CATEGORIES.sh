@@ -53,6 +53,7 @@ subsubs2_category() { echo "SUBS_RECON"; }
 longsubr() { echo "SUBS_RECON"; }
 longsubr2() { echo "SUBS_RECON"; }
 
+formxss_category() { echo "XSS"; }
 pxss_category() { echo "XSS"; }
 pxss2_category() { echo "XSS"; }
 axss_category() { echo "XSS"; }
