@@ -23,6 +23,7 @@ go install github.com/tomnomnom/waybackurls@latest
 
 # ---- Additional utilities ----
 go install github.com/tomnomnom/qsreplace@latest
+go install github.com/s0md3v/uro@latest
 
 # ---- ffuf by joohoi ----
 go install github.com/ffuf/ffuf/v2@latest

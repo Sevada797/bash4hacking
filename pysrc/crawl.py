@@ -171,7 +171,7 @@ async def gather(url, session):
         print(link)
     return scoped_links
 
-async def crawl_depth(urls, session, sem, pdt, smart_filter):
+async def crawl_depth(urls, session, sem, depth, pdt, smart_filter):
     next_urls = []
     start_time = time.time()
     for u in urls:
@@ -201,7 +201,8 @@ async def crawl_depth(urls, session, sem, pdt, smart_filter):
 
         next_urls += new_links
         collection.extend(new_links)
-        write_log(collection)
+        logfile="crawler_log_"+str(depth)+"_"+str(pdt)
+        write_log(collection, logfile)
     return next_urls
 
 async def run_crawler(url, depth, pdt, headers, smart_filter):
@@ -239,13 +240,14 @@ async def run_crawler(url, depth, pdt, headers, smart_filter):
         first_urls.extend(new_links)
         scanme[1] = first_urls
         collection.extend(first_urls + [url])
-        write_log(collection)
+        logfile="crawler_log_"+str(depth)+"_"+str(pdt)
+        write_log(collection, logfile)
 
         # Further depths
         for i in range(1, depth + 1):
             if i not in scanme:
                 scanme[i] = []
-            next_urls = await crawl_depth(scanme[i], session, sem, pdt, smart_filter)
+            next_urls = await crawl_depth(scanme[i], session, sem, depth, pdt, smart_filter) # pass depth for smart logging
             scanme[i + 1] = next_urls
 
 def crawl(args):

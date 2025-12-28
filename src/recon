@@ -1,0 +1,28 @@
+recon() {
+if [[ $# -lt 3 ]]; then
+echo "Usage: recon <host(s)_file> <depth_for_crawl> <pdt_for_crawl>"
+echo "Upcoming long/short arg"
+return
+fi
+
+local file="$1"
+local depth="$2"
+local pdt="$3"
+
+echo "[*] Running asubs() on target"
+asubs "$file"
+
+echo "[*] Filtering live and 200 subs"
+lsubs "${file}subs"
+
+echo "[*] Running crawl() on 200 subs (urls file), depth=$depth pdt=$pdt"
+crawl -l "${file}subs200urls" "$depth" "$pdt";
+cp "crawler_log_$depth_$pdt" urls
+echo "[*] File saved as 'urls'"
+
+
+#cat tsubs200urls ususb200urls >allsubs200urls;  
+#...  
+#HF recons , mv .. ; 
+
+}

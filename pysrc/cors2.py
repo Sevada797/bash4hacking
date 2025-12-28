@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import List
 
 CONCURRENCY = 20
-OUTPUT_FILE = "cors_finds"
-OUTPUT_FILE2 = "cors_finds_fatal"
-OUTPUT_FILE3 = "cors_finds_fatal2"
+OUTPUT_FILE = "cors_finds_head"
+OUTPUT_FILE2 = "cors_finds_fatal_head"
+OUTPUT_FILE3 = "cors_finds_fatal2_head"
 
 # Chrome-like UA
 USER_AGENT = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -21,7 +21,7 @@ async def fetch(session, url, sem):
         record = {"url": url}
         try:
             # enforce 15s per request
-            resp = await asyncio.wait_for(session.options(url, allow_redirects=True), timeout=15)
+            resp = await asyncio.wait_for(session.head(url, allow_redirects=True), timeout=15)
             record["status"] = resp.status
             record["headers"] = dict(resp.headers)
         except Exception as e:
@@ -162,9 +162,9 @@ def read_urls_from_file(path: str) -> List[str]:
     return urls
 
 def usage():
-    print("Usage: python3 cors.py urls_file")
+    print("Usage: python3 cors2.py urls_file")
     print("  urls_file: text file with one URL per line. Lines starting with '#' are ignored.")
-    print("Example: python3 cors.py targets.txt")
+    print("Example: python3 cors2.py targets.txt")
     sys.exit(1)
 
 if __name__ == "__main__":

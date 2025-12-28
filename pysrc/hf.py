@@ -7,7 +7,7 @@ import resource
 
 soft, _ = resource.getrlimit(resource.RLIMIT_NOFILE)
 safe_limit = min(soft - 100, 10000)
-safe_limit=500
+safe_limit = 500
 print(f"[INFO] Using max {safe_limit} connections")
 
 from aiohttp.client_exceptions import (
@@ -19,26 +19,45 @@ from aiohttp.client_exceptions import (
     ClientSSLError
 )
 
+# -------------------------
+# retry helper (ONLY for timeout)
+# -------------------------
+async def retry_with_longer_timeout(session, url, **kwargs):
+    retry_timeout = aiohttp.ClientTimeout(
+        total=60,
+        connect=10,
+        sock_connect=10,
+        sock_read=30
+    )
+    async with session.get(url, timeout=retry_timeout, **kwargs) as resp:
+        raw = await resp.content.read(500 * 1024)
+        return raw, resp
+
+
 async def fetch(session, url, values, f_log, log_lock, counter, total, allow_redirects, a_chars=0, b_chars=0):
     try:
-        # pass allow_redirects here
-        async with session.get(url, timeout=5, ssl=False, allow_redirects=allow_redirects) as resp:
+        async with session.get(url, ssl=False, allow_redirects=allow_redirects) as resp:
             content_type = resp.headers.get("Content-Type", "").lower()
-            allowed_types = ["text/html", "application/json", "application/javascript", "text/plain"]
+
+            allowed_types = [
+                "text/html",
+                "text/plain",
+                "text/html; charset=utf-8",
+                "text/plain; charset=utf-8",
+                "application/json",
+                "application/javascript",
+                "application/xml"
+            ]
+
             if not any(ct in content_type for ct in allowed_types):
                 return
 
-            try:
-                html = await resp.text()
-            except UnicodeDecodeError:
-                try:
-                    html = (await resp.read()).decode('latin-1')
-                except Exception:
-                    html = ""
+            raw = await resp.content.read(500 * 1024)
+            html = raw.decode(errors="ignore")
+            html_lower = html.lower()
 
             for val in values:
                 val_lower = val.lower()
-                html_lower = html.lower()
                 for match in re.finditer(re.escape(val_lower), html_lower):
                     start = max(0, match.start() - b_chars)
                     end = min(len(html), match.end() + a_chars)
@@ -47,11 +66,39 @@ async def fetch(session, url, values, f_log, log_lock, counter, total, allow_red
                         f_log.write(f"{url} -> {val}\nContext: {snippet}\n\n")
                         f_log.flush()
 
-    except (ClientConnectorError, ClientProxyConnectionError, ClientOSError, ClientResponseError,
-            ServerTimeoutError, asyncio.TimeoutError, ClientSSLError, aiohttp.InvalidURL):
+
+
+    except asyncio.TimeoutError:
+        try:
+            raw, resp = await retry_with_longer_timeout(
+                session,
+                url,
+                ssl=False,
+                allow_redirects=allow_redirects
+            )
+            html = raw.decode(errors="ignore")
+            html_lower = html.lower()
+
+            for val in values:
+                val_lower = val.lower()
+                for match in re.finditer(re.escape(val_lower), html_lower):
+                    start = max(0, match.start() - b_chars)
+                    end = min(len(html), match.end() + a_chars)
+                    snippet = html[start:end].replace('\n', ' ').replace('\r', '')
+                    async with log_lock:
+                        f_log.write(f"{url} -> {val}\nContext: {snippet}\n\n")
+                        f_log.flush()
+
+        except Exception:
+            pass
+
+    except (ClientConnectorError, ClientProxyConnectionError, ClientOSError,
+            ClientResponseError, ServerTimeoutError, ClientSSLError, aiohttp.InvalidURL):
         pass
+
     except Exception as e:
         print(f"\n[ERROR] Unexpected error for {url}: {e}")
+
     finally:
         counter[0] += 1
         print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
@@ -87,13 +134,16 @@ async def main(file, values, use_ua, use_burp, custom_headers, no_follow, a_char
 
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
-    connector = aiohttp.TCPConnector(limit=safe_limit)
-    timeout = aiohttp.ClientTimeout(total=10)
+    connector = aiohttp.TCPConnector(limit=200, limit_per_host=10)
+    timeout = aiohttp.ClientTimeout(
+        total=120,
+        connect=5,
+        sock_connect=5,
+        sock_read=10
+    )
+
     counter = [0]
     total = len(urls)
-    sem = asyncio.Semaphore(safe_limit)
-
-    # determine allow_redirects flag for session.get calls
     allow_redirects = not no_follow
 
     async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
@@ -101,13 +151,12 @@ async def main(file, values, use_ua, use_burp, custom_headers, no_follow, a_char
 
         log_lock = asyncio.Lock()
         with open(log_file, "a") as f_log:
-
-            async def sem_fetch(url):
-                async with sem:
-                    # pass allow_redirects down to fetch
-                    await fetch(session, url, values, f_log, log_lock, counter, total, allow_redirects, a_chars, b_chars)
-
-            tasks = [asyncio.create_task(sem_fetch(url)) for url in urls]
+            tasks = [
+                asyncio.create_task(
+                    fetch(session, url, values, f_log, log_lock, counter, total, allow_redirects, a_chars, b_chars)
+                )
+                for url in urls
+            ]
             await asyncio.gather(*tasks)
 
     print(f"\n[INFO]: Check {log_file} for successful finds")
@@ -133,8 +182,7 @@ if __name__ == "__main__":
     value_list = args.E.split("|") if args.E else [args.value]
 
     try:
-        print("Looking for 🔎️ [" + ", ".join(value_list)+"] values")
-        # pass args.no_follow into main
+        print("Looking for 🔎️ [" + ", ".join(value_list) + "] values")
         asyncio.run(main(args.file, value_list, args.ua_chrome, args.burp, args.H, args.no_follow, args.A, args.B))
     except KeyboardInterrupt:
         print("\n[INFO] Interrupted by user.")

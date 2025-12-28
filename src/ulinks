@@ -1,12 +1,12 @@
-links() {
+ulinks() {
     local domain="$1"
     local file="$2"
 
     if [ -z "$domain" ]; then
-        echo "Usage: links <domain> [file]"
+        echo "Usage: ulinks <domain> [file]"
         echo "Example:"
-        echo "  links example.com urls"
-        echo "  cat page.html | links example.com"
+        echo "  ulinks example.com urls"
+        echo "  cat page.html | ulinks example.com"
         return
     fi
 
@@ -14,8 +14,8 @@ links() {
     local regex='https?://[^[:space:]"'\''<>]+'
 
     if [ -n "$file" ]; then
-        grep -aEo "$regex" "$file" | grep -a "$domain"
+        grep -aEo "$regex" "$file" | sort -u | grep -a "$domain"
     else
-        grep -aEo "$regex" | grep -a "$domain"
+        grep -aEo "$regex" | sort -u | grep -a "$domain"
     fi
 }

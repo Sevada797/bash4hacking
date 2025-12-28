@@ -1,0 +1,49 @@
+pivot() {
+    local subs_file="$1"
+    local scope="$2"
+    local threads="${3:-20}"
+
+    if [ -z "$subs_file" ] || [ -z "$scope" ] || [ ! -f "$subs_file" ]; then
+        echo "usage: pivot <subs_file> <scope_domain> [threads]"
+        return 1
+    fi
+
+    local all_log="pivot_all.ptr"
+    local scope_log="pivot_scoped.ptr"
+    local subs_log="pivot_subs.ptr"
+
+    : > "$all_log"
+    : > "$scope_log"
+    : > "$subs_log"
+
+    echo "[*] Pivoting subs -> /24 -> PTR"
+    echo "[*] Scope: *.$scope"
+    echo "[*] Threads: $threads"
+    echo
+
+    cat "$subs_file" \
+        | xargs -n1 dig +short A \
+        | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' \
+        | grep -v '^127\.' \
+        | awk -F. '{print $1"."$2"."$3}' \
+        | sort -u \
+        | while read net; do
+            for i in $(seq 1 254); do
+                echo "$net.$i"
+            done
+          done \
+        | xargs -n1 -P"$threads" sh -c '
+            ptr=$(dig +short -x "$0")
+            if [ -n "$ptr" ]; then
+                echo "$0 -> $ptr"
+            fi
+          ' \
+        | tee -a "$all_log" \
+        | grep -i "\.${scope}\.$" | tee "$scope_log" \
+        | cut -d" " -f3 | sed 's/\.$//' | sort -u >> "$subs_log"
+
+    echo
+    echo "[+] All PTRs logged to: $all_log"
+    echo "[+] In-scope PTRs logged to: $scope_log"
+    echo "[+] In-scope subs only sorted logged to: $subs_log"
+}

@@ -1,0 +1,9 @@
+jwt() {
+if [ -z "$1" ]; then
+echo "Usage: jwt <JWT_TOKEN>"
+return 1
+fi
+
+python3 "$BFH_PATH/pysrc/jwt_pentest.py" "$1"
+
+}
