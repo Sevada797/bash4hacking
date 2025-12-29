@@ -17,14 +17,30 @@ arjun -i "$file" | tee -a "$logfile"
 var1=1
 while (( 1==$var1 )); do
 
+
+geturls() {
+    local geturls_domain="$1"
+    local geturls_file="$2"
+    local regex='https?://[^[:space:]"'\''<>]+'
+
+    if [ -n "$geturls_file" ]; then
+        grep -aEo "$regex" "$geturls_file" | grep -a "$geturls_domain"
+    else
+        grep -aEo "$regex" | grep -a "$geturls_domain"
+    fi
+
+
+}
+
+
 # Check for releasing loop, if finished
-if (( $(links http "$logfile" | wc -l) == "$lines" )); then
+if (( $(geturls http "$logfile" | wc -l) == "$lines" )); then
 var1=0
 
 else 
 # Rewrite the file, from where it stopped till end
 
-stopped_at=$(links http "$logfile" | tail -n1)
+stopped_at=$(geturls http "$logfile" | tail -n1)
 if [[ -z "$stopped_at" ]]; then
   echo "Error: couldn't get stopped_at from logfile"
   return 1
@@ -40,7 +56,7 @@ fi
 
 done
 
-for i in $(sed 's/Parameters/\n/g' "$logfile" | grep -v chunks: | grep found: -B3 | links h); do echo $i"/?"$(sed 's/Parameters/\n/g' "$logfile" | grep -v chunks: | grep "$i" -A4 | grep found: | cut -d: -f2 | grep -Eo "[a-zA-Z0-9_\-]+" | grep -E "^[a-zA-Z]" | sed "s/$/=arjunxss/g" | paste -sd "&"); for j in $(sed 's/Parameters/\n/g' "$logfile" | grep -v chunks: | grep "$i" -A4 | grep found: | cut -d: -f2 | grep -Eo "[a-zA-Z0-9_\-]+" | grep -E "^[a-zA-Z]" | sed "s/$//g"); do echo "$i/?$j=arjunxss"; done; done | sort -u | grep = > ARJUNXSS
+for i in $(sed 's/Parameters/\n/g' "$logfile" | grep -v chunks: | grep found: -B3 | geturls h); do echo $i"/?"$(sed 's/Parameters/\n/g' "$logfile" | grep -v chunks: | grep "$i" -A4 | grep found: | cut -d: -f2 | grep -Eo "[a-zA-Z0-9_\-]+" | grep -E "^[a-zA-Z]" | sed "s/$/=arjunxss/g" | paste -sd "&"); for j in $(sed 's/Parameters/\n/g' "$logfile" | grep -v chunks: | grep "$i" -A4 | grep found: | cut -d: -f2 | grep -Eo "[a-zA-Z0-9_\-]+" | grep -E "^[a-zA-Z]" | sed "s/$//g"); do echo "$i/?$j=arjunxss"; done; done | sort -u | grep = > ARJUNXSS
 
 echo "[+] File for XSS checking prepared"
 echo "Run:"

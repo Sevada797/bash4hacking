@@ -1,14 +1,24 @@
 subr() {
   if [[ -z "$1" ]]; then
     echo "Usage:"
-    echo "  subr -d domain.com     # For single domain"
-    echo "  subr domains.txt       # For file list"
+    echo "  subr -d domain.com                    # For single domain"
+    echo "  subr -d domain.com -w wordlist.txt   # For single domain with custom wordlist"
+    echo "  subr domains.txt                      # For file list"
+    echo "  subr domains.txt -w wordlist.txt     # For file list with custom wordlist"
     return
   fi
 
   if [[ "$1" == "-d" ]]; then
-    python3 "$BFH_PATH/pysrc/subr.py" -d "$2"
+    if [[ "$3" == "-w" && -n "$4" ]]; then
+      python3 "$BFH_PATH/pysrc/subr.py" -d "$2" -w "$4"
+    else
+      python3 "$BFH_PATH/pysrc/subr.py" -d "$2"
+    fi
   else
-    python3 "$BFH_PATH/pysrc/subr.py" -f "$1"
+    if [[ "$2" == "-w" && -n "$3" ]]; then
+      python3 "$BFH_PATH/pysrc/subr.py" -f "$1" -w "$3"
+    else
+      python3 "$BFH_PATH/pysrc/subr.py" -f "$1"
+    fi
   fi
 }

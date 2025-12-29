@@ -54,8 +54,7 @@ async def resolve(domain, sub):
     except:
         pass
 
-async def run(domain):
-    subs = list(gen_short_subs()) + COMMON_SUBS
+async def run(domain, subs):
     tasks = [resolve(domain, sub) for sub in subs]
     await asyncio.gather(*tasks)
 
@@ -63,18 +62,27 @@ def main():
     parser = argparse.ArgumentParser(description="Async UDP subdomain brute")
     parser.add_argument("-d", "--domain", help="Single domain to brute force")
     parser.add_argument("-f", "--file", help="File with list of domains (one per line)")
+    parser.add_argument("-w", "--wordlist", help="Custom wordlist file (one subdomain per line)")
     args = parser.parse_args()
 
+    if args.wordlist:
+        with open(args.wordlist) as f:
+            custom_subs = [line.strip() for line in f if line.strip()]
+        subs = custom_subs
+    else:
+        subs = list(gen_short_subs()) + COMMON_SUBS
+
     if args.domain:
-        asyncio.run(run(args.domain))
+        asyncio.run(run(args.domain, subs))
     elif args.file:
         with open(args.file) as f:
             domains = [line.strip() for line in f if line.strip()]
         for domain in domains:
             #print(f"\n[~] Brute forcing: {domain}")
-            asyncio.run(run(domain))
+            asyncio.run(run(domain, subs))
     else:
         print("Usage: subr.py -d domain.com or -f domains.txt")
+        print("add -w for providing custom list to use for bruting")
 
 if __name__ == "__main__":
     main()
