@@ -1,0 +1,19 @@
+loop() {
+
+if [ $# -lt 2 ]; then
+echo "Usage: loop <file_that_exists> <callback file [callback_args]> <file_that_shouldnt_exist>"
+return
+fi
+
+file="$1"
+callback="$2"
+checkfile="${3:-NOTEXISTING_FILE_323032352030313a35323a3033}"
+
+
+for i in *; do 
+if [[ -d "$i" && ! -f "$i/$checkfile" && -f "$i/$file" ]]; then
+$callback
+fi
+done
+
+}
