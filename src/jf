@@ -1,0 +1,64 @@
+jf() {
+    local TOOL="$BFH_PATH/pysrc/jf.py"
+    local HEADERS=()
+    local TARGET=""
+    local PATTERN=""
+
+    # helpers
+    if [[ "$1" == "log" ]]; then
+        cat jf/log.txt 2>/dev/null || echo "[!] No jf/log.txt found"
+        return 0
+    fi
+
+    if [[ "$1" == "finds" ]]; then
+        jf log | grep "\[JF\]" -A2
+        return 0
+    fi
+
+    # parse args
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -H)
+                HEADERS+=("-H" "$2")
+                shift 2
+                ;;
+            *)
+                if [[ -z "$TARGET" ]]; then
+                    TARGET="$1"
+                elif [[ -z "$PATTERN" ]]; then
+                    PATTERN="$1"
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    # stdin mode
+    if [[ -z "$TARGET" && ! -t 0 ]]; then
+        if [[ -z "$PATTERN" ]]; then
+            echo "[!] Pattern required when using stdin"
+            return 1
+        fi
+        tmpfile=$(mktemp)
+        cat > "$tmpfile"
+        python3 "$TOOL" "$tmpfile" "$PATTERN" "${HEADERS[@]}"
+        rm -f "$tmpfile"
+        return
+    fi
+
+    # usage
+    if [[ -z "$TARGET" || -z "$PATTERN" ]]; then
+        echo "Usage:"
+        echo "  jf <url> <pattern_or_patternfile> [-H \"Header: val\"] [-H \"Header: val\"]"
+        echo "  jf urls.txt <pattern_or_patternfile> [-H \"Header: val\"]"
+        echo "  cat urls.txt | jf <pattern> [-H \"Header: val\"]"
+        echo
+        echo "Helpers:"
+        echo "  jf log     # show raw log"
+        echo "  jf finds   # show hits"
+        return 1
+    fi
+
+    ulimit -n 100000
+    python3 "$TOOL" "$TARGET" "$PATTERN" "${HEADERS[@]}"
+}

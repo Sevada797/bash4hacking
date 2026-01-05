@@ -2,6 +2,82 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+export_b4_funcs() {
+echo "NOT FOR USE, SELF CALLING FUNCTION"
+}
+export_b4_variables_desc() {
+echo "NOT FOR USE, SELF CALLING FUNCTION"
+}
+
+recon_desc() {
+echo "Sub recon + crawling -- asubs() + crawl() on target"
+}
+
+jwt_desc() {
+echo "Helps JWT pentesting"
+}
+
+paramverse_desc() {
+echo "Upcoming !!"
+}
+
+j4_desc() {
+echo "Helper for J4 extension logger module (github.com/sevada797/JS4hacking)"
+}
+
+arjunxss_desc() {
+echo "Arjun -> waponize results -> ready for XSS checking with gbr" 
+}
+
+formxss_desc() {
+echo "Get all forms -> craft payloads from inputs -> Brutes both POST & GET with crafted payloads, regardles form.method (just in case) (Doesn't work for BB trust me)"
+}
+
+ronin_desc() {
+echo "Good cutter tool, well ... I can't explain the logic I used here, but if you check the code you'll get it"
+}
+
+ghost_desc() {
+echo "Ghost crawler is for getting the all ongoing fetch requests, both URLs and their JS/JSON responses (later you can sub recon or analyse the flow for anything interesting)" 
+}
+
+loop_desc() {
+echo "Best for automated hunters like me, loops trough dirs, and assigns it to $i "
+}
+
+jsmap_desc() {
+echo "NEW!COOL! Gets relative paths from JS files, then maps to original URL, which crawlers can miss, wait... does my crawl() miss then on these ? should check"
+}
+
+vh_desc() {
+echo "Should fuzz vhosts, but ... I don't remember if I tested this normally"
+}
+
+tgbot_desc() {
+echo "Nvm this"
+}
+
+trufflefog_desc() {
+echo "Tool not written yet (in short I should try finding regex-es that trufflehog misses for tokens,secrets etc... and put here)"
+}
+
+lfi_desc() {
+echo "Param based lfi checker"
+}
+
+lfi2_desc() {
+echo "Paths based lfi checker"
+}
+
+
+pivot_desc() {
+echo "Use against subs file, gets all IPs, then greps out X.X.X sorts, and scans /24 range for new hosts (you can find new subdomain like this)"
+}
+
+jf_desc() {
+echo "COOL! Tool for regex finding certain patterns from JS (I use this for taint analysis, but I won't drop my regexes here)"
+}
+
 shadowdom_desc() {
 echo "Get 200 status URLs downloaded from wayback machine, then use shadowfind() to grep thing and get according URLs "
 }
@@ -31,7 +107,11 @@ echo "Use me after axss() or asubs() only, to get more subs ;D (I hate typing lo
 }
 
 cors_desc() {
-echo "COOL!NEW! This my tool checks for CORS misconfigs :D and logs sus/interesting headers in 'cors_finds' file"
+echo "COOL! This my tool checks for CORS misconfigs :D and logs sus/interesting headers in 'cors_finds' file, uses OPTIONS method"
+}
+
+cors2_desc() {
+echo "This my tool checks for CORS misconfigs :D and logs sus/interesting headers in 'cors_finds_head' file, uses HEAD method"
 }
 
 epaths_desc() {

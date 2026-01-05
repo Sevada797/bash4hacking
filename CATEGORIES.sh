@@ -12,11 +12,19 @@
 # Tool category definitions
 
 cors_category() { echo "ACTION DRIVEN TESTING"; }
+cors2_category() { echo "ACTION DRIVEN TESTING"; }
 hf_category() { echo "ACTION DRIVEN TESTING"; }
 reptile_category() { echo "ACTION DRIVEN TESTING"; }
 kage_category() { echo "ACTION DRIVEN TESTING"; }
 shadowdom() { echo "ACTION DRIVEN TESTING"; }
 shadowfind() { echo "ACTION DRIVEN TESTING"; }
+gqli_desc()  { echo "ACTION DRIVEN TESTING"; }
+
+
+crawl_category() { echo "Advanced Crawling"; }
+ghost_category() { echo "Advanced Crawling"; }
+
+
 
 links_category() { echo "PURE DATA_ANALYSIS SMART GREPS ETC... (some prepare files for further testing)"; }
 filip_category() { echo "PURE DATA_ANALYSIS SMART GREPS ETC... (some prepare files for further testing)"; }
@@ -50,8 +58,10 @@ subr_category() { echo "SUBS_RECON"; }
 usubs_category() { echo "SUBS_RECON"; }
 subsubs_category() { echo "SUBS_RECON"; }
 subsubs2_category() { echo "SUBS_RECON"; }
-longsubr() { echo "SUBS_RECON"; }
-longsubr2() { echo "SUBS_RECON"; }
+longsubr_category() { echo "SUBS_RECON"; }
+longsubr2_category() { echo "SUBS_RECON"; }
+pivot_category() { echo "SUBS_RECON"; }
+
 
 formxss_category() { echo "XSS"; }
 pxss_category() { echo "XSS"; }
@@ -59,9 +69,10 @@ pxss2_category() { echo "XSS"; }
 axss_category() { echo "XSS"; }
 bxss_category() { echo "XSS"; }
 op_category() { echo "XSS"; }
+arjunxss_category() { echo "XSS"; }
 
-crawl_category() { echo "CRAWLING - Code review needed, smth messed up X_X"; }
-lql_category() { echo "SQL injection - Code review needed, smth messed up X_X"; }
+
+lql_category() { echo "SQL injection - Should remove I think, or repair, cause rn idk it just doesn't hit "; }
 
 br_category() { echo "BRUTING"; }
 

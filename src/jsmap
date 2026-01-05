@@ -1,0 +1,39 @@
+jsmap() {
+    local TOOL="$BFH_PATH/pysrc/jsmap.py"   # <-- adjust path
+    local HEADERS=()
+    local TARGET=""
+
+    # parse flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -H)
+                HEADERS+=("-H" "$2")
+                shift 2
+                ;;
+            *)
+                TARGET="$1"
+                shift
+                ;;
+        esac
+    done
+
+    # stdin mode
+    if [ -z "$TARGET" ] && [ ! -t 0 ]; then
+        tmpfile=$(mktemp)
+        cat > "$tmpfile"
+        python3 "$TOOL" "$tmpfile" "${HEADERS[@]}"
+        rm -f "$tmpfile"
+        return
+    fi
+
+    # normal mode
+    if [ -z "$TARGET" ]; then
+        echo "Usage:"
+        echo "  jsmap https://target.com [-H <headers>] [-H <headers>]"
+        echo "  jsmap urls.txt [-H <headers>] [-H <headers>]"
+        echo "  cat urls.txt | jsmap"
+        return 1
+    fi
+
+    python3 "$TOOL" "$TARGET" "${HEADERS[@]}"
+}

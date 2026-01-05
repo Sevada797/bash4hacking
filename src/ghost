@@ -1,0 +1,3 @@
+ghost() {
+python3 "$BFH_PATH/pysrc/ghostcrawler.py"
+}
