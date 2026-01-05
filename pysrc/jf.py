@@ -144,7 +144,10 @@ async def run(targets, pattern, headers):
                 #parsed = urlparse(target)
                 #origin = f"{parsed.scheme}://{parsed.netloc}/"
                 page_url = target
-                origin = target.rsplit("/", 1)[0] + "/"
+                parsed = urlparse(target)
+                origin = f"{parsed.scheme}://{parsed.netloc}/"
+
+                # origin = target.rsplit("/", 1)[0] + "/" //Buggy
 
                 # inline JS
                 await scan_inline(page_url, html, pattern, f_log)
