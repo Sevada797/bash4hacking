@@ -20,7 +20,7 @@ SCRIPT_REL = re.compile(
     re.IGNORECASE
 )
 
-PATH = r"/(?!/)[a-zA-Z0-9_\./\-]+(\?[a-zA-Z_\-]+(=([a-zA-Z0-9_%\-]+)?)?(&[a-zA-Z_\-]+=([a-zA-Z0-9_%\-]+)?)*|)"
+PATH = r"/(?!/)[a-zA-Z0-9_:\{\}\./\-]+(\?[a-zA-Z_\-]+(=([a-zA-Z0-9_%\-]+)?)?(&[a-zA-Z_\-]+=([a-zA-Z0-9_%\-]+)?)*|)"
 
 PATH_REGEXES = [
     re.compile(rf"'{PATH}'"),
@@ -42,7 +42,7 @@ async def fetch(session, url):
     return None
 
 
-async def extract_js(origin, html):
+def extract_js(origin, html):
     js_urls = set()
 
     for m in SCRIPT_ABS.finditer(html):
@@ -57,27 +57,14 @@ async def extract_js(origin, html):
     return js_urls
 
 
-async def scan_js(origin, session, js_url, seen, outfile):
-    print(f"Visiting: {js_url}")
-
-    body = await fetch(session, js_url)
-    if not body:
-        return
-
+def extract_paths(js_body):
+    paths = []
     for rx in PATH_REGEXES:
-        for m in rx.finditer(body):
+        for m in rx.finditer(js_body):
             path = m.group(0)[1:-1]
-
-            if path in ("/", ""):
-                continue
-
-            full = urljoin(origin, path)
-
-            if full not in seen:
-                seen.add(full)
-                line = f"{js_url} -> {full}"
-                print(line)
-                outfile.write(line + "\n")
+            if path not in ("/", ""):
+                paths.append(path)
+    return paths
 
 
 # =========================
@@ -85,7 +72,7 @@ async def scan_js(origin, session, js_url, seen, outfile):
 # =========================
 
 async def run(targets, headers):
-    connector = aiohttp.TCPConnector(ssl=False, limit=25)
+    connector = aiohttp.TCPConnector(ssl=False, limit=50)
     timeout = aiohttp.ClientTimeout(total=20)
 
     async with aiohttp.ClientSession(
@@ -94,24 +81,69 @@ async def run(targets, headers):
         headers=headers
     ) as session:
 
+        # STAGE 1: Fetch all target HTMLs in parallel
+        print("[*] Stage 1: Fetching all target HTMLs...")
+        html_map = {}
+        
+        async def fetch_and_store(origin):
+            html = await fetch(session, origin)
+            if html:
+                html_map[origin] = html
+        
+        await asyncio.gather(*[
+            fetch_and_store(target.rstrip("/") + "/")
+            for target in targets
+        ])
+        
+        print(f"[+] Fetched {len(html_map)} HTMLs")
+
+        # STAGE 2: Extract JS URLs from all HTMLs (in-memory regex)
+        print("[*] Stage 2: Extracting JS URLs...")
+        js_map = {}  # js_url -> origin
+        
+        for origin, html in html_map.items():
+            js_urls = extract_js(origin, html)
+            for js_url in js_urls:
+                js_map[js_url] = origin
+        
+        print(f"[+] Found {len(js_map)} JS URLs")
+
+        # STAGE 3: Fetch all JS files in parallel
+        print("[*] Stage 3: Fetching all JS files...")
+        js_bodies = {}
+        
+        async def fetch_js_and_store(js_url):
+            body = await fetch(session, js_url)
+            if body:
+                js_bodies[js_url] = body
+        
+        await asyncio.gather(*[
+            fetch_js_and_store(js_url)
+            for js_url in js_map.keys()
+        ])
+        
+        print(f"[+] Fetched {len(js_bodies)} JS files")
+
+        # STAGE 4: Extract paths and map to origins (in-memory regex)
+        print("[*] Stage 4: Extracting paths from JS...")
+        results = []
         seen = set()
-
-        with open("jsmap.txt", "w") as outfile:
-            for target in targets:
-                origin = target.rstrip("/") + "/"
-
-                html = await fetch(session, origin)
-                if not html:
-                    continue
-
-                js_urls = await extract_js(origin, html)
-
-                tasks = [
-                    scan_js(origin, session, js, seen, outfile)
-                    for js in js_urls
-                ]
-
-                await asyncio.gather(*tasks)
+        
+        for js_url, body in js_bodies.items():
+            origin = js_map[js_url]
+            paths = extract_paths(body)
+            
+            for path in paths:
+                full = urljoin(origin, path)
+                if full not in seen:
+                    seen.add(full)
+                    line = f"{js_url} -> {full}"
+                    print(line)
+                    results.append(line)
+        
+        print(f"[+] Found {len(results)} unique paths")
+        
+        return results
 
 
 # =========================
@@ -163,7 +195,10 @@ def main():
     targets = load_targets(args.target)
 
     try:
-        asyncio.run(run(targets, headers))
+        results = asyncio.run(run(targets, headers))
+        with open("jsmap.txt", "w") as f:
+            f.write("\n".join(results))
+        print(f"[+] Results written to jsmap.txt")
     except KeyboardInterrupt:
         print("\nInterrupted.")
 

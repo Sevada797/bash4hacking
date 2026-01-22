@@ -27,5 +27,5 @@ scream() {
     pattern="${pattern:1}" # Remove leading |
 
     # Grep the file for sensitive endpoints
-    grep -E "($pattern)" "$1"
+    grep -aE "($pattern)" "$1"
 }

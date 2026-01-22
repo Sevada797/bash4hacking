@@ -173,9 +173,13 @@ async def gather(url, session):
 
 async def crawl_depth(urls, session, sem, depth, pdt, smart_filter):
     next_urls = []
+    logout_urls=["signout", "sign-out", "sign_out", "logout", "log_out", "log-out"]
     start_time = time.time()
     for u in urls:
         if u in visited:
+            continue
+        if any(n in u.lower() for n in logout_urls):
+            print(f"Skipping LOG-OUT URL: {u}")
             continue
         if time.time() - start_time > pdt:
             print("Max per-depth time exceeded")

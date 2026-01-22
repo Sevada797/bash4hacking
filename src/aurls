@@ -1,0 +1,35 @@
+aurls() {
+
+  aurls_fetch() {
+    local target="$1"
+    curl -s -m 300 \
+      "https://web.archive.org/cdx/search/cdx?url=${target}/*&output=text&fl=original&collapse=urlkey"
+  }
+
+  # stdin (piped)
+  if [ -p /dev/stdin ]; then
+    grep -vE '^(#|$)' |
+    while IFS= read -r line; do
+      aurls_fetch "$line"
+    done
+    return
+  fi
+
+  # no args
+  if [ $# -eq 0 ]; then
+    echo "Usage: aurls <url_or_host_or_sameinfile>" >&2
+    return 1
+  fi
+
+  # arg is file
+  if [ -f "$1" ]; then
+    grep -vE '^(#|$)' "$1" |
+    while IFS= read -r line; do
+      aurls_fetch "$line"
+    done
+    return
+  fi
+
+  # single target
+  aurls_fetch "$1"
+}

@@ -70,26 +70,27 @@ async def extract_js(origin, html):
 # Core logic
 # =========================
 
-async def scan_inline(page_url, html, pattern, f_log):
+async def scan_inline(page_url, html, patterns, f_log):
     for m in SCRIPT_INLINE.finditer(html):
         body = m.group("body")
         if not body.strip():
             continue
 
-        for match in re.finditer(pattern, body, re.IGNORECASE | re.DOTALL):
-            line = (
-                f"[JF] Pattern hit (INLINE)\n"
-                f"Pattern: {pattern}\n"
-                f"Match: {match.group(0)}\n"
-                f"Page: {page_url}\n"
-                f"JS: INLINE <script>\n"
-            )
-            print(line)
-            await f_log.write(line + "\n")
-            await f_log.flush()
+        for pattern in patterns:
+            for match in re.finditer(pattern, body, re.DOTALL):
+                line = (
+                    f"[JF] Pattern hit (INLINE)\n"
+                    f"Pattern: {pattern}\n"
+                    f"Match: {match.group(0)}\n"
+                    f"Page: {page_url}\n"
+                    f"JS: INLINE <script>\n"
+                )
+                print(line)
+                await f_log.write(line + "\n")
+                await f_log.flush()
 
 
-async def scan_js(page_url, js_url, session, pattern, seen_js, f_log):
+async def scan_js(page_url, js_url, session, patterns, seen_js, f_log):
     if js_url in seen_js:
         return
     seen_js.add(js_url)
@@ -98,23 +99,23 @@ async def scan_js(page_url, js_url, session, pattern, seen_js, f_log):
     if not body:
         return
 
-    for match in re.finditer(pattern, body, re.IGNORECASE | re.DOTALL):
-        line = (
-            f"[JF] Pattern hit\n"
-            f"Pattern: {pattern}\n"
-            f"Match: {match.group(0)}\n"
-            f"Page: {page_url}\n"
-            f"JS: {js_url}\n"
-        )
-        print(line)
-        await f_log.write(line + "\n")
-        await f_log.flush()
+    for pattern in patterns:
+        for match in re.finditer(pattern, body, re.DOTALL):
+            line = (
+                f"[JF] Pattern hit\n"
+                f"Pattern: {pattern}\n"
+                f"Match: {match.group(0)}\n"
+                f"Page: {page_url}\n"
+                f"JS: {js_url}\n"
+            )
+            print(line)
+            await f_log.write(line + "\n")
+            await f_log.flush()
 
 
-async def run(targets, pattern, headers):
+async def run(targets, patterns, headers):
     log_path = "jf/log.txt"
     
-
     connector = aiohttp.TCPConnector(limit=100, ssl=False)
     timeout = aiohttp.ClientTimeout(total=30)
 
@@ -140,24 +141,25 @@ async def run(targets, pattern, headers):
                 if not html:
                     continue
 
-                #origin = target.rstrip("/") + "/"
-                #parsed = urlparse(target)
-                #origin = f"{parsed.scheme}://{parsed.netloc}/"
                 page_url = target
                 parsed = urlparse(target)
                 origin = f"{parsed.scheme}://{parsed.netloc}/"
 
+                #origin = target.rstrip("/") + "/"
+                #parsed = urlparse(target)
+                #origin = f"{parsed.scheme}://{parsed.netloc}/"
+
                 # origin = target.rsplit("/", 1)[0] + "/" //Buggy
 
                 # inline JS
-                await scan_inline(page_url, html, pattern, f_log)
+                await scan_inline(page_url, html, patterns, f_log)
 
                 # external JS
                 js_urls = await extract_js(origin, html)
                 
                 for js_url in js_urls:
                     all_js_tasks.append(
-                        scan_js(page_url, js_url, session, pattern, seen_js, f_log)
+                        scan_js(page_url, js_url, session, patterns, seen_js, f_log)
                     )
 
             # Blast all JS requests at once
@@ -239,10 +241,10 @@ async def main():
     async with aiofiles.open(log_path, "w") as f:
         await f.write("")
     try:
-        for pattern in patterns:
-            print(f"[JF] Scanning with pattern: {pattern}")
-            await run(targets, pattern, headers)
+        await run(targets, patterns, headers)
     except KeyboardInterrupt:
         print("\n[JF] Interrupted")
+
+# Later fix, like regex in loop, why fetch all again ? 
 
 if __name__ == "__main__": asyncio.run(main())

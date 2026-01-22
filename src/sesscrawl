@@ -1,0 +1,19 @@
+sesscrawl() {
+mkdir -p sessioned && cd sessioned
+
+if [ -z "$1" ]; then
+echo "Usage: sesscrawl <urls_file>"
+return
+fi
+
+read -p "Enter cookie header value: " cookies
+
+#NOTE: incomplete, add also, grep -v signout patterns for jsmap, or add in jsmap to not visit signout URLs better
+
+crawl -l t 4 300 -H "Cookie: $cookies"
+cat crawler_log_4_300 | dj | uro >4jsmap
+jsmap 4jsmap -H "Cookie: $cookies"
+(cat jsmap.txt | cut -d" " -f3 | dj ; cat crawler_log_4_300 ) | sort -u | uro | dj >allurls
+
+cd ..
+}

@@ -1,22 +1,21 @@
-jf() {
-    local TOOL="$BFH_PATH/pysrc/jf.py"
-    local HEADERS=()
+jfl() {
+    local TOOL="$BFH_PATH/pysrc/jfl.py"
     local TARGET=""
     local PATTERN=""
 
     # helpers
     if [[ "$1" == "log" ]]; then
-        cat jf/log.txt 2>/dev/null || echo "[!] No jf/log.txt found"
+        cat jfl/log.txt 2>/dev/null || echo "[!] No jfl/log.txt found"
         return 0
     fi
 
     if [[ "$1" == "finds" ]]; then
-        jf log | grep "\[JF\]" -A2
+        jfl log | grep "\[JFL\]" -A2
         return 0
     fi
 
     if [[ "$1" == "match" ]]; then
-        jf log | grep -vE "^Page: |^Pattern: |^Page: |^JS: | Pattern hit"
+        jfl log | grep -vE "^Page: |^Pattern: |^Page: |^JS: | Pattern hit"
         return 0
     fi
 
@@ -24,10 +23,6 @@ jf() {
     # parse args
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -H)
-                HEADERS+=("-H" "$2")
-                shift 2
-                ;;
             *)
                 if [[ -z "$TARGET" ]]; then
                     TARGET="$1"
@@ -47,7 +42,7 @@ jf() {
         fi
         tmpfile=$(mktemp)
         cat > "$tmpfile"
-        python3 "$TOOL" "$tmpfile" "$PATTERN" "${HEADERS[@]}"
+        python3 "$TOOL" "$tmpfile" "$PATTERN"
         rm -f "$tmpfile"
         return
     fi
@@ -55,17 +50,19 @@ jf() {
     # usage
     if [[ -z "$TARGET" || -z "$PATTERN" ]]; then
         echo "Usage:"
-        echo "  jf <url> <pattern_or_patternfile> [-H \"Header: val\"] [-H \"Header: val\"]"
-        echo "  jf urls.txt <pattern_or_patternfile> [-H \"Header: val\"]"
-        echo "  cat urls.txt | jf <pattern> [-H \"Header: val\"]"
+        echo "  jfl <dir_or_file> <pattern_or_patternfile>"
+        echo "  jfl .              <pattern>              # scan current dir"
+        echo "  jfl ~/projects     <pattern>              # scan with ~ expansion"
+        echo "  jfl ./src          <pattern_file>         # scan relative path"
+        echo "  cat urls.txt | jfl <pattern>              # stdin mode"
         echo
         echo "Helpers:"
-        echo "  jf log     # show raw log"
-        echo "  jf finds   # show hits"
-        echo "  jf match   # grep -v all other fields except match"
+        echo "  jfl log     # show raw log"
+        echo "  jfl finds   # show hits"
+        echo "  jfl match   # grep -v all other fields except match"
         return 1
     fi
 
     ulimit -n 100000
-    python3 "$TOOL" "$TARGET" "$PATTERN" "${HEADERS[@]}"
+    python3 "$TOOL" "$TARGET" "$PATTERN"
 }
