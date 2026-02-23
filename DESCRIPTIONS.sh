@@ -2,7 +2,39 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
-export_b4_funcs() {
+csubr_desc() {
+echo "Sub brute in areas with more than one occurrences of sub-subdomains that have the same root/subdomain"
+}
+
+hfr_desc() {
+echo "Visit given links, and extract stuff by given regex, using PCRE (DOTALL) "
+}
+
+fuzz_200() {
+echo "Check the URLs only for 200-210 status codes"
+}
+
+aurls_desc() {
+echo "My alternative for waybackurls, in case waybackurls takes too long ;D"
+}
+
+jfl_desc() {
+echo "Local version of jf(), check jf description for more info"
+}
+
+3xxdata_desc() {
+echo "Checks for 3xx status codes that return suspicously bigger response size"
+}
+
+3xxincon_desc() {
+echo "Checks if the redirect header Location and inside body the redirect link are different"
+}
+
+b4_desc() {
+echo "Bash4hacking luncher for ZSH environment"
+}
+
+export_b4_funcs_desc() {
 echo "NOT FOR USE, SELF CALLING FUNCTION"
 }
 export_b4_variables_desc() {
@@ -215,7 +247,7 @@ echo "Provide file link, it downloads and does exif + first lines hexdump, so yo
 }
 
 fuzz_desc() {
-echo "Just does fuzz, I created it for using after ssrfhunt"
+echo "Just does fuzz, I created it for using after ssrfhunt, but it's actually realy handy for quick checking some URLs (like status codes)"
 }
 
 ssrfgen_desc() {

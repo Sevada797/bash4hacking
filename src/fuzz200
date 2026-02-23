@@ -1,0 +1,8 @@
+fuzz200() {
+  if [ -z "$1" ]; then
+    echo "Usage: fuzz wordlist.txt"
+    return
+  fi
+
+  ffuf -u FUZZ -c -w "$1" -H "User-Agent: chrome" -mc 200,201,202,203,204,205,206,207,208,209,210
+}

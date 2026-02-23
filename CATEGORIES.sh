@@ -61,6 +61,7 @@ subsubs2_category() { echo "SUBS_RECON"; }
 longsubr_category() { echo "SUBS_RECON"; }
 longsubr2_category() { echo "SUBS_RECON"; }
 pivot_category() { echo "SUBS_RECON"; }
+csubr_category() { echo "SUBS_RECON"; }
 
 
 formxss_category() { echo "XSS"; }

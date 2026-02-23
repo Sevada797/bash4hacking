@@ -1,7 +1,7 @@
 #!/bin/bash
 longsubr() {
     domains_file="$1"
-    longlist="$BFH_PATH/TXT/alfa3-4"       # pre-generated 3–4 letter combos
+    longlist="$BFH_PATH/TXT/alpha3-4.txt"       # pre-generated 3–4 letter combos
     shortlist="$BFH_PATH/TXT/subdomains.txt" # curated SecLists wordlist
     outputfile="all_subs_longbr_results.txt"
 

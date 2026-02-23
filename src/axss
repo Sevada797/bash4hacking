@@ -45,6 +45,7 @@ axss() {
   cat "$targets" | assetfinder >> "$subsgathered"
   subfinder -dL "$targets" -silent >> "$subsgathered"
   subr "$targets">>"$subsgathered"
+# we lack recon for *. subs tho
 
   echo "[*] Adding main domains (critical patch)..."
   cat "$targets" >> "$subsgathered"

@@ -1,0 +1,4 @@
+# Bash4Hacking launcher for zsh environment
+b4() {
+  bash --rcfile <(cat ~/.bashrc; echo 'for f in ~/t00ls/bash4hacking/src/*; do [ -f "$f" ] && source "$f"; done; export BFH_PATH=~/t00ls/bash4hacking') -i
+}

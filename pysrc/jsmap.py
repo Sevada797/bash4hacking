@@ -20,7 +20,9 @@ SCRIPT_REL = re.compile(
     re.IGNORECASE
 )
 
-PATH = r"/(?!/)[a-zA-Z0-9_:\{\}\./\-]+(\?[a-zA-Z_\-]+(=([a-zA-Z0-9_%\-]+)?)?(&[a-zA-Z_\-]+=([a-zA-Z0-9_%\-]+)?)*|)"
+# :(( no \$ , we will miss, e.g. `some/path/${configURL}`
+
+PATH = r"/(?!/)[a-zA-Z0-9_:\{\}\$\./\-]+(\?[a-zA-Z_\-]+(=([a-zA-Z0-9_%\-]+)?)?(&[a-zA-Z_\-]+=([a-zA-Z0-9_%\-]+)?)*|)"
 
 PATH_REGEXES = [
     re.compile(rf"'{PATH}'"),

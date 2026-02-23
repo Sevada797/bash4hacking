@@ -1,0 +1,64 @@
+csubr() {
+# idea is to brute on subdomains, that already are a root for several sub-subdomains
+# e.g. I noticed, some subs inside my recon are like 
+# a.sub.domain.com
+# b.sub.domain.com
+# From this we can make logical assumption, that whole sub.domain.com is another service, which can have even more subs, and it's worth bruting hehe
+# Observance + Logical assumptions >>>  :3
+
+    if [ $# -lt 1 ]; then
+        echo "Usage: csubr <subdomain_list>"
+        return
+    fi
+
+local file=$1
+local out=csubr.txt
+>"$out"
+
+for i in $(cat $file | rev | cut -d. -f-3 | rev | sort -u); do
+
+if [ "$(grep -cE "\.$i" "$file")" -gt 1 ]
+then
+
+local potential_service=$( grep -E "\.$i" "$file" | head -n1 | rev | cut -d. -f-3 | rev )
+echo "Found potential service at $potential_service, starting subr on it"
+
+subr -d "$potential_service" | tee -a "$out"
+
+fi
+
+done
+
+
+for i in $(cat $file | rev | cut -d. -f-4 | rev | sort -u); do
+
+if [ "$(grep -cE "\.$i" "$file")" -gt 1 ]
+then
+
+local potential_service=$( grep -E "\.$i" "$file" | head -n1 | rev | cut -d. -f-4 | rev )
+echo "Found potential service at $potential_service, starting subr on it"
+
+subr -d "$potential_service" | tee -a "$out"
+
+fi
+
+
+
+done
+
+# after writing to $out, check if empty del
+if [[ ! -s "$out" || $(wc -l < "$out") -eq 0 ]]; then
+    rm -f "$out"
+fi
+
+
+echo ""
+if [ -f "$out" ] 
+then
+echo "Check $out for results ;D"
+else
+echo "No potential service found in these subs :("
+fi
+
+
+}

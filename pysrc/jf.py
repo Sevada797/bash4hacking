@@ -2,6 +2,7 @@
 
 import re
 import os
+import json
 import argparse
 import asyncio
 import aiohttp
@@ -32,6 +33,11 @@ SCRIPT_REL2 = re.compile(
     re.IGNORECASE
 )
 
+SOURCE_MAP_URL = re.compile(
+    r"//#\s*sourceMappingURL=([^\s\n]+\.map)",
+    re.IGNORECASE
+)
+
 
 # =========================
 # Fetch helpers
@@ -41,6 +47,19 @@ async def fetch(session, url):
     print(f"[JF] Requesting: {url}")
     try:
         async with session.get(url, ssl=False) as r:
+            if r.status == 200:
+                return await r.text(errors="ignore")
+    except Exception:
+        pass
+    return None
+
+
+async def fetch_with_timeout(session, url, timeout_sec):
+    """Fetch with custom timeout"""
+    print(f"[JF] Requesting: {url}")
+    try:
+        timeout = aiohttp.ClientTimeout(total=timeout_sec)
+        async with session.get(url, ssl=False, timeout=timeout) as r:
             if r.status == 200:
                 return await r.text(errors="ignore")
     except Exception:
@@ -64,6 +83,50 @@ async def extract_js(origin, html):
         js_urls.add(urljoin(origin, m.group("url")))
 
     return js_urls
+
+
+async def extract_source_map_url(js_url, js_body):
+    """Extract sourceMappingURL from JS and resolve it"""
+    m = SOURCE_MAP_URL.search(js_body)
+    if m:
+        map_url = m.group(1)
+        if map_url.startswith("http"):
+            print(f"[JF] Map detected (absolute): {map_url}")
+            return map_url
+        elif map_url.startswith("//"):
+            parsed = urlparse(js_url)
+            resolved = f"{parsed.scheme}:{map_url}"
+            print(f"[JF] Map detected (protocol-relative): {resolved}")
+            return resolved
+        else:
+            resolved = urljoin(js_url.rsplit("/", 1)[0] + "/", map_url)
+            print(f"[JF] Map detected (relative): {resolved}")
+            return resolved
+    return None
+
+
+async def extract_source_content(map_url, session):
+    """Fetch .map file and extract sourceContent array"""
+    print(f"[JF] Fetching sourcemap: {map_url}")
+    body = await fetch_with_timeout(session, map_url, 300)
+    if not body:
+        print(f"[JF] Failed to fetch sourcemap: {map_url}")
+        return None
+
+    try:
+        cleaned = body.replace("\\t", "").replace("\\n", "").replace("\\r", "")
+        sourcemap = json.loads(cleaned)
+        
+        if "sourcesContent" in sourcemap and sourcemap["sourcesContent"]:
+            content = "\n".join(src for src in sourcemap["sourcesContent"] if src)
+            print(f"[JF] Extracted sourceContent from map ({len(content)} bytes)")
+            return content
+        else:
+            print(f"[JF] No sourcesContent found in map")
+    except Exception as e:
+        print(f"[JF] Error parsing sourcemap: {e}")
+    
+    return None
 
 
 # =========================
@@ -99,6 +162,35 @@ async def scan_js(page_url, js_url, session, patterns, seen_js, f_log):
     if not body:
         return
 
+    # Check for sourceMap URL
+    map_url = await extract_source_map_url(js_url, body)
+    
+    if map_url and map_url not in seen_js:
+        seen_js.add(map_url)
+        source_content = await extract_source_content(map_url, session)
+        
+        if source_content:
+            print(f"[JF] Scanning sourcemap patterns: {js_url} --> {map_url}")
+            for pattern in patterns:
+                for match in re.finditer(pattern, source_content, re.DOTALL):
+                    line = (
+                        f"[JF] Pattern hit (SOURCEMAP)\n"
+                        f"Pattern: {pattern}\n"
+                        f"Match: {match.group(0)}\n"
+                        f"Page: {page_url}\n"
+                        f"JS: {js_url} --> {map_url}\n"
+                    )
+                    print(line)
+                    await f_log.write(line + "\n")
+                    await f_log.flush()
+            return
+    else:
+        if map_url:
+            print(f"[JF] Sourcemap already seen: {map_url}")
+        else:
+            print(f"[JF] No sourcemap found, scanning raw JS: {js_url}")
+
+    # Scan raw JS if no map or map failed
     for pattern in patterns:
         for match in re.finditer(pattern, body, re.DOTALL):
             line = (

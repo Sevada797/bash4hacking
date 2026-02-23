@@ -1,0 +1,16 @@
+3xxdata() {
+  if [[ -z "$1" ]]; then
+    echo "Usage:"
+    echo "  3xxdata subs_list.txt    # Scan & save to 3xxdata.txt"
+    return
+  fi
+
+  local input_file="$1"
+  
+  if [[ ! -f "$input_file" ]]; then
+    echo "[!] Error: Input file '$input_file' not found"
+    return
+  fi
+
+  python3 "$BFH_PATH/pysrc/3xxdata.py" -f "$input_file"
+}

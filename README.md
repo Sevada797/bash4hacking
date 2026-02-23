@@ -42,7 +42,12 @@ Make 'menu combos' better, add only practical combos.
 
 Requirements fix, and maybe even have tracking file
 
-Zsh support still sucks, Install zsh -> check the tool on zsh for all possible problems, and make syntax-es both ways bash/zsh compatible
+~~Zsh support still sucks, Install zsh -> check the tool on zsh for all possible problems, and make syntax-es both ways bash/zsh compatible~~
+
+Zsh support added (will be tested soon)
+Run `b4` command, everytime you need access for the tools, it'll lunch bash environment and then source all funcs
+
+
 
 ### Create 
 

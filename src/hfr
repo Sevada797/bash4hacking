@@ -1,0 +1,30 @@
+hfr() {
+  if [[ "$1" == "menu" ]]; then
+    cat "$BFH_PATH/TXT/HFR" | sed "s|@WORDLIST@|$2|g"
+    return 0
+  fi
+  if [[ "$1" == "log" ]]; then
+      cat hfr/log.txt 2>/dev/null || echo "[!] No hfr/log.txt found"
+      return 0
+  fi
+  if [[ "$1" == "finds" ]]; then
+      hfr log | grep -E "^URL:" | cut -d' ' -f2 | sort -u
+      return 0
+  fi
+
+    if [[ "$1" == "match" ]]; then
+        hfr log | grep -vE "^Page: |^Pattern: |^Page: |^URL: | Pattern hit"
+        return 0
+    fi
+
+
+  ulimit -n 100000
+  
+  PY_TOOL="$BFH_PATH/pysrc/hfr.py"
+  if [ $# -lt 2 ]; then
+      echo -e "Usage: hfr <file_with_urls> <pattern_or_file> [--ua-chrome] [--burp] [-H \"Header: value\"] [-nf]\n hfr finds -> shows which URLs matched\n hfr log -> shows all findings\n hfr menu <url_list> -> shows common command combinations with that file"
+      return 1
+  fi
+  # pass all args through to python script
+  python3 "$PY_TOOL" "$@"
+}
