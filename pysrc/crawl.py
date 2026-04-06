@@ -106,16 +106,29 @@ def write_log(collection, filename="crawler_log"):
     return collection
 
 def parse_custom_headers(header_list):
-    """Parse -H headers in format 'Key: Value'"""
-    custom = {}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+        "Accept": "*/*"
+    }
     if not header_list:
-        return custom
-    
+        return headers
+    # expand: if any -H value is a file, load lines from it; else use as-is
+    raw = []
     for h in header_list:
-        if ':' in h:
-            key, value = h.split(':', 1)
-            custom[key.strip()] = value.strip()
-    return custom
+        expanded = os.path.expanduser(h)
+        if os.path.isfile(expanded):
+            with open(expanded, encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        raw.append(line)
+        else:
+            raw.append(h)
+    for h in raw:
+        if ":" in h:
+            k, v = h.split(":", 1)
+            headers[k.strip()] = v.strip()
+    return headers
 
 # --- global domain holder ---
 base_domain = None
@@ -231,7 +244,8 @@ async def run_crawler(url, depth, pdt, headers, smart_filter):
     print()
     async with aiohttp.ClientSession(
         connector=aiohttp.TCPConnector(ssl=ssl_context),
-        headers=final_headers
+        headers=final_headers,
+        trust_env=True
     ) as session:
 
         # Depth 0

@@ -1,0 +1,27 @@
+pcheck() {
+
+    if [ $# -lt 2 ]; then
+        echo "Usage: pcheck <subs_list> <path_to_check>"
+        return 1
+    fi
+
+    local file="$1"
+    local path="$2"
+
+    # generate random 12-hex tmp file
+    local tmpfile="/tmp/$(openssl rand -hex 6 2>/dev/null || head -c6 /dev/urandom | xxd -p)"
+
+    # check if file contains http:// or https://
+    if grep -qE '^https?://' "$file"; then
+        awk '{print $0"/"}' "$file" | \
+        sed "s|$|$path|" > "$tmpfile"
+    else
+        awk '{print "https://"$0"/"}' "$file" | \
+        sed "s|$|$path|" > "$tmpfile"
+    fi
+
+    fuzz "$tmpfile"
+
+    # optional cleanup
+    rm -f "$tmpfile"
+}

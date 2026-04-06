@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import re
+import re, os
 import argparse
 import asyncio
 import aiohttp
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 # =========================
 # Regexes (CORE)
@@ -17,6 +17,11 @@ SCRIPT_ABS = re.compile(
 
 SCRIPT_REL = re.compile(
     r"<script[^>]+src=(\"|')(?P<url>/[^\"'>]+\.js)",
+    re.IGNORECASE
+)
+
+SCRIPT_REL2 = re.compile(
+    r"<script[^>]+src=(\"|')(?P<url>[^/\"'>][^\"'>]+\.js)",
     re.IGNORECASE
 )
 
@@ -44,8 +49,15 @@ async def fetch(session, url):
     return None
 
 
-def extract_js(origin, html):
+def extract_js(target, html):
     js_urls = set()
+
+    # base_full: for REL2 (no leading slash) — resolve against full page URL as directory
+    base_full = target if target.endswith("/") else target + "/"
+
+    # base_root: for REL (leading slash) — resolve against host root only
+    parsed = urlparse(target)
+    base_root = f"{parsed.scheme}://{parsed.netloc}/"
 
     for m in SCRIPT_ABS.finditer(html):
         url = m.group("url")
@@ -54,7 +66,10 @@ def extract_js(origin, html):
         js_urls.add(url)
 
     for m in SCRIPT_REL.finditer(html):
-        js_urls.add(urljoin(origin, m.group("url")))
+        js_urls.add(urljoin(base_root, m.group("url")))
+
+    for m in SCRIPT_REL2.finditer(html):
+        js_urls.add(urljoin(base_full, m.group("url")))
 
     return js_urls
 
@@ -80,20 +95,22 @@ async def run(targets, headers):
     async with aiohttp.ClientSession(
         connector=connector,
         timeout=timeout,
-        headers=headers
+        headers=headers,
+        trust_env=True
     ) as session:
 
         # STAGE 1: Fetch all target HTMLs in parallel
         print("[*] Stage 1: Fetching all target HTMLs...")
         html_map = {}
         
-        async def fetch_and_store(origin):
-            html = await fetch(session, origin)
+        async def fetch_and_store(target):
+            normalized = target.rstrip("/") + "/"
+            html = await fetch(session, normalized)
             if html:
-                html_map[origin] = html
+                html_map[normalized] = html
         
         await asyncio.gather(*[
-            fetch_and_store(target.rstrip("/") + "/")
+            fetch_and_store(target)
             for target in targets
         ])
         
@@ -103,10 +120,10 @@ async def run(targets, headers):
         print("[*] Stage 2: Extracting JS URLs...")
         js_map = {}  # js_url -> origin
         
-        for origin, html in html_map.items():
-            js_urls = extract_js(origin, html)
+        for target, html in html_map.items():
+            js_urls = extract_js(target, html)
             for js_url in js_urls:
-                js_map[js_url] = origin
+                js_map[js_url] = target
         
         print(f"[+] Found {len(js_map)} JS URLs")
 
@@ -170,9 +187,23 @@ def parse_args():
 
 
 def parse_headers(header_list):
-    headers = {}
-    headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/113.0.0.0"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
+        "Accept": "*/*"
+    }
+    # expand: if any -H value is a file, load lines from it; else use as-is
+    raw = []
     for h in header_list:
+        expanded = os.path.expanduser(h)
+        if os.path.isfile(expanded):
+            with open(expanded, encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        raw.append(line)
+        else:
+            raw.append(h)
+    for h in raw:
         if ":" in h:
             k, v = h.split(":", 1)
             headers[k.strip()] = v.strip()

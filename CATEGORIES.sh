@@ -46,8 +46,12 @@ falfa_category() { echo "FUZZING"; }
 falfa2_category() { echo "FUZZING"; }
 f1_category() { echo "FUZZING"; }
 freg_category() { echo "FUZZING"; }
+pcheck_category() { echo "FUZZING"; }
+
+
 
 fuzz_category() { echo "PROBING (ffuf/httpx)"; }
+fuzz200_category() { echo "PROBING (ffuf/httpx)"; }
 lsubs_category() { echo "PROBING (ffuf/httpx)"; }
 
 

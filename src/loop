@@ -16,7 +16,7 @@ checkfile="${3:-NOTEXISTING_FILE_323032352030313a35323a3033}"
 
 for i in *; do 
 if [[ -d "$i" && ! -f "$i/$checkfile" && -f "$i/$file" ]]; then
-eval "$callback"
+eval "cd $i; $callback; cd .."
 fi
 done
 

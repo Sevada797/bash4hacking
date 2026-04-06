@@ -67,11 +67,13 @@ async def fetch_with_timeout(session, url, timeout_sec):
     return None
 
 
-async def extract_js(origin, html):
+async def extract_js(target, origin, html):
     js_urls = set()
 
     for m in SCRIPT_REL2.finditer(html):
-        js_urls.add(urljoin(origin, m.group("url")))
+        base = target if target.endswith("/") else target + "/"
+        print(f"[DBG] origin={origin} base={base} rel={m.group('url')}")
+        js_urls.add(urljoin(base, m.group("url")))
 
     for m in SCRIPT_ABS.finditer(html):
         u = m.group("url")
@@ -214,7 +216,8 @@ async def run(targets, patterns, headers):
     async with aiohttp.ClientSession(
         headers=headers,
         connector=connector,
-        timeout=timeout
+        timeout=timeout,
+        trust_env=True
     ) as session:
 
         async with aiofiles.open(log_path, "a") as f_log:
@@ -247,7 +250,7 @@ async def run(targets, patterns, headers):
                 await scan_inline(page_url, html, patterns, f_log)
 
                 # external JS
-                js_urls = await extract_js(origin, html)
+                js_urls = await extract_js(target, origin, html)
                 
                 for js_url in js_urls:
                     all_js_tasks.append(
@@ -270,7 +273,19 @@ def parse_headers(header_list):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
         "Accept": "*/*"
     }
+    # expand: if any -H value is a file, load lines from it; else use as-is
+    raw = []
     for h in header_list:
+        expanded = os.path.expanduser(h)
+        if os.path.isfile(expanded):
+            with open(expanded, encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        raw.append(line)
+        else:
+            raw.append(h)
+    for h in raw:
         if ":" in h:
             k, v = h.split(":", 1)
             headers[k.strip()] = v.strip()

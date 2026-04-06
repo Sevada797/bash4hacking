@@ -2,6 +2,10 @@
 
 # Descriptions for bash4hacking functions (exactly matching your real scripts)
 
+pcheck_desc() {
+echo "Fuzz one given path on all subs"
+}
+
 csubr_desc() {
 echo "Sub brute in areas with more than one occurrences of sub-subdomains that have the same root/subdomain"
 }

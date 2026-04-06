@@ -1,0 +1,47 @@
+sessme() {
+  if [[ "$1" == "-h" ]]; then
+    echo "Usage: sessme"
+    echo "(after this, all chrome cookies are dumped, then all requests with automation tools in current terminal will be proxied,"
+    echo "and cookies according to the host will be added (a.b.com -> a.b.com, .a.b.com, .b.com ), so in short, we do this for "
+    echo "sessioned automation)"
+    return 0
+  fi
+    # Sproxy CA setup (generate and trust system-wide)
+    local ca_dir="$HOME/.sproxy"
+    local ca_crt="$ca_dir/ca.crt"
+    local ca_key="$ca_dir/ca.key"
+
+    mkdir -p "$ca_dir"
+
+    if [ ! -f "$ca_crt" ]; then
+        echo "[sproxy] generating CA..."
+        openssl genrsa -out "$ca_key" 2048
+        openssl req -new -x509 -days 3650 \
+            -key "$ca_key" \
+            -out "$ca_crt" \
+            -subj "/CN=sproxy CA/O=sproxy"
+
+        echo "[sproxy] trusting CA system-wide..."
+        sudo cp "$ca_crt" /usr/local/share/ca-certificates/sproxy.crt
+        sudo update-ca-certificates
+
+        echo "[sproxy] CA ready at $ca_crt"
+    fi
+    # Config for proxychains
+    # add check if and grep , to export once, not always type sudo
+  if ! grep -q "http 127.0.0.1 7797" /etc/proxychains.conf 2>/dev/null; then
+    sudo cp "$BFH_PATH/TXT/sproxy_proxychains.config" /etc/proxychains.conf
+    echo "[sproxy] Proxychains config was exported to /etc/proxychains.conf"
+  else
+  echo "[sproxy] Proxychains config already exists at /etc/proxychains.conf"
+  fi
+
+  if [[ "$1" == "d" ]]; then
+    mkdir -p sessme && cd sessme
+  fi
+
+  export HTTP_PROXY=http://127.0.0.1:7797
+  export HTTPS_PROXY=http://127.0.0.1:7797
+  
+  python3 "$BFH_PATH/pysrc/sessme.py"
+}

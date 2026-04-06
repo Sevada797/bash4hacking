@@ -146,7 +146,7 @@ async def main(file, values, use_ua, use_burp, custom_headers, no_follow, a_char
     total = len(urls)
     allow_redirects = not no_follow
 
-    async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout) as session:
+    async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout, trust_env=True) as session:
         session._default_proxy = proxy
 
         log_lock = asyncio.Lock()

@@ -175,7 +175,8 @@ async def main(urls):
 
     async with aiohttp.ClientSession(
         headers=HEADERS,
-        timeout=timeout
+        timeout=timeout,
+        trust_env=True
     ) as session:
 
         # ==========================================================
