@@ -35,38 +35,6 @@ from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 
-from curl_cffi import requests as cffi_requests
-
-
-def do_request_cffi(method, host, port, path, injector, extra_headers=b"", body=b""):
-    url = f"https://{host}{path}" if port == 443 else f"http://{host}:{port}{path}"
-    raw_req = build_request(method, path, host, extra_headers, body)
-    injected = injector.inject(raw_req)
-    
-    # Parse injected headers back out for cffi
-    hdr_block = injected.split(b"\r\n\r\n", 1)[0]
-    headers = {}
-    for line in hdr_block.split(b"\r\n")[1:]:
-        if b":" in line:
-            k, v = line.split(b":", 1)
-            headers[k.decode().strip()] = v.decode().strip()
-    
-    resp = cffi_requests.request(
-        method,
-        url,
-        headers=headers,
-        data=body or None,
-        impersonate="chrome131",  # spoof Chrome TLS fingerprint
-        allow_redirects=True,
-        timeout=30,
-    )
-    
-    # Reconstruct raw HTTP response
-    status_line = f"HTTP/1.1 {resp.status_code} OK\r\n".encode()
-    resp_headers = b"".join(f"{k}: {v}\r\n".encode() for k, v in resp.headers.items())
-    return status_line + resp_headers + b"\r\n" + resp.content
-
-
 def recv_until_headers_complete(sock):
     data = b""
     while b"\r\n\r\n" not in data:
@@ -87,6 +55,12 @@ MAX_REDIRECTS = 10
 DEBUG = "--debug" in sys.argv
 
 PROXY_THREAD_WORKERS = 500
+
+# ── Per-host cert cache ───────────────────────────────────────────────────────
+# Key: hostname, Value: ssl.SSLContext (server-side, pre-loaded)
+# /tmp/sproxy_cert_{host}.pem persists across restarts — free warm-start
+_ctx_cache      = {}
+_ctx_cache_lock = threading.Lock()
 
 
 # ── Debug helpers ─────────────────────────────────────────────────────────────
@@ -157,6 +131,35 @@ def generate_cert_for_host(host, ca_cert, ca_key):
         .sign(ca_key, hashes.SHA256())
     )
     return cert, key
+
+
+# ── Per-host SSLContext — generate once, cache forever ───────────────────────
+
+def get_ctx_for_host(host, ca_cert, ca_key):
+    with _ctx_cache_lock:
+        if host in _ctx_cache:
+            return _ctx_cache[host]
+
+        pem_path = f"/tmp/sproxy_cert_{host}.pem"
+
+        if not os.path.exists(pem_path):
+            cert, key = generate_cert_for_host(host, ca_cert, ca_key)
+            cert_pem = cert.public_bytes(serialization.Encoding.PEM)
+            key_pem  = key.private_bytes(
+                serialization.Encoding.PEM,
+                serialization.PrivateFormat.TraditionalOpenSSL,
+                serialization.NoEncryption()
+            )
+            with open(pem_path, "wb") as f:
+                f.write(cert_pem + key_pem)
+            dbg(f"[cert] generated → {pem_path}")
+        else:
+            dbg(f"[cert] reusing → {pem_path}")
+
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(pem_path)
+        _ctx_cache[host] = ctx
+        return ctx
 
 
 # ── Cookie Injector ───────────────────────────────────────────────────────────
@@ -255,7 +258,6 @@ class CookieInjector:
             lines[accept_idx] = b"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
         else:
             lines.append(b"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-
 
         injected = b"\r\n".join(lines) + b"\r\n\r\n" + body
         if DEBUG:
@@ -419,41 +421,27 @@ def do_request(method, host, port, path, injector,
 
 # ── MITM TLS handler ──────────────────────────────────────────────────────────
 
-
 def mitm_connect(client_sock, host, port, injector, ca_cert, ca_key, executor):
     """
     Full MITM:
       1. TLS handshake with client using per-host cert signed by our CA
+         (generated once, cached in memory + /tmp/sproxy_cert_{host}.pem)
       2. TLS handshake with real server as a normal TLS client
       3. Pipe plaintext both ways — inject cookies on client→server side
     """
-    cert, key = generate_cert_for_host(host, ca_cert, ca_key)
-
-    cert_pem = cert.public_bytes(serialization.Encoding.PEM)
-    key_pem  = key.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.TraditionalOpenSSL,
-        serialization.NoEncryption()
-    )
-
-    cf = tempfile.NamedTemporaryFile(delete=False, suffix=".crt")
-    cf.write(cert_pem); cf.close()
-    kf = tempfile.NamedTemporaryFile(delete=False, suffix=".key")
-    kf.write(key_pem);  kf.close()
-
     client_tls = None
     server_tls = None
+    raw_server = None
 
     try:
-        # side A: us ↔ client (we present our fake cert signed by our CA)
-        ctx_client = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ctx_client.load_cert_chain(cf.name, kf.name)
+        # side A: us ↔ client — reuse cached ctx, no temp files
+        ctx_client = get_ctx_for_host(host, ca_cert, ca_key)
         client_tls = ctx_client.wrap_socket(client_sock, server_side=True)
 
         # side B: us ↔ real server (normal TLS client)
         ctx_server = ssl.create_default_context()
         raw_server = socket.create_connection((host, port), timeout=120)
-        raw_server.settimeout(15)                        # ← add this
+        raw_server.settimeout(15)
         server_tls = ctx_server.wrap_socket(raw_server, server_hostname=host)
         client_tls.settimeout(15)
         server_tls.settimeout(15)
@@ -463,16 +451,11 @@ def mitm_connect(client_sock, host, port, injector, ca_cert, ca_key, executor):
 
     except Exception as e:
         print(f"[sproxy] MITM handshake failed for {host}:{port} — {e}")
-        for s in (client_tls, server_tls):
+        for s in (server_tls, raw_server, client_tls, client_sock):
             if s:
                 try: s.close()
                 except: pass
         return
-    finally:
-        for p in (cf.name, kf.name):
-            try: os.unlink(p)
-            except: pass
-
 
     def client_to_server():
         try:
@@ -516,10 +499,10 @@ def mitm_connect(client_sock, host, port, injector, ca_cert, ca_key, executor):
 def handle_client(client, injector, ca_cert, ca_key, executor):
     try:
         data = recv_until_headers_complete(client)
-        
+
         # DEBUG — log every incoming request raw
         #print(f"[sproxy] incoming ({len(data)} bytes): {data[:200]}")
-        
+
         if not data:
             return
         # ── CONNECT → MITM TLS ─────────────────────────────────────────────
