@@ -72,7 +72,7 @@ async def extract_js(target, origin, html):
 
     for m in SCRIPT_REL2.finditer(html):
         base = target if target.endswith("/") else target + "/"
-        print(f"[DBG] origin={origin} base={base} rel={m.group('url')}")
+        # print(f"[DBG] origin={origin} base={base} rel={m.group('url')}")
         js_urls.add(urljoin(base, m.group("url")))
 
     for m in SCRIPT_ABS.finditer(html):

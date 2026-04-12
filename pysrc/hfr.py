@@ -1,4 +1,9 @@
-import aiohttp
+import aiohttp.http_parser as _hp
+_hp.DEFAULT_MAX_FIELD_SIZE = 65536
+_hp.DEFAULT_MAX_LINE_SIZE = 65536
+
+import aiohttp  # then import normally
+
 import asyncio
 import argparse
 import os
@@ -105,81 +110,86 @@ async def retry_with_longer_timeout(session, url, **kwargs):
 
 
 async def fetch(session, url, patterns, f_log, log_lock, counter, total, allow_redirects, semaphore):
-    acquired = await semaphore.acquire()
-    with active_urls_lock:
-        active_urls.add(url)
+    async with semaphore:
+        with active_urls_lock:
+            active_urls.add(url)
 
-    try:
-        async with session.get(url, ssl=False, allow_redirects=allow_redirects) as resp:
-            # ← release semaphore NOW — connection is open, slot is free for next URL
-            semaphore.release()
-            acquired = False
-
-            raw_peek = await resp.content.read(16)
-            filetype = detect_magic(raw_peek)
-            if filetype:
-                print(f"\r[SKIP] {url} -> {filetype}")
-                return
-
-            content_type = resp.headers.get("Content-Type", "").lower()
-            allowed_types = ["text/html", "text/plain", "application/json",
-                             "application/javascript", "application/xml"]
-            if not any(ct in content_type for ct in allowed_types):
-                return
-
-            raw_rest = await resp.content.read(500 * 1024 - 16)
-            raw = raw_peek + raw_rest
-            html = raw.decode(errors="ignore")
-
-            for pattern in patterns:
-                for match in re.finditer(pattern, html, re.DOTALL):
-                    async with log_lock:
-                        await f_log.write(f"[HFR] Pattern hit\n")
-                        await f_log.write(f"Pattern: {pattern}\n")
-                        await f_log.write(f"Match: {match.group(0)}\n")
-                        await f_log.write(f"URL: {url}\n\n")
-
-    except asyncio.TimeoutError:
-        if acquired:
-            semaphore.release()
-            acquired = False
         try:
-            retry_timeout = aiohttp.ClientTimeout(total=10, connect=10, sock_connect=10, sock_read=30)
-            async with session.get(url, ssl=False, allow_redirects=allow_redirects, timeout=retry_timeout) as resp:
-                raw = await resp.content.read(500 * 1024)
-                filetype = detect_magic(raw)
+            async with session.get(url, ssl=False, allow_redirects=allow_redirects) as resp:
+                # ← release semaphore NOW — connection is open, slot is free for next URL
+                #semaphore.release()
+                #acquired = False
+
+                raw_peek = await resp.content.read(16)
+                filetype = detect_magic(raw_peek)
                 if filetype:
+                    print(f"\r[SKIP] {url} -> {filetype}")
                     return
+
+                content_type = resp.headers.get("Content-Type", "").lower()
+                allowed_types = ["text/html", "text/plain", "application/json",
+                                 "application/javascript", "application/xml"]
+                if not any(ct in content_type for ct in allowed_types):
+                    return
+
+                raw_rest = await resp.content.read(500 * 1024 - 16)
+                raw = raw_peek + raw_rest
                 html = raw.decode(errors="ignore")
+
                 for pattern in patterns:
                     for match in re.finditer(pattern, html, re.DOTALL):
                         async with log_lock:
-                            await f_log.write(f"[HFR] Pattern hit (retry)\n")
+                            await f_log.write(f"[HFR] Pattern hit\n")
                             await f_log.write(f"Pattern: {pattern}\n")
                             await f_log.write(f"Match: {match.group(0)}\n")
                             await f_log.write(f"URL: {url}\n\n")
-        except Exception:
-            pass
 
-    except (ClientConnectorError, ClientProxyConnectionError, ClientOSError,
-            ClientResponseError, ServerTimeoutError, ClientSSLError, aiohttp.InvalidURL):
-        if acquired:
-            semaphore.release()
-            acquired = False
+        except asyncio.TimeoutError:
+            # if acquired:
+            #     semaphore.release()
+            #     acquired = False
+            try:
+                retry_timeout = aiohttp.ClientTimeout(total=10, connect=10, sock_connect=10, sock_read=30)
+                async with session.get(url, ssl=False, allow_redirects=allow_redirects, timeout=retry_timeout) as resp:
+                    raw = await resp.content.read(500 * 1024)
+                    filetype = detect_magic(raw)
+                    if filetype:
+                        return
+                    html = raw.decode(errors="ignore")
+                    for pattern in patterns:
+                        for match in re.finditer(pattern, html, re.DOTALL):
+                            async with log_lock:
+                                await f_log.write(f"[HFR] Pattern hit (retry)\n")
+                                await f_log.write(f"Pattern: {pattern}\n")
+                                await f_log.write(f"Match: {match.group(0)}\n")
+                                await f_log.write(f"URL: {url}\n\n")
+            except Exception:
+                pass
 
-    except Exception as e:
-        print(f"\n[ERROR] {url}: {e}")
-        if acquired:
-            semaphore.release()
-            acquired = False
+        #except (ClientConnectorError, ClientProxyConnectionError, ClientOSError,
+        #        ClientResponseError, ServerTimeoutError, ClientSSLError, aiohttp.InvalidURL):
+        #    ""
+        except (ClientConnectorError, ClientProxyConnectionError, ClientOSError,
+        ClientResponseError, ServerTimeoutError, ClientSSLError, aiohttp.InvalidURL) as e:
+            async with log_lock:
+                await f_log.write(f"[FAIL] {url}: {type(e).__name__}: {e}\n")
+            # if acquired:
+            #     semaphore.release()
+            #     acquired = False
 
-    finally:
-        if acquired:          # safety net — should never hit but just in case
-            semaphore.release()
-        with active_urls_lock:
-            active_urls.discard(url)
-        counter[0] += 1
-        print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
+        except Exception as e:
+            print(f"\n[ERROR] {url}: {e}")
+            # if acquired:
+            #     semaphore.release()
+            #     acquired = False
+
+        finally:
+            # if acquired:          # safety net — should never hit but just in case
+            #     semaphore.release()
+            with active_urls_lock:
+                active_urls.discard(url)
+            counter[0] += 1
+            print(f"\r{counter[0]} requests done out of {total}", end="", flush=True)
 
 
 async def load_targets(target_input):
@@ -220,7 +230,7 @@ async def load_pattern(pattern_input):
 async def main(file, patterns, use_ua, use_burp, custom_headers, no_follow):
     if DEBUG_AND_KILL:
         threading.Thread(target=debug_kill_timer, daemon=True).start()
-    semaphore = asyncio.Semaphore(100)  # tune this number down if CPU spikes
+    semaphore = asyncio.Semaphore(1)  # tune this number down if CPU spikes
     try:
         urls = await load_targets(file)
     except Exception as e:
@@ -252,19 +262,26 @@ async def main(file, patterns, use_ua, use_burp, custom_headers, no_follow):
 
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
-    connector = aiohttp.TCPConnector(limit=200, limit_per_host=10)
+    connector = aiohttp.TCPConnector(limit=1, limit_per_host=0, ttl_dns_cache=300, enable_cleanup_closed=True)
     timeout = aiohttp.ClientTimeout(
-        total=10,
-        connect=5,
-        sock_connect=5,
-        sock_read=10
+        total=60,
+        connect=15,
+        sock_connect=10,
+        sock_read=15
     )
 
     counter = [0]
     total = len(urls)
     allow_redirects = not no_follow
 
-    async with aiohttp.ClientSession(headers=headers, connector=connector, timeout=timeout, trust_env=True) as session:
+    async with aiohttp.ClientSession(
+    headers=headers,
+    connector=connector,
+    timeout=timeout,
+    trust_env=True,
+    max_line_size=8190 * 2,
+    max_field_size=8190 * 2
+) as session:
         session._default_proxy = proxy
 
         log_lock = asyncio.Lock()

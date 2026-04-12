@@ -1,0 +1,13 @@
+resubs() {
+
+if [[ -z $1 ]]; then
+  echo "Usage: resubs <urls>"
+  return 0
+fi
+
+local urls="$1"
+
+bash ~/re/subs_make.sh t; hfr "$urls" ~/re/subs; jf "$urls" ~/re/subs
+(hfr match ; jf match) | grep -vE ^$ | sort -u | cut -d" " -f2 | sed 's/^2f//I; s/^25//' >resubs
+
+}

@@ -26,6 +26,10 @@ SCRIPT_REL2 = re.compile(
 )
 
 # :(( no \$ , we will miss, e.g. `some/path/${configURL}`
+# WE MISSING ALSO paths relative with no dash fix this ASAP , and same for JF, and 
+# crawl also may be effected X_X
+
+
 
 PATH = r"/(?!/)[a-zA-Z0-9_:\{\}\$\./\-]+(\?[a-zA-Z_\-]+(=([a-zA-Z0-9_%\-]+)?)?(&[a-zA-Z_\-]+=([a-zA-Z0-9_%\-]+)?)*|)"
 

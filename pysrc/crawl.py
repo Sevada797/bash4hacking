@@ -216,6 +216,10 @@ async def crawl_depth(urls, session, sem, depth, pdt, smart_filter):
             new_links = keep_unique_5_per_first_path(new_links)
             new_links = filter_bad_patterns(new_links)
 
+        # Filter logout URLs from discovered links before storing
+        new_links = [l for l in new_links if not any(n in l.lower() for n in logout_urls)]
+
+
         next_urls += new_links
         collection.extend(new_links)
         logfile="crawler_log_"+str(depth)+"_"+str(pdt)

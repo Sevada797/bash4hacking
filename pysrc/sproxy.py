@@ -34,6 +34,48 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
+
+from curl_cffi import requests as cffi_requests
+
+
+def do_request_cffi(method, host, port, path, injector, extra_headers=b"", body=b""):
+    url = f"https://{host}{path}" if port == 443 else f"http://{host}:{port}{path}"
+    raw_req = build_request(method, path, host, extra_headers, body)
+    injected = injector.inject(raw_req)
+    
+    # Parse injected headers back out for cffi
+    hdr_block = injected.split(b"\r\n\r\n", 1)[0]
+    headers = {}
+    for line in hdr_block.split(b"\r\n")[1:]:
+        if b":" in line:
+            k, v = line.split(b":", 1)
+            headers[k.decode().strip()] = v.decode().strip()
+    
+    resp = cffi_requests.request(
+        method,
+        url,
+        headers=headers,
+        data=body or None,
+        impersonate="chrome131",  # spoof Chrome TLS fingerprint
+        allow_redirects=True,
+        timeout=30,
+    )
+    
+    # Reconstruct raw HTTP response
+    status_line = f"HTTP/1.1 {resp.status_code} OK\r\n".encode()
+    resp_headers = b"".join(f"{k}: {v}\r\n".encode() for k, v in resp.headers.items())
+    return status_line + resp_headers + b"\r\n" + resp.content
+
+
+def recv_until_headers_complete(sock):
+    data = b""
+    while b"\r\n\r\n" not in data:
+        chunk = sock.recv(65535)
+        if not chunk:
+            break
+        data += chunk
+    return data
+
 LISTEN_HOST   = "127.0.0.1"
 LISTEN_PORT   = 7797
 SESSION_PATH  = os.path.join(os.path.expanduser("~"), ".sessme", "SESSION.json")
@@ -377,6 +419,7 @@ def do_request(method, host, port, path, injector,
 
 # ── MITM TLS handler ──────────────────────────────────────────────────────────
 
+
 def mitm_connect(client_sock, host, port, injector, ca_cert, ca_key, executor):
     """
     Full MITM:
@@ -430,6 +473,7 @@ def mitm_connect(client_sock, host, port, injector, ca_cert, ca_key, executor):
             try: os.unlink(p)
             except: pass
 
+
     def client_to_server():
         try:
             while True:
@@ -471,7 +515,11 @@ def mitm_connect(client_sock, host, port, injector, ca_cert, ca_key, executor):
 
 def handle_client(client, injector, ca_cert, ca_key, executor):
     try:
-        data = client.recv(65535)
+        data = recv_until_headers_complete(client)
+        
+        # DEBUG — log every incoming request raw
+        #print(f"[sproxy] incoming ({len(data)} bytes): {data[:200]}")
+        
         if not data:
             return
         # ── CONNECT → MITM TLS ─────────────────────────────────────────────
