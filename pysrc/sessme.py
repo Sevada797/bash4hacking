@@ -162,25 +162,30 @@ def fetch_all_cookies(cur):
 def group_cookies(rows, v11_key):
     buckets = {}
     for db_host, name, enc in rows:
-        canonical = db_host.lstrip(".")
         value = decrypt_value(enc, v11_key)
-        buckets.setdefault(canonical, {})[name] = value
+        buckets.setdefault(db_host, {})[name] = value
 
-    # Second pass: for each host, merge in cookies from parent domains
-    all_hosts = set(buckets.keys())
-    for host in all_hosts:
+    # Second pass: for each non-dot host, merge in wildcard parent cookies
+    result = {}
+    for host, cookies in buckets.items():
+        if host.startswith("."):
+            continue                              # skip raw wildcard entries, they'll be pulled in below
+
+        merged = {}
         parts = host.split(".")
-        # Walk up the domain hierarchy, e.g. barnaul.hh.ru -> hh.ru -> ru
-        for i in range(1, len(parts) - 1):          # skip the full host itself and the TLD
-            parent = ".".join(parts[i:])             # e.g. "hh.ru"
-            if parent in buckets:
-                # Parent cookies go in first (lower priority), host cookies win on conflict
-                merged = {**buckets[parent], **buckets[host]}
-                buckets[host] = merged
+        # Walk up hierarchy: barnaul.hh.ru -> .barnaul.hh.ru, then .hh.ru  (stop before bare TLD)
+        for i in range(0, len(parts) - 1):
+            ancestor = "." + ".".join(parts[i:])  # ".barnaul.hh.ru", then ".hh.ru"
+            if ancestor in buckets:
+                merged.update(buckets[ancestor])  # lower priority first
+
+        merged.update(cookies)                    # exact host cookies win
+        result[host] = merged
 
     return {
         host: "; ".join(f"{n}={v}" for n, v in pairs.items())
-        for host, pairs in buckets.items()
+        for host, pairs in result.items()
+        if pairs
     }
 
 # ── SESSION.json writer ───────────────────────────────────────────────────────
