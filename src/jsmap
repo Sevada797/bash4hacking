@@ -35,5 +35,6 @@ jsmap() {
         return 1
     fi
 
-    python3 "$TOOL" "$TARGET" "${HEADERS[@]}"
+    python3 "$TOOL" "$TARGET" "${HEADERS[@]}";
+    cut -d " " -f3 jsmap.txt | tee -a jsmap
 }

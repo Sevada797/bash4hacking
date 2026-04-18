@@ -230,7 +230,7 @@ async def load_pattern(pattern_input):
 async def main(file, patterns, use_ua, use_burp, custom_headers, no_follow):
     if DEBUG_AND_KILL:
         threading.Thread(target=debug_kill_timer, daemon=True).start()
-    semaphore = asyncio.Semaphore(1)  # tune this number down if CPU spikes
+    semaphore = asyncio.Semaphore(100)  # tune this number down if CPU spikes
     try:
         urls = await load_targets(file)
     except Exception as e:
@@ -262,10 +262,10 @@ async def main(file, patterns, use_ua, use_burp, custom_headers, no_follow):
 
     proxy = "http://127.0.0.1:8080" if use_burp else None
 
-    connector = aiohttp.TCPConnector(limit=1, limit_per_host=0, ttl_dns_cache=300, enable_cleanup_closed=True)
+    connector = aiohttp.TCPConnector(limit=200, limit_per_host=0, ttl_dns_cache=300, enable_cleanup_closed=True)
     timeout = aiohttp.ClientTimeout(
         total=60,
-        connect=15,
+        connect=10,
         sock_connect=10,
         sock_read=15
     )

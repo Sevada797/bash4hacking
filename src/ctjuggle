@@ -1,0 +1,12 @@
+ctjuggle() {
+  if [ $# -lt 1 ]; then
+    echo 'Usage: ctjuggle <urls_file>'
+    return 1
+  fi
+
+
+  PY_TOOL="$BFH_PATH/pysrc/ctjuggle.py"
+  python3 "$PY_TOOL" "$@"
+
+
+}

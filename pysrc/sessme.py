@@ -266,7 +266,7 @@ def main():
         print("[sessme] Proxy (sproxy) already running, exporting the proxy env vars only")
     else:
         print("[sessme] Running proxy (sproxy) and exporting the proxy env vars")
-        os.system("python3 \"$BFH_PATH/pysrc/sproxy.py\" &")
+        os.system("python3 \"$BFH_PATH/pysrc/sproxy.py\" > /dev/null 2>&1 &")
 
 
 

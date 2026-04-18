@@ -1,8 +1,8 @@
 fuzz() {
   if [ -z "$1" ]; then
-    echo "Usage: fuzz wordlist.txt"
+    echo "Usage: fuzz <urls> [METHOD (get by default)]"
     return
   fi
 
-  ffuf -u FUZZ -c -w "$1" -H "User-Agent: chrome" -mc all
+  ffuf -u FUZZ -c -w "$1" -H "User-Agent: chrome" -mc all -X "${2:-GET}"
 }

@@ -40,6 +40,12 @@ sessme() {
     mkdir -p sessme && cd sessme
   fi
 
+  if [[ "$1" == "r" ]]; then
+    local PID=$(tail -n1 <(lsof -i :7797) | cut -d" " -f2)
+    sudo kill -9 "$PID"
+  fi
+
+
   export HTTP_PROXY=http://127.0.0.1:7797
   export HTTPS_PROXY=http://127.0.0.1:7797
   
